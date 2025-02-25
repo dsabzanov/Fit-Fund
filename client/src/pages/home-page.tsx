@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Challenge } from "@shared/schema";
 import { ChallengeCard } from "@/components/challenge-card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { createPaymentSession } from "@/lib/stripe";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus } from "lucide-react";
+import { CreateChallengeForm } from "@/components/create-challenge-form";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -42,10 +44,20 @@ export default function HomePage() {
           <h1 className="text-2xl font-bold">FitFund</h1>
           <div className="flex items-center gap-4">
             <span>Welcome, {user?.username}</span>
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Challenge
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Challenge
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Challenge</DialogTitle>
+                </DialogHeader>
+                <CreateChallengeForm />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </header>
