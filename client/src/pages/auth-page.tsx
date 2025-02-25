@@ -84,7 +84,7 @@ export default function AuthPage() {
         <div className="space-y-6">
           <h1 className="text-4xl font-bold tracking-tighter">
             Transform Your Life with
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> WeightBet</span>
+            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> FitFund</span>
           </h1>
           <p className="text-muted-foreground text-lg">
             Join weight loss challenges, bet on yourself, and win money while achieving your fitness goals.
@@ -94,7 +94,7 @@ export default function AuthPage() {
 
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>Welcome to WeightBet</CardTitle>
+            <CardTitle>Welcome to FitFund</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button
