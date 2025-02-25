@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema } from "@shared/schema";
@@ -8,7 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useLocation } from "wouter";
+import { auth, googleProvider } from "@/lib/firebase";
+import { signInWithPopup } from "firebase/auth";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -35,6 +39,24 @@ export default function AuthPage() {
     },
   });
 
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      // After Google sign-in, create or get user in our backend
+      const idToken = await result.user.getIdToken();
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      if (!response.ok) throw new Error("Failed to authenticate with backend");
+      const user = await response.json();
+      loginMutation.mutate(user);
+    } catch (error) {
+      console.error("Google sign-in failed:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/20 to-background p-8">
       <div className="container mx-auto grid md:grid-cols-2 gap-8 items-center max-w-6xl">
@@ -53,7 +75,27 @@ export default function AuthPage() {
           <CardHeader>
             <CardTitle>Welcome to WeightBet</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={handleGoogleSignIn}
+            >
+              <FcGoogle className="mr-2 h-5 w-5" />
+              Continue with Google
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
             <Tabs defaultValue="login">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
