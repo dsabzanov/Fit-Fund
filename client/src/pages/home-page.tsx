@@ -39,11 +39,17 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <img src="/logo.png" alt="Ilana Muhlstein Logo" className="h-16 w-auto object-contain" />
+      <header className="border-b bg-white shadow-sm">
+        <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+          <div className="w-[200px]">
+            <img 
+              src="/attached_assets/IM_Logo_Full-Color (2).png" 
+              alt="Ilana Muhlstein Logo" 
+              className="w-full h-auto object-contain"
+            />
+          </div>
           <div className="flex items-center gap-4">
-            <span>Welcome, {user?.username}</span>
+            <span className="text-muted-foreground">Welcome, {user?.username}</span>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
