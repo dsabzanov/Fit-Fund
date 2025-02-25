@@ -82,10 +82,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gradient-to-br from-primary/20 to-background p-8">
       <div className="container mx-auto grid md:grid-cols-2 gap-8 items-center max-w-6xl">
         <div className="space-y-6">
-          <h1 className="text-4xl font-bold tracking-tighter">
-            Transform Your Life with
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> FitFund</span>
-          </h1>
+          <img src="/attached_assets/IM_Logo_Full-Color (2).png" alt="FitFund Logo" className="h-16 mb-6" />
           <p className="text-muted-foreground text-lg">
             Join weight loss challenges, bet on yourself, and win money while achieving your fitness goals.
             Our platform makes weight loss fun, social, and rewarding.
