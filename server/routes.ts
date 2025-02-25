@@ -14,51 +14,39 @@ import {
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   const httpServer = createServer(app);
-  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
-
-  // Google Auth endpoint
-  app.post("/api/auth/google", async (req, res) => {
-    try {
-      const { idToken } = req.body;
-      const decodedToken = await getAuth().verifyIdToken(idToken);
-
-      // Check if user exists
-      let user = await storage.getUserByUsername(decodedToken.email!);
-
-      if (!user) {
-        // Create new user if they don't exist
-        user = await storage.createUser({
-          username: decodedToken.email!,
-          password: "", // Google users don't need a password
-        });
-      }
-
-      // Log them in
-      req.login(user, (err) => {
-        if (err) throw err;
-        res.json(user);
-      });
-    } catch (error) {
-      console.error("Google auth error:", error);
-      res.status(401).json({ error: "Authentication failed" });
-    }
-  });
+  const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
 
   // WebSocket connection handling
   wss.on("connection", (ws) => {
-    ws.on("message", async (message) => {
-      const data = JSON.parse(message.toString());
+    console.log("WebSocket client connected");
 
-      if (data.type === "chat") {
-        // Broadcast chat message to all clients
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-              type: "chat",
-              data: data.message
-            }));
-          }
-        });
+    ws.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
+
+    ws.on("close", () => {
+      console.log("WebSocket client disconnected");
+    });
+
+    ws.on("message", async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log("Received message:", data);
+
+        if (data.type === "chat") {
+          // Broadcast chat message to all clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: "chat",
+                challengeId: data.challengeId,
+                message: data.message
+              }));
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error processing message:", error);
       }
     });
   });
@@ -123,6 +111,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       userId: req.user!.id,
     });
     res.status(201).json(message);
+  });
+
+  // Google Auth endpoint
+  app.post("/api/auth/google", async (req, res) => {
+    try {
+      const { idToken } = req.body;
+      const decodedToken = await getAuth().verifyIdToken(idToken);
+
+      // Check if user exists
+      let user = await storage.getUserByUsername(decodedToken.email!);
+
+      if (!user) {
+        // Create new user if they don't exist
+        user = await storage.createUser({
+          username: decodedToken.email!,
+          password: "", // Google users don't need a password
+        });
+      }
+
+      // Log them in
+      req.login(user, (err) => {
+        if (err) throw err;
+        res.json(user);
+      });
+    } catch (error) {
+      console.error("Google auth error:", error);
+      res.status(401).json({ error: "Authentication failed" });
+    }
   });
 
   return httpServer;

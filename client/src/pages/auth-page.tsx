@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { useLocation } from "wouter";
 import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
+import { toast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -42,6 +43,12 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      // Show loading toast
+      toast({
+        title: "Signing in...",
+        description: "Please wait while we complete the authentication.",
+      });
+
       // After Google sign-in, create or get user in our backend
       const idToken = await result.user.getIdToken();
       const response = await fetch("/api/auth/google", {
@@ -49,11 +56,25 @@ export default function AuthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
-      if (!response.ok) throw new Error("Failed to authenticate with backend");
+
+      if (!response.ok) {
+        throw new Error("Failed to authenticate with backend");
+      }
+
       const user = await response.json();
       loginMutation.mutate(user);
+
+      toast({
+        title: "Success!",
+        description: "You have successfully signed in with Google.",
+      });
     } catch (error) {
       console.error("Google sign-in failed:", error);
+      toast({
+        title: "Sign-in Failed",
+        description: error instanceof Error ? error.message : "Failed to sign in with Google",
+        variant: "destructive",
+      });
     }
   };
 
@@ -76,12 +97,17 @@ export default function AuthPage() {
             <CardTitle>Welcome to WeightBet</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button 
-              variant="outline" 
-              className="w-full" 
+            <Button
+              variant="outline"
+              className="w-full"
               onClick={handleGoogleSignIn}
+              disabled={loginMutation.isPending}
             >
-              <FcGoogle className="mr-2 h-5 w-5" />
+              {loginMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <FcGoogle className="mr-2 h-5 w-5" />
+              )}
               Continue with Google
             </Button>
 
