@@ -43,9 +43,12 @@ export default function HomePage() {
         <div className="container mx-auto px-6 py-3 flex justify-between items-center">
           <div className="w-[200px]">
             <img 
-              src="/attached_assets/IM_Logo_Full-Color (2).png" 
+              src="/assets/IM_Logo_Full_Color.png" 
               alt="Ilana Muhlstein Logo" 
-              className="w-full h-auto object-contain"
+              className="w-full h-auto object-contain" 
+              onError={(e) => {
+                e.currentTarget.src = "/assets/IM_Initials_Black.png";
+              }}
             />
           </div>
           <div className="flex items-center gap-4">

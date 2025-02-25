@@ -84,9 +84,13 @@ export default function AuthPage() {
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <img 
-              src="/attached_assets/IM_Logo_Full-Color (2).png" 
+              src="/assets/IM_Logo_Full_Color.png" 
               alt="Ilana Muhlstein Logo" 
               className="max-w-[300px] w-full h-auto object-contain" 
+              onError={(e) => {
+                // Fallback to initials if full logo fails
+                e.currentTarget.src = "/assets/IM_Initials_Black.png";
+              }}
             />
           </div>
           <p className="text-muted-foreground text-lg">
