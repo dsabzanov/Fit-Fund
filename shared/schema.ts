@@ -34,13 +34,36 @@ export const participants = pgTable("participants", {
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
 });
 
-// Weight records table
+// Weight records table with image verification
 export const weightRecords = pgTable("weight_records", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   challengeId: integer("challenge_id").notNull(),
   weight: numeric("weight").notNull(),
+  imageUrl: text("image_url"), // Optional image URL for verification
   recordedAt: timestamp("recorded_at").notNull().defaultNow(),
+});
+
+// Feed posts table
+export const feedPosts = pgTable("feed_posts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  challengeId: integer("challenge_id").notNull(),
+  content: text("content").notNull(),
+  imageUrl: text("image_url"), // Optional image URL
+  isPinned: boolean("is_pinned").notNull().default(false),
+  isScheduled: boolean("is_scheduled").notNull().default(false),
+  scheduledFor: timestamp("scheduled_for"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Comments table
+export const comments = pgTable("comments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  postId: integer("post_id").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // Chat messages table
@@ -62,6 +85,8 @@ export const insertChallengeSchema = createInsertSchema(challenges);
 export const insertParticipantSchema = createInsertSchema(participants);
 export const insertWeightRecordSchema = createInsertSchema(weightRecords);
 export const insertChatMessageSchema = createInsertSchema(chatMessages);
+export const insertFeedPostSchema = createInsertSchema(feedPosts);
+export const insertCommentSchema = createInsertSchema(comments);
 
 // Export types
 export type User = typeof users.$inferSelect;
@@ -69,9 +94,13 @@ export type Challenge = typeof challenges.$inferSelect;
 export type Participant = typeof participants.$inferSelect;
 export type WeightRecord = typeof weightRecords.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
+export type FeedPost = typeof feedPosts.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertChallenge = z.infer<typeof insertChallengeSchema>;
 export type InsertParticipant = z.infer<typeof insertParticipantSchema>;
 export type InsertWeightRecord = z.infer<typeof insertWeightRecordSchema>;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type InsertFeedPost = z.infer<typeof insertFeedPostSchema>;
+export type InsertComment = z.infer<typeof insertCommentSchema>;

@@ -9,6 +9,8 @@ import {
   insertChallengeSchema,
   insertWeightRecordSchema,
   insertChatMessageSchema,
+  insertFeedPostSchema,
+  insertCommentSchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -101,6 +103,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     res.status(201).json(weightRecord);
+  });
+
+  // Feed post routes
+  app.post("/api/challenges/:id/posts", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const post = await storage.createFeedPost({
+      ...req.body,
+      userId: req.user!.id,
+      challengeId: parseInt(req.params.id),
+    });
+    res.status(201).json(post);
+  });
+
+  app.get("/api/challenges/:id/posts", async (req, res) => {
+    const posts = await storage.getFeedPosts(parseInt(req.params.id));
+    res.json(posts);
+  });
+
+  app.patch("/api/posts/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const post = await storage.updateFeedPost(parseInt(req.params.id), req.body);
+    if (!post) return res.status(404).send("Post not found");
+    res.json(post);
+  });
+
+  // Comment routes
+  app.post("/api/posts/:id/comments", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const comment = await storage.addComment({
+      ...req.body,
+      userId: req.user!.id,
+      postId: parseInt(req.params.id),
+    });
+    res.status(201).json(comment);
+  });
+
+  app.get("/api/posts/:id/comments", async (req, res) => {
+    const comments = await storage.getComments(parseInt(req.params.id));
+    res.json(comments);
   });
 
   // Chat routes

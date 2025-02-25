@@ -7,11 +7,15 @@ import {
   Participant,
   WeightRecord,
   ChatMessage,
+  FeedPost,
+  Comment,
   InsertUser,
   InsertChallenge,
   InsertParticipant,
   InsertWeightRecord,
   InsertChatMessage,
+  InsertFeedPost,
+  InsertComment,
 } from "@shared/schema";
 
 const MemoryStore = createMemoryStore(session);
@@ -22,6 +26,8 @@ export class MemStorage implements IStorage {
   private participants: Map<number, Participant>;
   private weightRecords: Map<number, WeightRecord>;
   private chatMessages: Map<number, ChatMessage>;
+  private feedPosts: Map<number, FeedPost>;
+  private comments: Map<number, Comment>;
   public sessionStore: session.SessionStore;
   private currentId: number;
 
@@ -31,6 +37,8 @@ export class MemStorage implements IStorage {
     this.participants = new Map();
     this.weightRecords = new Map();
     this.chatMessages = new Map();
+    this.feedPosts = new Map();
+    this.comments = new Map();
     this.currentId = 1;
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -106,6 +114,45 @@ export class MemStorage implements IStorage {
     return Array.from(this.chatMessages.values()).filter(
       (m) => m.challengeId === challengeId
     );
+  }
+
+  async createFeedPost(post: InsertFeedPost): Promise<FeedPost> {
+    const id = this.currentId++;
+    const newPost: FeedPost = { ...post, id };
+    this.feedPosts.set(id, newPost);
+    return newPost;
+  }
+
+  async getFeedPosts(challengeId: number): Promise<FeedPost[]> {
+    return Array.from(this.feedPosts.values())
+      .filter((p) => p.challengeId === challengeId)
+      .sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }
+
+  async addComment(comment: InsertComment): Promise<Comment> {
+    const id = this.currentId++;
+    const newComment: Comment = { ...comment, id };
+    this.comments.set(id, newComment);
+    return newComment;
+  }
+
+  async getComments(postId: number): Promise<Comment[]> {
+    return Array.from(this.comments.values())
+      .filter((c) => c.postId === postId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
+  async updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined> {
+    const post = this.feedPosts.get(id);
+    if (!post) return undefined;
+
+    const updatedPost = { ...post, ...updates };
+    this.feedPosts.set(id, updatedPost);
+    return updatedPost;
   }
 }
 

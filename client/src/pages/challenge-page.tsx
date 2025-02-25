@@ -4,6 +4,7 @@ import { Challenge, Participant, WeightRecord, ChatMessage } from "@shared/schem
 import { WeightForm } from "@/components/weight-form";
 import { Leaderboard } from "@/components/leaderboard";
 import { Chat } from "@/components/chat";
+import { Feed } from "@/components/feed"; // Added import for Feed component
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
@@ -86,6 +87,8 @@ export default function ChallengePage() {
                 </p>
               </CardContent>
             </Card>
+
+            <Feed challengeId={challengeId} />
 
             <Card>
               <CardHeader>
