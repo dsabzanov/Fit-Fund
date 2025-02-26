@@ -84,12 +84,11 @@ export default function AuthPage() {
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <img 
-              src="/assets/IM_Logo_Full-Color.png" 
+              src="/assets/logo.png" 
               alt="Ilana Muhlstein Logo" 
               className="w-full h-auto object-contain" 
               onError={(e) => {
-                // Fallback to initials if full logo fails
-                e.currentTarget.src = "/assets/IM_Initials_Black.png";
+                e.currentTarget.src = "/assets/logo-small.png";
               }}
             />
           </div>
