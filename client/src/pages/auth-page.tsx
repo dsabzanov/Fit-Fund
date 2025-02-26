@@ -43,13 +43,11 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      // Show loading toast
       toast({
         title: "Signing in...",
         description: "Please wait while we complete the authentication.",
       });
 
-      // After Google sign-in, create or get user in our backend
       const idToken = await result.user.getIdToken();
       const response = await fetch("/api/auth/google", {
         method: "POST",
