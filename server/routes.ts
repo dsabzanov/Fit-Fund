@@ -78,10 +78,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated()) return res.sendStatus(401);
 
       const challengeId = parseInt(req.params.challengeId);
-      const startWeight = req.body.startWeight;
       const userId = req.user!.id;
+      const { startWeight } = req.body;
 
-      console.log('Join request:', { 
+      console.log('Join request received:', { 
         challengeId, 
         startWeight, 
         userId,
@@ -91,6 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if challenge exists
       const challenge = await storage.getChallenge(challengeId);
       if (!challenge) {
+        console.log('Challenge not found:', challengeId);
         return res.status(404).json({ error: "Challenge not found" });
       }
 
@@ -101,10 +102,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingParticipant) {
+        console.log('User already participating:', { userId, challengeId });
         return res.status(400).json({ error: "Already joined this challenge" });
       }
 
-      // Create new participant using the schema validation
+      // Validate and create participant
       try {
         const validatedData = insertParticipantSchema.parse({
           startWeight,
@@ -112,12 +114,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId,
         });
 
+        console.log('Validated data:', validatedData);
+
         const participant = await storage.addParticipant(validatedData);
         console.log('Participant created:', participant);
         res.status(201).json(participant);
       } catch (validationError) {
         console.error('Validation error:', validationError);
-        return res.status(400).json({ error: "Invalid participant data" });
+        return res.status(400).json({ 
+          error: "Invalid participant data",
+          details: validationError instanceof Error ? validationError.message : "Unknown validation error"
+        });
       }
     } catch (error) {
       console.error("Error joining challenge:", error);

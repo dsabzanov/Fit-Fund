@@ -207,6 +207,7 @@ export class MemStorage implements IStorage {
       paid: false,
       currentWeight: participant.startWeight // Initialize current weight to start weight
     };
+    console.log('Creating new participant:', newParticipant);
     this.participants.set(id, newParticipant);
     return newParticipant;
   }

@@ -47,7 +47,7 @@ export function JoinChallengeDialog({
   });
 
   const mutation = useMutation({
-    mutationFn: async (data: { startWeight: string | number }) => {
+    mutationFn: async (data: { startWeight: string }) => {
       console.log('Join request:', { ...data, challengeId });
       const res = await apiRequest(
         "POST",
@@ -116,12 +116,9 @@ export function JoinChallengeDialog({
                   <FormLabel>Starting Weight (lbs)</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.1"
-                      min="1"
+                      type="text"
+                      placeholder="Enter your weight (e.g. 150.5)"
                       {...field}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />

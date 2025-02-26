@@ -96,8 +96,8 @@ export const insertParticipantSchema = createInsertSchema(participants)
     joinedAt: true 
   })
   .extend({
-    startWeight: z.number().or(z.string()).transform(val => {
-      const num = typeof val === 'string' ? parseFloat(val) : val;
+    startWeight: z.string().min(1, "Weight is required").transform(val => {
+      const num = parseFloat(val);
       if (isNaN(num) || num <= 0) {
         throw new Error("Weight must be a positive number");
       }
