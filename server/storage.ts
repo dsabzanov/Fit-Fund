@@ -11,7 +11,6 @@ import {
   Comment,
   InsertUser,
   InsertChallenge,
-  InsertParticipant,
   InsertWeightRecord,
   InsertChatMessage,
   InsertFeedPost,
@@ -197,17 +196,20 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async addParticipant(participant: InsertParticipant): Promise<Participant> {
+  async addParticipant(data: { userId: number; challengeId: number; startWeight: number }): Promise<Participant> {
     const id = this.currentId++;
     const joinedAt = new Date();
-    const newParticipant: Participant = { 
-      ...participant,
+
+    const newParticipant: Participant = {
       id,
-      joinedAt,
+      userId: data.userId,
+      challengeId: data.challengeId,
+      startWeight: data.startWeight,
+      currentWeight: data.startWeight,
       paid: false,
-      currentWeight: participant.startWeight // Initialize current weight to start weight
+      joinedAt,
     };
-    console.log('Creating new participant:', newParticipant);
+
     this.participants.set(id, newParticipant);
     return newParticipant;
   }

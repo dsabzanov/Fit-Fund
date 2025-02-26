@@ -75,57 +75,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Participant routes
   app.post("/api/challenges/:challengeId/join", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) return res.sendStatus(401);
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
 
       const challengeId = parseInt(req.params.challengeId);
       const userId = req.user!.id;
-      const { startWeight } = req.body;
+      const startWeight = Number(req.body.startWeight);
 
-      console.log('Join request received:', { 
-        challengeId, 
-        startWeight, 
-        userId,
-        body: req.body 
-      });
+      // Basic validation
+      if (isNaN(challengeId)) {
+        return res.status(400).json({ error: "Invalid challenge ID" });
+      }
+
+      if (isNaN(startWeight) || startWeight <= 0) {
+        return res.status(400).json({ error: "Invalid weight value" });
+      }
 
       // Check if challenge exists
       const challenge = await storage.getChallenge(challengeId);
       if (!challenge) {
-        console.log('Challenge not found:', challengeId);
         return res.status(404).json({ error: "Challenge not found" });
       }
 
-      // Check if user is already participating
-      const existingParticipant = await storage.getParticipant(
-        userId,
-        challengeId
-      );
-
+      // Check if already participating
+      const existingParticipant = await storage.getParticipant(userId, challengeId);
       if (existingParticipant) {
-        console.log('User already participating:', { userId, challengeId });
         return res.status(400).json({ error: "Already joined this challenge" });
       }
 
-      // Validate and create participant
-      try {
-        const validatedData = insertParticipantSchema.parse({
-          startWeight,
-          challengeId,
-          userId,
-        });
+      // Create participant
+      const participant = await storage.addParticipant({
+        userId,
+        challengeId,
+        startWeight,
+      });
 
-        console.log('Validated data:', validatedData);
-
-        const participant = await storage.addParticipant(validatedData);
-        console.log('Participant created:', participant);
-        res.status(201).json(participant);
-      } catch (validationError) {
-        console.error('Validation error:', validationError);
-        return res.status(400).json({ 
-          error: "Invalid participant data",
-          details: validationError instanceof Error ? validationError.message : "Unknown validation error"
-        });
-      }
+      res.status(201).json(participant);
     } catch (error) {
       console.error("Error joining challenge:", error);
       res.status(500).json({ error: "Failed to join challenge" });

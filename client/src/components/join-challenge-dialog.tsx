@@ -1,16 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertParticipantSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -38,23 +27,19 @@ export function JoinChallengeDialog({
   onOpenChange,
 }: JoinChallengeDialogProps) {
   const { toast } = useToast();
-  const form = useForm({
-    resolver: zodResolver(insertParticipantSchema),
-    defaultValues: {
-      startWeight: "",
-      challengeId,
-    },
-  });
+  const [weight, setWeight] = useState("");
 
   const mutation = useMutation({
-    mutationFn: async (data: { startWeight: string }) => {
-      console.log('Join request:', { ...data, challengeId });
+    mutationFn: async () => {
+      if (!weight || isNaN(Number(weight)) || Number(weight) <= 0) {
+        throw new Error("Please enter a valid weight");
+      }
+
       const res = await apiRequest(
         "POST",
         `/api/challenges/${challengeId}/join`,
         {
-          startWeight: data.startWeight,
-          challengeId,
+          startWeight: Number(weight)
         }
       );
 
@@ -72,7 +57,7 @@ export function JoinChallengeDialog({
           description: "Successfully joined the challenge. Proceeding to payment...",
         });
         await createPaymentSession(challengeId, entryFee);
-        form.reset();
+        setWeight("");
         onOpenChange(false);
         queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}`] });
       } catch (error) {
@@ -85,7 +70,6 @@ export function JoinChallengeDialog({
       }
     },
     onError: (error: Error) => {
-      console.error('Join challenge error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -100,39 +84,32 @@ export function JoinChallengeDialog({
         <DialogHeader>
           <DialogTitle>Join Challenge</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((data) => {
-              console.log('Form data:', data);
-              mutation.mutate(data);
-            })}
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="startWeight"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Starting Weight (lbs)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="Enter your weight (e.g. 150.5)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="weight" className="text-sm font-medium">
+              Starting Weight (lbs)
+            </label>
+            <Input
+              id="weight"
+              type="number"
+              step="0.1"
+              min="1"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="Enter your weight (e.g. 150.5)"
             />
-            <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Join Challenge (${entryFee})
-            </Button>
-          </form>
-        </Form>
+          </div>
+          <Button 
+            onClick={() => mutation.mutate()} 
+            className="w-full" 
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Join Challenge (${entryFee})
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
