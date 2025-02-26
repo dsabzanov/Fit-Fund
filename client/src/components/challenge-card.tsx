@@ -56,8 +56,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        {/* Fix: Use string for the challenge ID in the URL */}
-        <Link href={`/challenge/${challenge.id.toString()}`}>
+        <Link href={`/challenge/${challenge.id}`}>
           <Button 
             variant="outline" 
             aria-label={`View details for ${challenge.title}`}

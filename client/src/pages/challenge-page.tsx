@@ -11,8 +11,8 @@ import { Calendar, DollarSign, Target, Users, Loader2 } from "lucide-react";
 
 export default function ChallengePage() {
   // Fix: Extract id directly from params object
-  const params = useParams<{ id: string }>();
-  const challengeId = params ? parseInt(params.id) : NaN;
+  const [, params] = useParams<{ id: string }>();
+  const challengeId = parseInt(params?.id || "");
 
   const { data: challenge, isLoading: isLoadingChallenge, error } = useQuery<Challenge>({
     queryKey: [`/api/challenges/${challengeId}`],
