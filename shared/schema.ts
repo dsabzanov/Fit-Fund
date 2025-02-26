@@ -90,8 +90,20 @@ export const insertChallengeSchema = createInsertSchema(challenges)
   });
 export const insertParticipantSchema = createInsertSchema(participants)
   .extend({
-    startWeight: z.number().positive("Weight must be greater than 0"),
-    currentWeight: z.number().optional(), // This will be set on the server
+    startWeight: z.number().or(z.string()).transform(val => {
+      const num = typeof val === 'string' ? Number(val) : val;
+      if (isNaN(num) || num <= 0) {
+        throw new Error("Weight must be a positive number");
+      }
+      return num;
+    }),
+    challengeId: z.number(),
+  })
+  .omit({ 
+    id: true,
+    currentWeight: true,
+    paid: true,
+    joinedAt: true 
   });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords)
   .extend({
