@@ -89,7 +89,12 @@ export const insertChallengeSchema = createInsertSchema(challenges)
     percentageGoal: z.coerce.number()
   });
 export const insertParticipantSchema = createInsertSchema(participants);
-export const insertWeightRecordSchema = createInsertSchema(weightRecords);
+export const insertWeightRecordSchema = createInsertSchema(weightRecords)
+  .extend({
+    weight: z.string().min(1, "Weight is required"),
+    imageUrl: z.string().url("Please enter a valid image URL").nullable(),
+    recordedAt: z.coerce.date().optional(),
+  });
 export const insertChatMessageSchema = createInsertSchema(chatMessages);
 export const insertFeedPostSchema = createInsertSchema(feedPosts);
 export const insertCommentSchema = createInsertSchema(comments);
