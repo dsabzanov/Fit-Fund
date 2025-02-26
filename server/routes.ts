@@ -73,15 +73,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Participant routes
   app.post("/api/challenges/:id/join", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const participant = await storage.addParticipant({
-      userId: req.user!.id,
-      challengeId: parseInt(req.params.id),
-      startWeight: req.body.startWeight,
-      currentWeight: req.body.startWeight,
-      paid: false,
-    });
-    res.status(201).json(participant);
+    try {
+      if (!req.isAuthenticated()) return res.sendStatus(401);
+
+      // Validate the request body
+      const startWeight = Number(req.body.startWeight);
+      if (isNaN(startWeight) || startWeight <= 0) {
+        return res.status(400).json({ error: "Invalid starting weight" });
+      }
+
+      // Check if user is already participating
+      const existingParticipant = await storage.getParticipant(
+        req.user!.id,
+        parseInt(req.params.id)
+      );
+      if (existingParticipant) {
+        return res.status(400).json({ error: "Already joined this challenge" });
+      }
+
+      // Create new participant
+      const participant = await storage.addParticipant({
+        userId: req.user!.id,
+        challengeId: parseInt(req.params.id),
+        startWeight,
+        currentWeight: startWeight,
+        paid: false,
+      });
+
+      res.status(201).json(participant);
+    } catch (error) {
+      console.error("Error joining challenge:", error);
+      res.status(500).json({ error: "Failed to join challenge" });
+    }
   });
 
   // Weight record routes

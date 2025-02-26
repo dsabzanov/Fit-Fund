@@ -191,9 +191,16 @@ export class MemStorage implements IStorage {
     return newChallenge;
   }
 
+  async getParticipant(userId: number, challengeId: number): Promise<Participant | undefined> {
+    return Array.from(this.participants.values()).find(
+      (p) => p.userId === userId && p.challengeId === challengeId
+    );
+  }
+
   async addParticipant(participant: InsertParticipant): Promise<Participant> {
     const id = this.currentId++;
-    const newParticipant: Participant = { ...participant, id };
+    const joinedAt = new Date();
+    const newParticipant: Participant = { ...participant, id, joinedAt };
     this.participants.set(id, newParticipant);
     return newParticipant;
   }
