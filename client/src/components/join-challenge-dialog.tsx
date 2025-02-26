@@ -24,14 +24,16 @@ export function JoinChallengeDialog({ challengeId, entryFee, open, onOpenChange 
   const form = useForm({
     resolver: zodResolver(insertParticipantSchema),
     defaultValues: {
-      startWeight: "",
+      startWeight: 0,
       challengeId,
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (data: { startWeight: number }) => {
-      const res = await apiRequest("POST", `/api/challenges/${challengeId}/join`, data);
+      const res = await apiRequest("POST", `/api/challenges/${challengeId}/join`, {
+        startWeight: Number(data.startWeight),
+      });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to join challenge");
@@ -41,6 +43,7 @@ export function JoinChallengeDialog({ challengeId, entryFee, open, onOpenChange 
     onSuccess: async () => {
       try {
         await createPaymentSession(challengeId, entryFee);
+        onOpenChange(false);
       } catch (error) {
         toast({
           title: "Error",
@@ -65,7 +68,9 @@ export function JoinChallengeDialog({ challengeId, entryFee, open, onOpenChange 
           <DialogTitle>Join Challenge</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+          <form onSubmit={form.handleSubmit((data) => {
+            mutation.mutate({ startWeight: Number(data.startWeight) });
+          })} className="space-y-4">
             <FormField
               control={form.control}
               name="startWeight"
@@ -75,9 +80,11 @@ export function JoinChallengeDialog({ challengeId, entryFee, open, onOpenChange 
                   <FormControl>
                     <Input 
                       type="number" 
-                      step="0.1" 
+                      step="0.1"
+                      min="1"
                       {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value || ''}
                     />
                   </FormControl>
                   <FormMessage />

@@ -90,8 +90,8 @@ export const insertChallengeSchema = createInsertSchema(challenges)
   });
 export const insertParticipantSchema = createInsertSchema(participants)
   .extend({
-    startWeight: z.coerce.number().positive("Weight must be greater than 0"),
-    currentWeight: z.coerce.number().positive("Weight must be greater than 0"),
+    startWeight: z.number().positive("Weight must be greater than 0"),
+    currentWeight: z.number().optional(), // This will be set on the server
   });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords)
   .extend({
