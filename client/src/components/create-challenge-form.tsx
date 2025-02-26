@@ -28,7 +28,16 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/challenges", data);
+      // Convert string values to proper types
+      const formattedData = {
+        ...data,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        entryFee: Number(data.entryFee),
+        percentageGoal: Number(data.percentageGoal),
+      };
+
+      const res = await apiRequest("POST", "/api/challenges", formattedData);
       return res.json();
     },
     onSuccess: () => {
@@ -88,7 +97,10 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
               <FormItem>
                 <FormLabel>Start Date</FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" {...field} />
+                  <Input 
+                    type="datetime-local" 
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -102,7 +114,10 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
               <FormItem>
                 <FormLabel>End Date</FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" {...field} />
+                  <Input 
+                    type="datetime-local" 
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -118,7 +133,13 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
               <FormItem>
                 <FormLabel>Entry Fee ($)</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" step="0.01" {...field} />
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.01"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -132,7 +153,14 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
               <FormItem>
                 <FormLabel>Weight Loss Goal (%)</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" max="100" step="0.1" {...field} />
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    max="100" 
+                    step="0.1"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
