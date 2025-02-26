@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2, ImageIcon } from "lucide-react";
 
 interface CreatePostFormProps {
   challengeId: number;
@@ -18,6 +19,7 @@ interface CreatePostFormProps {
 
 export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(insertFeedPostSchema),
@@ -33,6 +35,11 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
+      // Only allow host to pin posts
+      if (data.isPinned && (!user || !user.isHost)) {
+        throw new Error("Only hosts can pin posts");
+      }
+
       const res = await apiRequest("POST", `/api/challenges/${challengeId}/posts`, data);
       return res.json();
     },
@@ -53,6 +60,8 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
       });
     },
   });
+
+  const isHost = user?.isHost;
 
   return (
     <Form {...form}>
@@ -76,48 +85,53 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URL (Optional)</FormLabel>
+              <FormLabel className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4" />
+                Image URL
+              </FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} type="url" placeholder="https://example.com/image.jpg" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex items-center justify-between">
-          <FormField
-            control={form.control}
-            name="isPinned"
-            render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="!mt-0">Pin this post</FormLabel>
-              </FormItem>
-            )}
-          />
+        {isHost && (
+          <div className="flex items-center justify-between">
+            <FormField
+              control={form.control}
+              name="isPinned"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2">
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="!mt-0">Pin this post</FormLabel>
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="isScheduled"
-            render={({ field }) => (
-              <FormItem className="flex items-center space-x-2">
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="!mt-0">Schedule post</FormLabel>
-              </FormItem>
-            )}
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="isScheduled"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2">
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="!mt-0">Schedule post</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
 
         {form.watch("isScheduled") && (
           <FormField

@@ -43,6 +43,120 @@ export class MemStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
+
+    // Add sample data
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Sample challenges
+    const challenges = [
+      {
+        id: this.currentId++,
+        title: "Summer Shape-Up Challenge",
+        description: "Get ready for summer with this 30-day weight loss challenge! Join now to transform your body and win big.",
+        startDate: new Date("2025-03-01"),
+        endDate: new Date("2025-03-31"),
+        entryFee: 50,
+        percentageGoal: 10,
+        status: "open",
+      },
+      {
+        id: this.currentId++,
+        title: "Spring Into Fitness",
+        description: "Spring is the perfect time for a fresh start. Join our 6-week challenge and achieve your fitness goals!",
+        startDate: new Date("2025-04-01"),
+        endDate: new Date("2025-05-15"),
+        entryFee: 75,
+        percentageGoal: 8,
+        status: "open",
+      },
+      {
+        id: this.currentId++,
+        title: "90-Day Transformation",
+        description: "The ultimate transformation challenge. Change your life in 90 days with daily support and motivation.",
+        startDate: new Date("2025-03-15"),
+        endDate: new Date("2025-06-15"),
+        entryFee: 100,
+        percentageGoal: 15,
+        status: "open",
+      },
+    ];
+
+    challenges.forEach(challenge => this.challenges.set(challenge.id, challenge));
+
+    // Sample feed posts
+    const posts = [
+      {
+        id: this.currentId++,
+        userId: 1,
+        challengeId: 1,
+        content: "Welcome to the Summer Shape-Up Challenge! 🌞 Here are some tips for getting started:\n\n1. Take your initial photos\n2. Log your starting weight\n3. Join our daily check-ins\n\nLet's crush these goals together! 💪",
+        imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500",
+        isPinned: true,
+        isScheduled: false,
+        createdAt: new Date(),
+      },
+      {
+        id: this.currentId++,
+        userId: 2,
+        challengeId: 1,
+        content: "Just completed my first workout of the challenge! Feeling amazing and motivated. Who else is crushing their goals today? 🏋️‍♀️",
+        imageUrl: "https://images.unsplash.com/photo-1571019613576-2b22c76fd955?w=500",
+        isPinned: false,
+        isScheduled: false,
+        createdAt: new Date(),
+      },
+      {
+        id: this.currentId++,
+        userId: 1,
+        challengeId: 1,
+        content: "Meal prep Sunday! Here's my healthy meal plan for the week. Remember, abs are made in the kitchen! 🥗",
+        imageUrl: "https://images.unsplash.com/photo-1547496502-affa22d38842?w=500",
+        isPinned: false,
+        isScheduled: true,
+        scheduledFor: new Date("2025-03-02"),
+        createdAt: new Date(),
+      },
+    ];
+
+    posts.forEach(post => this.feedPosts.set(post.id, post));
+
+    // Sample comments
+    const comments = [
+      {
+        id: this.currentId++,
+        userId: 2,
+        postId: 1,
+        content: "So excited to be part of this challenge! The tips are super helpful 🙌",
+        createdAt: new Date(),
+      },
+      {
+        id: this.currentId++,
+        userId: 3,
+        postId: 1,
+        content: "Question: When do we need to submit our first weigh-in?",
+        createdAt: new Date(),
+      },
+      {
+        id: this.currentId++,
+        userId: 1,
+        postId: 2,
+        content: "Amazing work! Keep up the great energy 💪",
+        createdAt: new Date(),
+      },
+    ];
+
+    comments.forEach(comment => this.comments.set(comment.id, comment));
+
+    // Sample user
+    const user = {
+      id: 1,
+      username: "host",
+      password: "password",
+      isHost: true,
+    };
+    this.users.set(user.id, user);
   }
 
   async getUser(id: number): Promise<User | undefined> {
