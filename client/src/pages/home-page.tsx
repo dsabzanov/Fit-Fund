@@ -28,23 +28,19 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-primary/10 to-background">
+      <div 
+        className="relative bg-gradient-to-b from-primary/10 to-background"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         <div className="absolute inset-0 bg-grid-white/10" />
         <div className="relative">
           <header className="border-b bg-white/80 backdrop-blur-sm shadow-sm" role="banner">
             <div className="container mx-auto px-6 py-3 flex justify-between items-center">
               <div className="flex items-center gap-6">
-                <div className="w-[150px]">
-                  <img 
-                    src="/logo.png" 
-                    alt="FitFund Logo" 
-                    className="w-full h-auto object-contain" 
-                    onError={(e) => {
-                      console.error('Failed to load main logo');
-                      e.currentTarget.src = "/logo-small.png";
-                    }}
-                  />
-                </div>
                 <h1 className="text-2xl font-bold">
                   <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                     FitFund
@@ -74,29 +70,29 @@ export default function HomePage() {
             </div>
           </header>
 
-          <div className="container mx-auto px-6 py-16 text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <div className="container mx-auto px-6 py-24 text-center">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
               Transform Your Health Journey
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
+            <p className="text-xl text-white/80 max-w-2xl mx-auto mb-12">
               Join our community-driven challenges where fitness meets financial motivation. Set goals, track progress, and earn rewards.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="flex flex-col items-center p-6 rounded-lg bg-card border">
+              <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
                 <Dumbbell className="h-12 w-12 text-primary mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Fitness Goals</h3>
                 <p className="text-muted-foreground text-sm text-center">
                   Set personalized weight loss targets and track your progress
                 </p>
               </div>
-              <div className="flex flex-col items-center p-6 rounded-lg bg-card border">
+              <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
                 <Trophy className="h-12 w-12 text-primary mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Win Rewards</h3>
                 <p className="text-muted-foreground text-sm text-center">
                   Achieve your goals and earn financial incentives
                 </p>
               </div>
-              <div className="flex flex-col items-center p-6 rounded-lg bg-card border">
+              <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
                 <Target className="h-12 w-12 text-primary mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Stay Motivated</h3>
                 <p className="text-muted-foreground text-sm text-center">

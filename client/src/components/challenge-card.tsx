@@ -11,8 +11,18 @@ interface ChallengeCardProps {
   challenge: Challenge;
 }
 
+// Array of fitness-related images
+const challengeImages = [
+  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500",
+  "https://images.unsplash.com/photo-1576678927484-cc907957088c?w=500",
+  "https://images.unsplash.com/photo-1549576490-b0b4831ef60a?w=500"
+];
+
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+
+  // Get a consistent image for each challenge based on its ID
+  const imageUrl = challengeImages[challenge.id % challengeImages.length];
 
   return (
     <Card 
@@ -21,18 +31,25 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       aria-label={`Challenge: ${challenge.title}`}
       tabIndex={0}
     >
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>{challenge.title}</span>
+      <div className="relative h-48 overflow-hidden rounded-t-lg">
+        <img
+          src={imageUrl}
+          alt=""
+          className="w-full h-full object-cover"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute bottom-0 p-4 w-full">
+          <CardTitle className="text-white mb-2">{challenge.title}</CardTitle>
           <span 
-            className="text-sm text-muted-foreground" 
+            className="text-sm text-white/80" 
             aria-label={`Challenge status: ${challenge.status}`}
           >
             {challenge.status}
           </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow">
+        </div>
+      </div>
+      <CardContent className="flex-grow pt-4">
         <p className="text-muted-foreground mb-4" aria-label="Challenge description">
           {challenge.description}
         </p>
