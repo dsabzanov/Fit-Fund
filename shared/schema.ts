@@ -81,7 +81,13 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
-export const insertChallengeSchema = createInsertSchema(challenges);
+export const insertChallengeSchema = createInsertSchema(challenges)
+  .extend({
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+    entryFee: z.coerce.number(),
+    percentageGoal: z.coerce.number()
+  });
 export const insertParticipantSchema = createInsertSchema(participants);
 export const insertWeightRecordSchema = createInsertSchema(weightRecords);
 export const insertChatMessageSchema = createInsertSchema(chatMessages);
