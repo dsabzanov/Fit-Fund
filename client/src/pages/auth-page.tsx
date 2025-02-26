@@ -86,7 +86,7 @@ export default function AuthPage() {
             <img 
               src="/assets/IM_Logo_Full.png" 
               alt="Ilana Muhlstein Logo" 
-              className="max-w-[300px] w-full h-auto object-contain" 
+              className="w-full h-auto object-contain" 
               onError={(e) => {
                 // Fallback to initials if full logo fails
                 e.currentTarget.src = "/assets/IM_Initials.png";
