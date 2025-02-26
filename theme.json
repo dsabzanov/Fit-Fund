@@ -5,5 +5,18 @@
   "background": "#FFFFFF",
   "accent": "#EBD9D6",
   "appearance": "light",
-  "radius": 0.5
+  "radius": 0.5,
+  "accessibility": {
+    "highContrast": false,
+    "colors": {
+      "highContrast": {
+        "primary": "#006E2E",
+        "background": "#FFFFFF",
+        "foreground": "#000000",
+        "border": "#000000",
+        "muted": "#595959",
+        "accent": "#006E2E"
+      }
+    }
+  }
 }

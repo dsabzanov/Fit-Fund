@@ -80,7 +80,10 @@ export function JoinChallengeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent 
+        onEscapeKeyDown={() => onOpenChange(false)}
+        aria-describedby="join-challenge-description"
+      >
         <DialogHeader>
           <DialogTitle>Join Challenge</DialogTitle>
         </DialogHeader>
@@ -97,15 +100,22 @@ export function JoinChallengeDialog({
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               placeholder="Enter your weight (e.g. 150.5)"
+              aria-required="true"
+              aria-invalid={!weight || isNaN(Number(weight)) || Number(weight) <= 0}
+              aria-describedby="weight-description"
             />
+            <div id="weight-description" className="text-sm text-muted-foreground mt-1">
+              Enter your current weight in pounds (lbs)
+            </div>
           </div>
           <Button 
             onClick={() => mutation.mutate()} 
             className="w-full" 
             disabled={mutation.isPending}
+            aria-busy={mutation.isPending}
           >
             {mutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
             )}
             Join Challenge (${entryFee})
           </Button>

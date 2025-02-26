@@ -17,8 +17,8 @@ export function Feed({ challengeId }: FeedProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center p-8" role="status" aria-label="Loading feed posts">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
       </div>
     );
   }
@@ -26,11 +26,11 @@ export function Feed({ challengeId }: FeedProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Feed</h2>
+        <h2 className="text-2xl font-bold" id="feed-title">Challenge Feed</h2>
         <Dialog>
           <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button size="sm" aria-label="Create new post">
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
               New Post
             </Button>
           </DialogTrigger>
@@ -43,12 +43,21 @@ export function Feed({ challengeId }: FeedProps) {
         </Dialog>
       </div>
 
-      <div className="space-y-4">
+      <div 
+        className="space-y-4" 
+        role="feed" 
+        aria-labelledby="feed-title"
+        aria-busy={isLoading}
+      >
         {posts.map((post) => (
           <FeedPostCard key={post.id} post={post} />
         ))}
         {posts.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">
+          <p 
+            className="text-center text-muted-foreground py-8"
+            role="status"
+            aria-label="No posts available"
+          >
             No posts yet. Be the first to post!
           </p>
         )}

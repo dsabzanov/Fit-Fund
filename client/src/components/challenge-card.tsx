@@ -15,40 +15,62 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const [showJoinDialog, setShowJoinDialog] = useState(false);
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card 
+      className="h-full flex flex-col" 
+      role="article" 
+      aria-label={`Challenge: ${challenge.title}`}
+      tabIndex={0}
+    >
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span>{challenge.title}</span>
-          <span className="text-sm text-muted-foreground">
+          <span 
+            className="text-sm text-muted-foreground" 
+            aria-label={`Challenge status: ${challenge.status}`}
+          >
             {challenge.status}
           </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className="text-muted-foreground mb-4">{challenge.description}</p>
+        <p className="text-muted-foreground mb-4" aria-label="Challenge description">
+          {challenge.description}
+        </p>
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>
-              {format(new Date(challenge.startDate), 'MMM d')} - {format(new Date(challenge.endDate), 'MMM d, yyyy')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            <span>Entry Fee: ${challenge.entryFee}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            <span>Goal: {challenge.percentageGoal}% weight loss</span>
+          <div className="flex items-center gap-2" role="list" aria-label="Challenge details">
+            <div className="flex items-center gap-2" role="listitem">
+              <Calendar className="h-4 w-4" aria-hidden="true" />
+              <span aria-label="Challenge duration">
+                {format(new Date(challenge.startDate), 'MMM d')} - {format(new Date(challenge.endDate), 'MMM d, yyyy')}
+              </span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <DollarSign className="h-4 w-4" aria-hidden="true" />
+              <span aria-label="Entry fee">Entry Fee: ${challenge.entryFee}</span>
+            </div>
+            <div className="flex items-center gap-2" role="listitem">
+              <Target className="h-4 w-4" aria-hidden="true" />
+              <span aria-label="Weight loss goal">Goal: {challenge.percentageGoal}% weight loss</span>
+            </div>
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Link href={`/challenge/${challenge.id}`}>
-          <Button variant="outline">View Details</Button>
+          <Button 
+            variant="outline" 
+            aria-label={`View details for ${challenge.title}`}
+          >
+            View Details
+          </Button>
         </Link>
         {challenge.status === 'open' && (
-          <Button onClick={() => setShowJoinDialog(true)}>Join Challenge</Button>
+          <Button 
+            onClick={() => setShowJoinDialog(true)}
+            aria-label={`Join ${challenge.title} challenge`}
+          >
+            Join Challenge
+          </Button>
         )}
       </CardFooter>
 

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
+import { AccessibilitySettings } from "@/components/accessibility-settings";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen" role="status" aria-label="Loading challenges">
         <Loader2 className="h-8 w-8 animate-spin text-border" />
       </div>
     );
@@ -26,7 +27,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-white shadow-sm">
+      <header className="border-b bg-white shadow-sm" role="banner">
         <div className="container mx-auto px-6 py-3 flex justify-between items-center">
           <div className="flex items-center gap-6">
             <div className="w-[150px]">
@@ -47,7 +48,10 @@ export default function HomePage() {
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-muted-foreground">Welcome, {user?.username}</span>
+            <span className="text-muted-foreground" role="status" aria-label="User status">
+              Welcome, {user?.username}
+            </span>
+            <AccessibilitySettings />
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -66,8 +70,8 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <main className="container mx-auto px-4 py-8" role="main">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Fitness challenges">
           {challenges?.map((challenge) => (
             <ChallengeCard
               key={challenge.id}
