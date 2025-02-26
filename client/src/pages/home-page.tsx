@@ -30,7 +30,7 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" role="status" aria-label="Loading challenges">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -38,7 +38,7 @@ export default function HomePage() {
   return (
     <>
       {showWelcome && (
-        <div onClick={() => setShowWelcome(false)}>
+        <div onClick={() => setShowWelcome(false)} style={{ cursor: 'pointer' }}>
           <WelcomeScreen />
         </div>
       )}
