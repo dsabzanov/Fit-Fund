@@ -44,11 +44,12 @@ export default function HomePage() {
           <div className="flex items-center gap-6">
               <div className="w-[150px]">
                 <img 
-                  src="/assets/logo.png" 
+                  src="logo.png" 
                   alt="Ilana Muhlstein Logo" 
                   className="w-full h-auto object-contain" 
                   onError={(e) => {
-                    e.currentTarget.src = "/assets/logo-small.png";
+                    console.error('Failed to load main logo');
+                    e.currentTarget.src = "logo-small.png";
                   }}
                 />
               </div>

@@ -84,11 +84,12 @@ export default function AuthPage() {
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <img 
-              src="/assets/logo.png" 
+              src="logo.png" 
               alt="Ilana Muhlstein Logo" 
               className="w-full h-auto object-contain" 
               onError={(e) => {
-                e.currentTarget.src = "/assets/logo-small.png";
+                console.error('Failed to load main logo');
+                e.currentTarget.src = "logo-small.png";
               }}
             />
           </div>
