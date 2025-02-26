@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Dumbbell, Trophy, Target } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 
@@ -27,51 +27,91 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-white shadow-sm" role="banner">
-        <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <div className="w-[150px]">
-              <img 
-                src="logo.png" 
-                alt="FitFund Logo" 
-                className="w-full h-auto object-contain" 
-                onError={(e) => {
-                  console.error('Failed to load main logo');
-                  e.currentTarget.src = "logo-small.png";
-                }}
-              />
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-b from-primary/10 to-background">
+        <div className="absolute inset-0 bg-grid-white/10" />
+        <div className="relative">
+          <header className="border-b bg-white/80 backdrop-blur-sm shadow-sm" role="banner">
+            <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+              <div className="flex items-center gap-6">
+                <div className="w-[150px]">
+                  <img 
+                    src="/logo.png" 
+                    alt="FitFund Logo" 
+                    className="w-full h-auto object-contain" 
+                    onError={(e) => {
+                      console.error('Failed to load main logo');
+                      e.currentTarget.src = "/logo-small.png";
+                    }}
+                  />
+                </div>
+                <h1 className="text-2xl font-bold">
+                  <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                    FitFund
+                  </span>
+                </h1>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-muted-foreground" role="status" aria-label="User status">
+                  Welcome, {user?.username}
+                </span>
+                <AccessibilitySettings />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Challenge
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Create New Challenge</DialogTitle>
+                    </DialogHeader>
+                    <CreateChallengeForm />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold">
-              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                FitFund
-              </span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-muted-foreground" role="status" aria-label="User status">
-              Welcome, {user?.username}
-            </span>
-            <AccessibilitySettings />
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Challenge
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Challenge</DialogTitle>
-                </DialogHeader>
-                <CreateChallengeForm />
-              </DialogContent>
-            </Dialog>
+          </header>
+
+          <div className="container mx-auto px-6 py-16 text-center">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Transform Your Health Journey
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
+              Join our community-driven challenges where fitness meets financial motivation. Set goals, track progress, and earn rewards.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="flex flex-col items-center p-6 rounded-lg bg-card border">
+                <Dumbbell className="h-12 w-12 text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Fitness Goals</h3>
+                <p className="text-muted-foreground text-sm text-center">
+                  Set personalized weight loss targets and track your progress
+                </p>
+              </div>
+              <div className="flex flex-col items-center p-6 rounded-lg bg-card border">
+                <Trophy className="h-12 w-12 text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Win Rewards</h3>
+                <p className="text-muted-foreground text-sm text-center">
+                  Achieve your goals and earn financial incentives
+                </p>
+              </div>
+              <div className="flex flex-col items-center p-6 rounded-lg bg-card border">
+                <Target className="h-12 w-12 text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Stay Motivated</h3>
+                <p className="text-muted-foreground text-sm text-center">
+                  Join a supportive community committed to health
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="container mx-auto px-4 py-8" role="main">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Fitness challenges">
+      {/* Challenges Grid */}
+      <main className="container mx-auto px-4 py-12" role="main">
+        <h2 className="text-3xl font-bold mb-8 text-center">Active Challenges</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Fitness challenges">
           {challenges?.map((challenge) => (
             <ChallengeCard
               key={challenge.id}
