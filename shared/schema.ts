@@ -88,7 +88,11 @@ export const insertChallengeSchema = createInsertSchema(challenges)
     entryFee: z.coerce.number(),
     percentageGoal: z.coerce.number()
   });
-export const insertParticipantSchema = createInsertSchema(participants);
+export const insertParticipantSchema = createInsertSchema(participants)
+  .extend({
+    startWeight: z.coerce.number().positive("Weight must be greater than 0"),
+    currentWeight: z.coerce.number().positive("Weight must be greater than 0"),
+  });
 export const insertWeightRecordSchema = createInsertSchema(weightRecords)
   .extend({
     weight: z.string().min(1, "Weight is required"),

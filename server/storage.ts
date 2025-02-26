@@ -200,7 +200,13 @@ export class MemStorage implements IStorage {
   async addParticipant(participant: InsertParticipant): Promise<Participant> {
     const id = this.currentId++;
     const joinedAt = new Date();
-    const newParticipant: Participant = { ...participant, id, joinedAt };
+    const newParticipant: Participant = { 
+      ...participant,
+      id,
+      joinedAt,
+      paid: false,
+      currentWeight: participant.startWeight // Initialize current weight to start weight
+    };
     this.participants.set(id, newParticipant);
     return newParticipant;
   }
