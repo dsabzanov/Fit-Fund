@@ -1,16 +1,19 @@
 import { Challenge } from "@shared/schema";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, DollarSign, Target, Users } from "lucide-react";
+import { Calendar, DollarSign, Target } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "wouter";
+import { useState } from "react";
+import { JoinChallengeDialog } from "./join-challenge-dialog";
 
 interface ChallengeCardProps {
   challenge: Challenge;
-  onJoin?: (challenge: Challenge) => void;
 }
 
-export function ChallengeCard({ challenge, onJoin }: ChallengeCardProps) {
+export function ChallengeCard({ challenge }: ChallengeCardProps) {
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
@@ -44,10 +47,17 @@ export function ChallengeCard({ challenge, onJoin }: ChallengeCardProps) {
         <Link href={`/challenge/${challenge.id}`}>
           <Button variant="outline">View Details</Button>
         </Link>
-        {challenge.status === 'open' && onJoin && (
-          <Button onClick={() => onJoin(challenge)}>Join Challenge</Button>
+        {challenge.status === 'open' && (
+          <Button onClick={() => setShowJoinDialog(true)}>Join Challenge</Button>
         )}
       </CardFooter>
+
+      <JoinChallengeDialog
+        challengeId={challenge.id}
+        entryFee={challenge.entryFee}
+        open={showJoinDialog}
+        onOpenChange={setShowJoinDialog}
+      />
     </Card>
   );
 }
