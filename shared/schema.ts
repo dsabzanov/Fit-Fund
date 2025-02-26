@@ -1,3 +1,25 @@
+export interface IStorage {
+  sessionStore: any; // We'll properly type this later
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(insertUser: InsertUser): Promise<User>;
+  getAllChallenges(): Promise<Challenge[]>;
+  getChallenge(id: number): Promise<Challenge | undefined>;
+  createChallenge(challenge: InsertChallenge): Promise<Challenge>;
+  getParticipant(userId: number, challengeId: number): Promise<Participant | undefined>;
+  addParticipant(data: { userId: number; challengeId: number; startWeight: number }): Promise<Participant>;
+  getParticipants(challengeId: number): Promise<Participant[]>;
+  addWeightRecord(record: InsertWeightRecord): Promise<WeightRecord>;
+  getWeightRecords(userId: number, challengeId: number): Promise<WeightRecord[]>;
+  addChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessages(challengeId: number): Promise<ChatMessage[]>;
+  createFeedPost(post: InsertFeedPost): Promise<FeedPost>;
+  getFeedPosts(challengeId: number): Promise<FeedPost[]>;
+  addComment(comment: InsertComment): Promise<Comment>;
+  getComments(postId: number): Promise<Comment[]>;
+  updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined>;
+}
+
 import { pgTable, text, serial, integer, boolean, timestamp, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";

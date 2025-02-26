@@ -4,7 +4,6 @@ import { ChallengeCard } from "@/components/challenge-card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
-import { createPaymentSession } from "@/lib/stripe";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
@@ -16,18 +15,6 @@ export default function HomePage() {
   const { data: challenges, isLoading } = useQuery<Challenge[]>({
     queryKey: ["/api/challenges"],
   });
-
-  const handleJoinChallenge = async (challenge: Challenge) => {
-    try {
-      await createPaymentSession(challenge.id, challenge.entryFee);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to join challenge. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -42,23 +29,23 @@ export default function HomePage() {
       <header className="border-b bg-white shadow-sm">
         <div className="container mx-auto px-6 py-3 flex justify-between items-center">
           <div className="flex items-center gap-6">
-              <div className="w-[150px]">
-                <img 
-                  src="logo.png" 
-                  alt="Ilana Muhlstein Logo" 
-                  className="w-full h-auto object-contain" 
-                  onError={(e) => {
-                    console.error('Failed to load main logo');
-                    e.currentTarget.src = "logo-small.png";
-                  }}
-                />
-              </div>
-              <h1 className="text-2xl font-bold">
-                <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                  FitFund
-                </span>
-              </h1>
+            <div className="w-[150px]">
+              <img 
+                src="logo.png" 
+                alt="FitFund Logo" 
+                className="w-full h-auto object-contain" 
+                onError={(e) => {
+                  console.error('Failed to load main logo');
+                  e.currentTarget.src = "logo-small.png";
+                }}
+              />
             </div>
+            <h1 className="text-2xl font-bold">
+              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                FitFund
+              </span>
+            </h1>
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-muted-foreground">Welcome, {user?.username}</span>
             <Dialog>
@@ -85,7 +72,6 @@ export default function HomePage() {
             <ChallengeCard
               key={challenge.id}
               challenge={challenge}
-              onJoin={handleJoinChallenge}
             />
           ))}
         </div>

@@ -3,9 +3,13 @@ import { useParams } from "wouter";
 import { WeightForm } from "@/components/weight-form";
 import { WeightHistory } from "@/components/weight-history";
 
+interface Params {
+  id: string;
+}
+
 export default function WeightTrackingPage() {
   const { user } = useAuth();
-  const [, params] = useParams();
+  const [, params] = useParams<Params>();
   const challengeId = parseInt(params.id);
 
   if (!user) return null;
