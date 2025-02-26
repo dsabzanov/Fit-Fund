@@ -10,12 +10,13 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar, DollarSign, Target, Users, Loader2 } from "lucide-react";
 
 export default function ChallengePage() {
-  const { id } = useParams<{ id: string }>();
-  const challengeId = parseInt(id);
+  // Fix: Extract id directly from params object
+  const params = useParams<{ id: string }>();
+  const challengeId = params ? parseInt(params.id) : NaN;
 
   const { data: challenge, isLoading: isLoadingChallenge, error } = useQuery<Challenge>({
     queryKey: [`/api/challenges/${challengeId}`],
-    enabled: !isNaN(challengeId), // Only run query if ID is valid
+    enabled: !isNaN(challengeId),
   });
 
   const { data: participants = [] } = useQuery<Participant[]>({
