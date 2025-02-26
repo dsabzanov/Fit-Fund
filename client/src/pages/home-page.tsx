@@ -41,15 +41,22 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-white shadow-sm">
         <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-          <div className="w-[200px]">
-            <img 
-              src="/assets/IM_Logo_Full_Color.png" 
-              alt="Ilana Muhlstein Logo" 
-              className="w-full h-auto object-contain" 
-              onError={(e) => {
-                e.currentTarget.src = "/assets/IM_Initials_Black.png";
-              }}
-            />
+          <div className="flex items-center gap-6">
+            <div className="w-[150px]">
+              <img 
+                src="/assets/IM_Logo_Full_Color.png" 
+                alt="Ilana Muhlstein Logo" 
+                className="w-full h-auto object-contain" 
+                onError={(e) => {
+                  e.currentTarget.src = "/assets/IM_Initials_Black.png";
+                }}
+              />
+            </div>
+            <h1 className="text-2xl font-bold">
+              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                FitFund
+              </span>
+            </h1>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-muted-foreground">Welcome, {user?.username}</span>

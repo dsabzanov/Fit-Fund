@@ -93,6 +93,10 @@ export default function AuthPage() {
               }}
             />
           </div>
+          <h1 className="text-4xl font-bold tracking-tighter">
+            Transform Your Life with
+            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> FitFund</span>
+          </h1>
           <p className="text-muted-foreground text-lg">
             Join weight loss challenges, bet on yourself, and win money while achieving your fitness goals.
             Our platform makes weight loss fun, social, and rewarding.
