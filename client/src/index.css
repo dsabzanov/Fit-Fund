@@ -12,28 +12,30 @@
   }
 }
 
-/* High Contrast Mode Styles */
-.high-contrast {
-  --contrast-background: theme('colors.white');
-  --contrast-foreground: theme('colors.black');
-  --contrast-border: theme('colors.black');
-  --contrast-primary: theme('colors.primary.700');
-}
+@layer components {
+  /* High Contrast Mode Styles */
+  .high-contrast {
+    --background: theme('colors.white');
+    --foreground: theme('colors.black');
+    --border: theme('colors.black');
+    --primary: theme('colors.primary');
+  }
 
-.high-contrast body {
-  @apply bg-contrast-background text-contrast-foreground;
-}
+  .high-contrast body {
+    @apply bg-white text-black;
+  }
 
-.high-contrast * {
-  @apply border-contrast-border;
-}
+  .high-contrast * {
+    @apply border-black;
+  }
 
-.high-contrast button:not([disabled]),
-.high-contrast a:not([disabled]) {
-  @apply bg-contrast-primary text-contrast-background;
-}
+  .high-contrast button:not([disabled]),
+  .high-contrast a:not([disabled]) {
+    @apply bg-primary text-white;
+  }
 
-.high-contrast input,
-.high-contrast textarea {
-  @apply bg-contrast-background text-contrast-foreground border-2 border-contrast-border;
+  .high-contrast input,
+  .high-contrast textarea {
+    @apply bg-white text-black border-2 border-black;
+  }
 }
