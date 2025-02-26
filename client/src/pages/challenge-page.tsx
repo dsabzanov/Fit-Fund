@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useRoute, Link } from "wouter";
 import { Challenge, Participant, WeightRecord, ChatMessage } from "@shared/schema";
 import { WeightForm } from "@/components/weight-form";
 import { Leaderboard } from "@/components/leaderboard";
@@ -10,9 +10,9 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar, DollarSign, Target, Users, Loader2 } from "lucide-react";
 
 export default function ChallengePage() {
-  // Fix: Extract id directly from params object
-  const [, params] = useParams<{ id: string }>();
-  const challengeId = parseInt(params?.id || "");
+  // Fix: Use useRoute instead of useParams
+  const [match, params] = useRoute<{ id: string }>("/challenge/:id");
+  const challengeId = match && params ? parseInt(params.id) : NaN;
 
   const { data: challenge, isLoading: isLoadingChallenge, error } = useQuery<Challenge>({
     queryKey: [`/api/challenges/${challengeId}`],
@@ -34,12 +34,15 @@ export default function ChallengePage() {
     enabled: !isNaN(challengeId),
   });
 
-  if (isNaN(challengeId)) {
+  if (isNaN(challengeId) || !match) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-500">Invalid Challenge ID</h1>
           <p className="text-muted-foreground mt-2">Please check the URL and try again.</p>
+          <Link href="/">
+            <a className="text-primary hover:underline mt-4 block">Return to Home</a>
+          </Link>
         </div>
       </div>
     );
@@ -59,6 +62,9 @@ export default function ChallengePage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-500">Challenge Not Found</h1>
           <p className="text-muted-foreground mt-2">The challenge you're looking for doesn't exist.</p>
+          <Link href="/">
+            <a className="text-primary hover:underline mt-4 block">Return to Home</a>
+          </Link>
         </div>
       </div>
     );
