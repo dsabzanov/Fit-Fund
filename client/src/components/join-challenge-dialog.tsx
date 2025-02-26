@@ -48,7 +48,7 @@ export function JoinChallengeDialog({
 
   const mutation = useMutation({
     mutationFn: async (data: { startWeight: string | number }) => {
-      console.log('Submitting join request:', { ...data, challengeId });
+      console.log('Join request:', { ...data, challengeId });
       const res = await apiRequest(
         "POST",
         `/api/challenges/${challengeId}/join`,

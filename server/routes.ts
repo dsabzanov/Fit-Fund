@@ -11,7 +11,7 @@ import {
   insertChatMessageSchema,
   insertFeedPostSchema,
   insertCommentSchema,
-  insertParticipantSchema, // Added import
+  insertParticipantSchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -79,17 +79,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const challengeId = parseInt(req.params.challengeId);
       const startWeight = req.body.startWeight;
+      const userId = req.user!.id;
 
       console.log('Join request:', { 
         challengeId, 
         startWeight, 
-        userId: req.user!.id,
+        userId,
         body: req.body 
       });
-
-      if (isNaN(challengeId)) {
-        return res.status(400).json({ error: "Invalid challenge ID" });
-      }
 
       // Check if challenge exists
       const challenge = await storage.getChallenge(challengeId);
@@ -99,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user is already participating
       const existingParticipant = await storage.getParticipant(
-        req.user!.id,
+        userId,
         challengeId
       );
 
@@ -112,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validatedData = insertParticipantSchema.parse({
           startWeight,
           challengeId,
-          userId: req.user!.id,
+          userId,
         });
 
         const participant = await storage.addParticipant(validatedData);
