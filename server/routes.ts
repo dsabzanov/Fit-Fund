@@ -105,6 +105,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(weightRecord);
   });
 
+  app.get("/api/challenges/:id/users/:userId/weight-records", async (req, res) => {
+    const records = await storage.getWeightRecords(
+      parseInt(req.params.id),
+      parseInt(req.params.userId)
+    );
+    res.json(records);
+  });
+
   // Feed post routes
   app.post("/api/challenges/:id/posts", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
