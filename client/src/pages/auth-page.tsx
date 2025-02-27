@@ -14,6 +14,7 @@ import { useLocation } from "wouter";
 import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
+import {AnimatedLogo} from "@/components/animated-logo"; //Import the AnimatedLogo component
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -244,26 +245,7 @@ export default function AuthPage() {
 
       {/* Ilana Muhlstein Logo */}
       <div className="fixed bottom-8 left-8 p-2 rounded-lg flex items-center justify-center bg-white/20 backdrop-blur-sm border border-muted" style={{ minWidth: '100px', minHeight: '100px' }}>
-        <img
-          src="/IM_Initials_Green.png"
-          alt="Ilana Muhlstein Logo"
-          className="h-16 w-auto border border-dashed border-muted"
-          onLoad={(e) => {
-            console.log('Successfully loaded green logo');
-          }}
-          onError={(e) => {
-            console.error('Failed to load green logo, trying black logo');
-            const img = e.currentTarget as HTMLImageElement;
-            img.src = "/IM_Initials_Black.png";
-            img.onerror = () => {
-              console.error('Failed to load black logo, trying gold logo');
-              img.src = "/IM_Initials_Gold.png";
-              img.onerror = () => {
-                console.error('Failed to load all logo variants');
-              };
-            };
-          }}
-        />
+        <AnimatedLogo />
       </div>
     </div>
   );
