@@ -1,76 +1,39 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { SiFitbit } from "react-icons/si";
 
 export function FitbitConnect() {
-  const { toast } = useToast();
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleConnect = async () => {
-    setIsLoading(true);
-    // Simulate connection delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsConnected(true);
-    setIsLoading(false);
-    toast({
-      title: "Connected!",
-      description: "Fitbit connected successfully (Demo)",
-    });
-  };
-
-  const handleDisconnect = async () => {
-    setIsLoading(true);
-    // Simulate disconnection delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsConnected(false);
-    setIsLoading(false);
-    toast({
-      title: "Disconnected",
-      description: "Fitbit disconnected successfully (Demo)",
-    });
-  };
-
   return (
-    <Card className="w-[300px]">
+    <Card className="w-[300px] bg-gradient-to-br from-[#00B2B2] to-[#007C83]">
       <CardHeader>
-        <CardTitle>Fitbit Integration (Demo)</CardTitle>
+        <div className="flex items-center gap-2">
+          <SiFitbit className="h-6 w-6 text-white" />
+          <CardTitle className="text-white">Fitbit Stats</CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
-        {isConnected ? (
-          <div className="space-y-4">
-            <div className="text-sm space-y-1">
-              <p className="font-medium text-green-600">✓ Connected to Fitbit</p>
-              <p>Today's Activity (Demo Data):</p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>Steps: 8,432</li>
-                <li>Active Minutes: 45</li>
-                <li>Calories: 1,867</li>
-                <li>Distance: 5.2 km</li>
-              </ul>
-            </div>
-            <Button 
-              variant="destructive" 
-              onClick={handleDisconnect}
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Disconnect Fitbit
-            </Button>
+        <div className="space-y-4">
+          <div className="text-sm space-y-2">
+            <p className="font-medium text-white/90">Today's Activity:</p>
+            <ul className="space-y-2 text-white/80">
+              <li className="flex justify-between">
+                <span>Steps</span>
+                <span className="font-mono">8,432</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Active Minutes</span>
+                <span className="font-mono">45</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Calories</span>
+                <span className="font-mono">1,867</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Distance</span>
+                <span className="font-mono">5.2 km</span>
+              </li>
+            </ul>
           </div>
-        ) : (
-          <Button
-            onClick={handleConnect}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Connect Fitbit
-          </Button>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
