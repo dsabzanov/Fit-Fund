@@ -243,15 +243,25 @@ export default function AuthPage() {
       </div>
 
       {/* Ilana Muhlstein Logo */}
-      <div className="fixed bottom-8 left-8">
+      <div className="fixed bottom-8 left-8 p-2 rounded-lg flex items-center justify-center" style={{ minWidth: '100px', minHeight: '100px' }}>
         <img
           src="/IM_Initials_Green.png"
           alt="Ilana Muhlstein Logo"
           className="h-16 w-auto"
+          onLoad={(e) => {
+            console.log('Successfully loaded green logo');
+          }}
           onError={(e) => {
-            // Fallback to black logo if green fails
-            console.error('Failed to load green logo');
-            e.currentTarget.src = "/IM_Initials_Black.png";
+            console.error('Failed to load green logo, trying black logo');
+            const img = e.currentTarget as HTMLImageElement;
+            img.src = "/IM_Initials_Black.png";
+            img.onerror = () => {
+              console.error('Failed to load black logo, trying gold logo');
+              img.src = "/IM_Initials_Gold.png";
+              img.onerror = () => {
+                console.error('Failed to load all logo variants');
+              };
+            };
           }}
         />
       </div>
