@@ -39,11 +39,11 @@ export function AnimatedLogo({ className }: AnimatedLogoProps) {
   const getLogoPath = (variant: 'green' | 'black' | 'gold') => {
     switch(variant) {
       case 'black':
-        return '/attached_assets/IM_Initials_Black (1).png';
+        return '/assets/IM_Initials_Black (1).png';
       case 'gold':
-        return '/attached_assets/IM_Initials_Gold.png';
+        return '/assets/IM_Initials_Gold.png';
       case 'green':
-        return '/attached_assets/IM_Initials_Green.png';
+        return '/assets/IM_Initials_Green.png';
     }
   };
 
