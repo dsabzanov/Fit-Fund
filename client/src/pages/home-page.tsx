@@ -22,7 +22,6 @@ export default function HomePage() {
   });
 
   useEffect(() => {
-    // Show welcome screen when user data is available
     if (user) {
       setShowWelcome(true);
     }
@@ -45,7 +44,6 @@ export default function HomePage() {
       )}
 
       <div className="min-h-screen bg-background">
-        {/* Hero Section */}
         <div 
           className="relative bg-gradient-to-b from-primary/10 to-background"
           style={{
@@ -59,11 +57,18 @@ export default function HomePage() {
             <header className="border-b bg-white/80 backdrop-blur-sm shadow-sm" role="banner">
               <div className="container mx-auto px-6 py-3 flex justify-between items-center">
                 <div className="flex items-center gap-6">
-                  <h1 className="text-2xl font-bold">
-                    <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                      FitFund
-                    </span>
-                  </h1>
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src="/attached_assets/IM_Logo_Full-Color (2).png"
+                      alt="FitFund Logo"
+                      className="h-10 w-auto"
+                    />
+                    <h1 className="text-2xl font-bold">
+                      <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                        FitFund
+                      </span>
+                    </h1>
+                  </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-muted-foreground" role="status" aria-label="User status">
@@ -123,7 +128,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Challenges Grid */}
         <main className="container mx-auto px-4 py-12" role="main">
           <h2 className="text-3xl font-bold mb-8 text-center">Active Challenges</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Fitness challenges">
