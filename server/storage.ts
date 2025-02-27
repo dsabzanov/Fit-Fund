@@ -27,6 +27,7 @@ export class MemStorage implements IStorage {
   private chatMessages: Map<number, ChatMessage>;
   private feedPosts: Map<number, FeedPost>;
   private comments: Map<number, Comment>;
+  private fitbitTokens: Map<number, { access_token: string; refresh_token: string; user_id: string; username?: string }>;
   public sessionStore: session.SessionStore;
   private currentId: number;
 
@@ -38,6 +39,7 @@ export class MemStorage implements IStorage {
     this.chatMessages = new Map();
     this.feedPosts = new Map();
     this.comments = new Map();
+    this.fitbitTokens = new Map();
     this.currentId = 1;
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -283,6 +285,19 @@ export class MemStorage implements IStorage {
     const updatedPost = { ...post, ...updates };
     this.feedPosts.set(id, updatedPost);
     return updatedPost;
+  }
+
+  // Add new Fitbit token methods
+  async storeFitbitTokens(userId: number, tokens: { access_token: string; refresh_token: string; user_id: string }): Promise<void> {
+    this.fitbitTokens.set(userId, { ...tokens, username: undefined });
+  }
+
+  async getFitbitTokens(userId: number): Promise<{ access_token: string; refresh_token: string; user_id: string; username?: string } | undefined> {
+    return this.fitbitTokens.get(userId);
+  }
+
+  async removeFitbitTokens(userId: number): Promise<void> {
+    this.fitbitTokens.delete(userId);
   }
 }
 

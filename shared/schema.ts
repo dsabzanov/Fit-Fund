@@ -1,5 +1,5 @@
 export interface IStorage {
-  sessionStore: any; // We'll properly type this later
+  sessionStore: any;
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
@@ -18,6 +18,10 @@ export interface IStorage {
   addComment(comment: InsertComment): Promise<Comment>;
   getComments(postId: number): Promise<Comment[]>;
   updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined>;
+  // Add new Fitbit-related methods
+  storeFitbitTokens(userId: number, tokens: { access_token: string; refresh_token: string; user_id: string }): Promise<void>;
+  getFitbitTokens(userId: number): Promise<{ access_token: string; refresh_token: string; user_id: string; username?: string } | undefined>;
+  removeFitbitTokens(userId: number): Promise<void>;
 }
 
 import { pgTable, text, serial, integer, boolean, timestamp, numeric } from "drizzle-orm/pg-core";

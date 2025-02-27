@@ -13,6 +13,7 @@ import {
   insertCommentSchema,
   insertParticipantSchema,
 } from "@shared/schema";
+import { fitbitService } from "./services/fitbit";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -52,6 +53,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error processing message:", error);
       }
     });
+  });
+
+  // Fitbit routes
+  app.post("/api/fitbit/connect", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const authUrl = fitbitService.getAuthorizationUrl(req.user!.id);
+    res.json({ authUrl });
+  });
+
+  app.get("/api/fitbit/callback", async (req, res) => {
+    try {
+      const code = req.query.code as string;
+      if (!code) {
+        return res.status(400).send("Missing authorization code");
+      }
+
+      const tokens = await fitbitService.handleCallback(code);
+
+      // Store tokens in database
+      await storage.storeFitbitTokens(parseInt(req.query.state as string), tokens);
+
+      res.redirect("/profile"); // Redirect to profile page after successful connection
+    } catch (error) {
+      console.error("Fitbit callback error:", error);
+      res.status(500).send("Failed to connect Fitbit account");
+    }
+  });
+
+  app.get("/api/fitbit/status", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const tokens = await storage.getFitbitTokens(req.user!.id);
+    res.json({
+      connected: !!tokens,
+      username: tokens?.username
+    });
+  });
+
+  app.post("/api/fitbit/disconnect", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    await storage.removeFitbitTokens(req.user!.id);
+    res.sendStatus(200);
   });
 
   // Challenge routes

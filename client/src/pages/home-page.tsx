@@ -10,6 +10,7 @@ import { Loader2, Plus, Dumbbell, Trophy, Target } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 import { WelcomeScreen } from "@/components/welcome-screen";
+import { FitbitConnect } from "@/components/fitbit-connect";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -68,6 +69,7 @@ export default function HomePage() {
                   <span className="text-muted-foreground" role="status" aria-label="User status">
                     Welcome, {user?.username}
                   </span>
+                  <FitbitConnect />
                   <AccessibilitySettings />
                   <Dialog>
                     <DialogTrigger asChild>
