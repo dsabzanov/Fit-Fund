@@ -77,31 +77,58 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-background p-8">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-primary/5 to-background p-8"
+      style={{
+        backgroundImage: `linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7)), url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1920')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <div className="container mx-auto grid md:grid-cols-2 gap-8 items-center max-w-6xl">
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <img 
-              src="logo.png" 
-              alt="Ilana Muhlstein Logo" 
-              className="w-full h-auto object-contain" 
-              onError={(e) => {
-                console.error('Failed to load main logo');
-                e.currentTarget.src = "logo-small.png";
-              }}
-            />
+          <div className="relative">
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-lg"></div>
+            <div className="relative grid grid-cols-2 gap-4 p-6">
+              <img 
+                src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=500"
+                alt="Healthy breakfast"
+                className="rounded-lg shadow-lg transform hover:scale-105 transition-transform"
+              />
+              <img 
+                src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500"
+                alt="Fresh vegetables"
+                className="rounded-lg shadow-lg transform hover:scale-105 transition-transform"
+              />
+            </div>
           </div>
-          <h1 className="text-4xl font-bold tracking-tighter">
-            Transform Your Life with
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> FitFund</span>
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Join weight loss challenges, bet on yourself, and win money while achieving your fitness goals.
-            Our platform makes weight loss fun, social, and rewarding.
-          </p>
+          <div className="relative">
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-lg"></div>
+            <div className="relative p-6 space-y-4">
+              <h1 className="text-4xl font-bold tracking-tighter">
+                Transform Your Life with
+                <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> FitFund</span>
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Join weight loss challenges, bet on yourself, and win money while achieving your wellness goals.
+                Our platform makes healthy living enjoyable, social, and rewarding.
+              </p>
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="text-center p-4 bg-white/80 rounded-lg shadow-sm">
+                  <p className="font-semibold">Mindful Eating</p>
+                </div>
+                <div className="text-center p-4 bg-white/80 rounded-lg shadow-sm">
+                  <p className="font-semibold">Healthy Choices</p>
+                </div>
+                <div className="text-center p-4 bg-white/80 rounded-lg shadow-sm">
+                  <p className="font-semibold">Better Life</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <Card className="w-full">
+        <Card className="backdrop-blur-sm bg-white/90">
           <CardHeader>
             <CardTitle>Welcome to FitFund</CardTitle>
           </CardHeader>
