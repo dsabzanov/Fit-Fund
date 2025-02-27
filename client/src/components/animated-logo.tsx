@@ -37,14 +37,16 @@ export function AnimatedLogo({ className }: AnimatedLogoProps) {
   };
 
   const handleImageLoad = () => {
+    console.log(`Successfully loaded ${currentLogo} logo`);
     setIsLoading(false);
     setLoadError(false);
   };
 
   const handleImageError = () => {
+    console.error(`Failed to load ${currentLogo} logo`);
     setLoadError(true);
     setIsLoading(false);
-    
+
     // Attempt to load the next logo variant
     if (currentLogo === 'green') {
       setCurrentLogo('black');
@@ -64,13 +66,16 @@ export function AnimatedLogo({ className }: AnimatedLogoProps) {
           variants={logoVariants}
           className="relative"
         >
-          <img
-            src={`/IM_Initials_${currentLogo}.png`}
-            alt={`Ilana Muhlstein Logo (${currentLogo})`}
-            className="h-16 w-auto"
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-          />
+          {/* Add debug border to see container */}
+          <div className="border-2 border-dashed border-muted p-2 rounded-lg">
+            <img
+              src={`/images/IM_Initials_${currentLogo}${currentLogo === 'black' ? ' (1)' : ''}.png`}
+              alt={`Logo (${currentLogo})`}
+              className="h-16 w-auto"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+            />
+          </div>
           {isLoading && (
             <motion.div
               className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-lg"
