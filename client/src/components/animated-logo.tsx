@@ -37,11 +37,14 @@ export function AnimatedLogo({ className }: AnimatedLogoProps) {
   };
 
   const getLogoPath = (variant: 'green' | 'black' | 'gold') => {
-    // Using encodeURIComponent to handle spaces in filenames
-    const filename = variant === 'black' 
-      ? encodeURIComponent('IM_Initials_Black (1).png')
-      : `IM_Initials_${variant}.png`;
-    return `/images/${filename}`;
+    switch(variant) {
+      case 'black':
+        return '/images/IM_Initials_Black (1).png';
+      case 'gold':
+        return '/images/IM_Initials_Gold.png';
+      case 'green':
+        return '/images/IM_Initials_Green.png';
+    }
   };
 
   const handleImageLoad = () => {
