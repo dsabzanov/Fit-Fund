@@ -11,6 +11,7 @@ import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 import { WelcomeScreen } from "@/components/welcome-screen";
 import { FitbitConnect } from "@/components/fitbit-connect";
+import { OnboardingTour } from "@/components/OnboardingTour";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -37,11 +38,7 @@ export default function HomePage() {
 
   return (
     <>
-      {showWelcome && (
-        <div onClick={() => setShowWelcome(false)} style={{ cursor: 'pointer' }}>
-          <WelcomeScreen />
-        </div>
-      )}
+      {showWelcome && <OnboardingTour />}
 
       <div className="min-h-screen bg-background">
         <div 
@@ -59,7 +56,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <img 
-                      src="/attached_assets/IM_Logo_Full-Color (2).png"
+                      src="/assets/IM_Logo_Full-Color (2).png"
                       alt="FitFund Logo"
                       className="h-10 w-auto"
                     />
@@ -74,11 +71,13 @@ export default function HomePage() {
                   <span className="text-muted-foreground" role="status" aria-label="User status">
                     Welcome, {user?.username}
                   </span>
-                  <FitbitConnect />
+                  <div data-tour="fitbit-connect">
+                    <FitbitConnect />
+                  </div>
                   <AccessibilitySettings />
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" data-tour="create-challenge">
                         <Plus className="h-4 w-4 mr-2" />
                         Create Challenge
                       </Button>
@@ -130,7 +129,7 @@ export default function HomePage() {
 
         <main className="container mx-auto px-4 py-12" role="main">
           <h2 className="text-3xl font-bold mb-8 text-center">Active Challenges</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Fitness challenges">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Fitness challenges" data-tour="challenges">
             {challenges?.map((challenge) => (
               <ChallengeCard
                 key={challenge.id}
