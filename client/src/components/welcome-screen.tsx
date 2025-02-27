@@ -9,15 +9,25 @@ import { TrendingDown, Trophy, Target, Dumbbell } from "lucide-react";
 export function WelcomeScreen() {
   const { user } = useAuth();
 
-  const { data: weightRecords = [] } = useQuery<WeightRecord[]>({
+  console.log("Welcome Screen mounted, user:", user);
+
+  const { data: weightRecords = [], isLoading: isLoadingWeight, error: weightError } = useQuery<WeightRecord[]>({
     queryKey: [`/api/users/${user?.id}/weight-records`],
     enabled: !!user,
   });
 
-  const { data: participations = [] } = useQuery<Participant[]>({
+  const { data: participations = [], isLoading: isLoadingParticipations, error: participationsError } = useQuery<Participant[]>({
     queryKey: [`/api/users/${user?.id}/participations`],
     enabled: !!user,
   });
+
+  console.log("Weight Records:", weightRecords);
+  console.log("Participations:", participations);
+
+  if (weightError || participationsError) {
+    console.error("Weight Error:", weightError);
+    console.error("Participations Error:", participationsError);
+  }
 
   // Calculate weight loss progress
   const sortedRecords = [...weightRecords].sort(
@@ -58,6 +68,16 @@ export function WelcomeScreen() {
       color: "text-purple-500",
     },
   ];
+
+  if (isLoadingWeight || isLoadingParticipations) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+        <div className="bg-card rounded-lg p-6 text-center">
+          <p>Loading your progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence>

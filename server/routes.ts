@@ -224,5 +224,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add new routes for user data
+  app.get("/api/users/:userId/weight-records", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const records = await storage.getWeightRecords(
+      parseInt(req.params.userId),
+      undefined // Don't filter by challenge ID when getting all records
+    );
+    res.json(records);
+  });
+
+  app.get("/api/users/:userId/participations", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const participations = await storage.getParticipants(
+      parseInt(req.params.userId)
+    );
+    res.json(participations);
+  });
+
   return httpServer;
 }
