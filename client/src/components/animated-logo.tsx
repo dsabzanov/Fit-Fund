@@ -9,9 +9,10 @@ export function AnimatedLogo() {
       className="p-2 rounded-lg"
     >
       <img
-        src="/attached_assets/IM_Logo_Full-Color (2).png"
+        src="/assets/IM_Logo_Full-Color (2).png"
         alt="FitFund Logo"
         className="h-16 w-auto"
+        style={{ objectFit: "contain" }}
       />
     </motion.div>
   );
