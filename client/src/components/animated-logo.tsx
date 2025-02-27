@@ -13,8 +13,21 @@ export function AnimatedLogo() {
     }
   };
 
+  const getLogoPath = (variant: string) => {
+    switch (variant) {
+      case 'green':
+        return '/attached_assets/IM_Initials_Green.png';
+      case 'black':
+        return '/attached_assets/IM_Initials_Black (1).png';
+      case 'gold':
+        return '/attached_assets/IM_Initials_Gold.png';
+      default:
+        return '/attached_assets/IM_Logo_Full-Color (2).png';
+    }
+  };
+
   const handleImageError = () => {
-    console.error(`Failed to load ${currentVariant} variant`);
+    console.error(`Failed to load ${currentVariant} variant at path: ${getLogoPath(currentVariant)}`);
     // Try next variant
     if (currentVariant === 'green') {
       setCurrentVariant('black');
@@ -31,11 +44,11 @@ export function AnimatedLogo() {
       className="p-2 rounded-lg"
     >
       <img
-        src={`/assets/IM_Initials_${currentVariant}${currentVariant === 'black' ? ' (1)' : ''}.png`}
+        src={getLogoPath(currentVariant)}
         alt="Logo"
         className="h-16 w-auto"
         onLoad={() => {
-          console.log(`Successfully loaded ${currentVariant} variant`);
+          console.log(`Successfully loaded ${currentVariant} variant at path: ${getLogoPath(currentVariant)}`);
           setIsLoading(false);
         }}
         onError={handleImageError}
