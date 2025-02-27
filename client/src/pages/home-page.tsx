@@ -16,17 +16,17 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 export default function HomePage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [showWelcome, setShowWelcome] = useState(false);
-
-  const { data: challenges, isLoading } = useQuery<Challenge[]>({
-    queryKey: ["/api/challenges"],
-  });
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
     if (user) {
       setShowWelcome(true);
     }
   }, [user]);
+
+  const { data: challenges, isLoading } = useQuery<Challenge[]>({
+    queryKey: ["/api/challenges"],
+  });
 
   if (isLoading) {
     return (
