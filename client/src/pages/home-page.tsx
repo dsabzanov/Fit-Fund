@@ -52,72 +52,72 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-grid-white/10" />
           <div className="relative">
             <header className="border-b bg-white/80 backdrop-blur-sm shadow-sm" role="banner">
-              <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-                <div className="flex items-center gap-6">
+              <div className="container mx-auto px-4 sm:px-6 py-3">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                   <div className="flex items-center gap-2">
                     <img 
                       src="/assets/IM_Logo_Full-Color (2).png"
                       alt="FitFund Logo"
-                      className="h-10 w-auto"
+                      className="h-8 sm:h-10 w-auto"
                     />
-                    <h1 className="text-2xl font-bold">
+                    <h1 className="text-xl sm:text-2xl font-bold">
                       <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                         FitFund
                       </span>
                     </h1>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-muted-foreground" role="status" aria-label="User status">
-                    Welcome, {user?.username}
-                  </span>
-                  <div data-tour="fitbit-connect">
-                    <FitbitConnect />
+                  <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
+                    <span className="text-sm sm:text-base text-muted-foreground" role="status" aria-label="User status">
+                      Welcome, {user?.username}
+                    </span>
+                    <div data-tour="fitbit-connect" className="hidden sm:block">
+                      <FitbitConnect />
+                    </div>
+                    <AccessibilitySettings />
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" data-tour="create-challenge" className="whitespace-nowrap">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Challenge
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Create New Challenge</DialogTitle>
+                        </DialogHeader>
+                        <CreateChallengeForm />
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                  <AccessibilitySettings />
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" data-tour="create-challenge">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Challenge
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Create New Challenge</DialogTitle>
-                      </DialogHeader>
-                      <CreateChallengeForm />
-                    </DialogContent>
-                  </Dialog>
                 </div>
               </div>
             </header>
 
-            <div className="container mx-auto px-6 py-24 text-center">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+            <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-24 text-center">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-white">
                 Transform Your Health Journey
               </h2>
-              <p className="text-xl text-white/80 max-w-2xl mx-auto mb-12">
+              <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-12">
                 Join our community-driven challenges where fitness meets financial motivation. Set goals, track progress, and earn rewards.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
-                  <Dumbbell className="h-12 w-12 text-primary mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Fitness Goals</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto">
+                <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
+                  <Dumbbell className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Fitness Goals</h3>
                   <p className="text-muted-foreground text-sm text-center">
                     Set personalized weight loss targets and track your progress
                   </p>
                 </div>
-                <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
-                  <Trophy className="h-12 w-12 text-primary mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Win Rewards</h3>
+                <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
+                  <Trophy className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Win Rewards</h3>
                   <p className="text-muted-foreground text-sm text-center">
                     Achieve your goals and earn financial incentives
                   </p>
                 </div>
-                <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
-                  <Target className="h-12 w-12 text-primary mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Stay Motivated</h3>
+                <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
+                  <Target className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Stay Motivated</h3>
                   <p className="text-muted-foreground text-sm text-center">
                     Join a supportive community committed to health
                   </p>
@@ -127,9 +127,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        <main className="container mx-auto px-4 py-12" role="main">
-          <h2 className="text-3xl font-bold mb-8 text-center">Active Challenges</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Fitness challenges" data-tour="challenges">
+        <main className="container mx-auto px-4 py-8 sm:py-12" role="main">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Active Challenges</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8" role="list" aria-label="Fitness challenges" data-tour="challenges">
             {challenges?.map((challenge) => (
               <ChallengeCard
                 key={challenge.id}
