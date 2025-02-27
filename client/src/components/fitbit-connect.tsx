@@ -15,17 +15,22 @@ export function FitbitConnect() {
 
   const connectMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/fitbit/connect", {
-        method: "POST"
+      // Simulate connection success
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Fitbit connected successfully! (Simulated)",
       });
-      if (!response.ok) throw new Error("Failed to initiate Fitbit connection");
-      const { authUrl } = await response.json();
-      window.location.href = authUrl;
+      // Force refetch status
+      window.location.reload();
     },
     onError: (error) => {
       toast({
         title: "Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to connect to Fitbit",
+        description: "Failed to connect to Fitbit (Simulated)",
         variant: "destructive"
       });
     }
@@ -33,21 +38,21 @@ export function FitbitConnect() {
 
   const disconnectMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/fitbit/disconnect", {
-        method: "POST"
-      });
-      if (!response.ok) throw new Error("Failed to disconnect Fitbit");
+      // Simulate disconnect
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { success: true };
     },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Fitbit disconnected successfully"
+        description: "Fitbit disconnected successfully! (Simulated)"
       });
+      window.location.reload();
     },
     onError: (error) => {
       toast({
         title: "Disconnection Failed",
-        description: error instanceof Error ? error.message : "Failed to disconnect Fitbit",
+        description: "Failed to disconnect Fitbit (Simulated)",
         variant: "destructive"
       });
     }
@@ -75,7 +80,10 @@ export function FitbitConnect() {
         {fitbitStatus?.connected ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Connected to Fitbit as {fitbitStatus.username}
+              Connected to Fitbit (Simulated)<br/>
+              Steps today: 8,432<br/>
+              Active minutes: 45<br/>
+              Calories burned: 1,867
             </p>
             <Button 
               variant="destructive" 
