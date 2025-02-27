@@ -36,14 +36,22 @@ export function AnimatedLogo({ className }: AnimatedLogoProps) {
     }
   };
 
+  const getLogoPath = (variant: 'green' | 'black' | 'gold') => {
+    // Using encodeURIComponent to handle spaces in filenames
+    const filename = variant === 'black' 
+      ? encodeURIComponent('IM_Initials_Black (1).png')
+      : `IM_Initials_${variant}.png`;
+    return `/images/${filename}`;
+  };
+
   const handleImageLoad = () => {
-    console.log(`Successfully loaded ${currentLogo} logo`);
+    console.log(`Successfully loaded ${currentLogo} logo at path: ${getLogoPath(currentLogo)}`);
     setIsLoading(false);
     setLoadError(false);
   };
 
   const handleImageError = () => {
-    console.error(`Failed to load ${currentLogo} logo`);
+    console.error(`Failed to load ${currentLogo} logo at path: ${getLogoPath(currentLogo)}`);
     setLoadError(true);
     setIsLoading(false);
 
@@ -66,10 +74,10 @@ export function AnimatedLogo({ className }: AnimatedLogoProps) {
           variants={logoVariants}
           className="relative"
         >
-          {/* Add debug border to see container */}
+          {/* Debug border */}
           <div className="border-2 border-dashed border-muted p-2 rounded-lg">
             <img
-              src={`/images/IM_Initials_${currentLogo}${currentLogo === 'black' ? ' (1)' : ''}.png`}
+              src={getLogoPath(currentLogo)}
               alt={`Logo (${currentLogo})`}
               className="h-16 w-auto"
               onLoad={handleImageLoad}
