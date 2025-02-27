@@ -78,7 +78,7 @@ export default function AuthPage() {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-primary/5 to-background p-8"
+      className="min-h-screen bg-gradient-to-br from-primary/5 to-background p-8 relative"
       style={{
         backgroundImage: `linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7)), url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1920')`,
         backgroundSize: 'cover',
@@ -240,6 +240,20 @@ export default function AuthPage() {
             </Tabs>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Ilana Muhlstein Logo */}
+      <div className="fixed bottom-8 left-8">
+        <img
+          src="/IM_Initials_Green.png"
+          alt="Ilana Muhlstein Logo"
+          className="h-16 w-auto"
+          onError={(e) => {
+            // Fallback to black logo if green fails
+            console.error('Failed to load green logo');
+            e.currentTarget.src = "/IM_Initials_Black.png";
+          }}
+        />
       </div>
     </div>
   );
