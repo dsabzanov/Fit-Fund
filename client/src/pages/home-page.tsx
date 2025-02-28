@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Dumbbell, Trophy, Target } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
-import { WelcomeScreen } from "@/components/welcome-screen";
 import { FitbitConnect } from "@/components/fitbit-connect";
 import { OnboardingTour } from "@/components/OnboardingTour";
 
