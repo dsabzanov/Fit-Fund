@@ -131,11 +131,17 @@ export default function HomePage() {
                   </Button>
                 </div>
                 <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
-                  <Target className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
-                  <h3 className="text-base sm:text-lg font-semibold mb-2">Stay Motivated</h3>
-                  <p className="text-muted-foreground text-sm text-center">
-                    Join a supportive community committed to health
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">HOST A DIETBET</h3>
+                  <p className="text-muted-foreground text-sm text-center mb-4">
+                    Start a DietBet with your friends and family!
                   </p>
+                  <Button 
+                    size="lg"
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    Create
+                  </Button>
                 </div>
               </div>
             </div>
