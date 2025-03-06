@@ -100,11 +100,19 @@ export default function HomePage() {
                 Join our community-driven challenges where fitness meets financial motivation. Set goals, track progress, and earn rewards.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto">
-                <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
-                  <Dumbbell className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
-                  <h3 className="text-base sm:text-lg font-semibold mb-2">Fitness Goals</h3>
-                  <p className="text-muted-foreground text-sm text-center">
-                    Set personalized weight loss targets and track your progress
+                <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/10 to-primary/30 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">Want to lose 10%?</h3>
+                  <p className="text-white/90 text-base mb-4">
+                    Join our Weekly Transformer DietBet
+                  </p>
+                  <Button 
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-white mb-4 w-full sm:w-auto"
+                  >
+                    Play now
+                  </Button>
+                  <p className="text-sm text-white/80 font-medium">
+                    Starts in 5 days
                   </p>
                 </div>
                 <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
