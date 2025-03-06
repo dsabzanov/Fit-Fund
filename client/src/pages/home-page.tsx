@@ -132,16 +132,16 @@ export default function HomePage() {
                     Play now
                   </Button>
                 </div>
-                <div className="flex flex-col items-center p-6 rounded-lg bg-white border shadow-lg">
-                  <h3 className="text-base sm:text-lg font-semibold mb-2">HOST A DIETBET</h3>
-                  <p className="text-muted-foreground text-sm text-center mb-2">
+                <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/30 to-primary/50 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">HOST A DIETBET</h3>
+                  <p className="text-white/90 text-base mb-2">
                     Start a DietBet with your friends and family!
                   </p>
                   <div className="flex-grow" />
                   <Button 
                     size="lg"
                     variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                    className="border-white text-white hover:bg-white hover:text-primary w-full sm:w-auto"
                   >
                     Create
                   </Button>
