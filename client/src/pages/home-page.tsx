@@ -11,6 +11,7 @@ import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 import { FitbitConnect } from "@/components/fitbit-connect";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import { Link } from "wouter";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -106,12 +107,14 @@ export default function HomePage() {
                     Join our Weekly Transformer FitFund
                   </p>
                   <div className="flex-grow" />
-                  <Button 
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-white mb-4 w-full sm:w-auto"
-                  >
-                    Play now
-                  </Button>
+                  <Link href="/weekly-game">
+                    <Button 
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90 text-white mb-4 w-full sm:w-auto"
+                    >
+                      Play now
+                    </Button>
+                  </Link>
                   <p className="text-sm text-white/80 font-medium">
                     Starts in 5 days
                   </p>
