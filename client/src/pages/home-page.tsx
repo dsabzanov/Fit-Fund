@@ -43,7 +43,7 @@ export default function HomePage() {
         <div 
           className="relative bg-gradient-to-b from-primary/10 to-background"
           style={{
-            backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=1920')`,
+            backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=1920')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
