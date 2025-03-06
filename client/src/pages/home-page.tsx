@@ -102,9 +102,10 @@ export default function HomePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto">
                 <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/10 to-primary/30 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
                   <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">Want to lose 10%?</h3>
-                  <p className="text-white/90 text-base mb-4">
+                  <p className="text-white/90 text-base mb-2">
                     Join our Weekly Transformer DietBet
                   </p>
+                  <div className="flex-grow" />
                   <Button 
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-white mb-4 w-full sm:w-auto"
@@ -120,9 +121,10 @@ export default function HomePage() {
                   <p className="text-white/90 text-base mb-2">
                     Join our Weekly Kickstarter
                   </p>
-                  <p className="text-white/80 text-sm mb-4">
+                  <p className="text-white/80 text-sm mb-2">
                     Or, create your own game!
                   </p>
+                  <div className="flex-grow" />
                   <Button 
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
@@ -130,11 +132,12 @@ export default function HomePage() {
                     Play now
                   </Button>
                 </div>
-                <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
+                <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
                   <h3 className="text-base sm:text-lg font-semibold mb-2">HOST A DIETBET</h3>
-                  <p className="text-muted-foreground text-sm text-center mb-4">
+                  <p className="text-muted-foreground text-sm text-center mb-2">
                     Start a DietBet with your friends and family!
                   </p>
+                  <div className="flex-grow" />
                   <Button 
                     size="lg"
                     variant="outline"
