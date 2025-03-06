@@ -115,12 +115,20 @@ export default function HomePage() {
                     Starts in 5 days
                   </p>
                 </div>
-                <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
-                  <Trophy className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
-                  <h3 className="text-base sm:text-lg font-semibold mb-2">Win Rewards</h3>
-                  <p className="text-muted-foreground text-sm text-center">
-                    Achieve your goals and earn financial incentives
+                <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/20 to-primary/40 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">WANT TO LOSE 4%?</h3>
+                  <p className="text-white/90 text-base mb-2">
+                    Join our Weekly Kickstarter
                   </p>
+                  <p className="text-white/80 text-sm mb-4">
+                    Or, create your own game!
+                  </p>
+                  <Button 
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
+                  >
+                    Play now
+                  </Button>
                 </div>
                 <div className="flex flex-col items-center p-4 sm:p-6 rounded-lg bg-white/95 border shadow-lg">
                   <Target className="h-10 sm:h-12 w-10 sm:w-12 text-primary mb-4" />
