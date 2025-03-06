@@ -132,7 +132,7 @@ export default function HomePage() {
                     Play now
                   </Button>
                 </div>
-                <div className="flex flex-col items-center p-6 rounded-lg bg-white/95 border shadow-lg">
+                <div className="flex flex-col items-center p-6 rounded-lg bg-white border shadow-lg">
                   <h3 className="text-base sm:text-lg font-semibold mb-2">HOST A DIETBET</h3>
                   <p className="text-muted-foreground text-sm text-center mb-2">
                     Start a DietBet with your friends and family!
