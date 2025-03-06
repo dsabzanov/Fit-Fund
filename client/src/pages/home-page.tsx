@@ -140,8 +140,7 @@ export default function HomePage() {
                   <div className="flex-grow" />
                   <Button 
                     size="lg"
-                    variant="outline"
-                    className="border-white text-white hover:bg-white hover:text-primary w-full sm:w-auto"
+                    className="bg-white/10 hover:bg-white text-white hover:text-primary border-2 border-white/80 w-full sm:w-auto transition-colors"
                   >
                     Create
                   </Button>
