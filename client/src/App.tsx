@@ -9,6 +9,8 @@ import AuthPage from "@/pages/auth-page";
 import HomePage from "@/pages/home-page";
 import ChallengePage from "@/pages/challenge-page";
 import WeeklyGamePage from "@/pages/weekly-game-page";
+import KickstarterGamePage from "@/pages/kickstarter-game-page";
+import CreateGamePage from "@/pages/create-game-page";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -17,6 +19,8 @@ function Router() {
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/challenge/:id" component={ChallengePage} />
       <ProtectedRoute path="/weekly-game" component={WeeklyGamePage} />
+      <ProtectedRoute path="/kickstarter-game" component={KickstarterGamePage} />
+      <ProtectedRoute path="/create-game" component={CreateGamePage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

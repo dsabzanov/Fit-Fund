@@ -128,12 +128,14 @@ export default function HomePage() {
                     Or, create your own game!
                   </p>
                   <div className="flex-grow" />
-                  <Button 
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
-                  >
-                    Play now
-                  </Button>
+                  <Link href="/kickstarter-game">
+                    <Button 
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
+                    >
+                      Play now
+                    </Button>
+                  </Link>
                 </div>
                 <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/30 to-primary/50 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
                   <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">HOST A FITFUND</h3>
@@ -141,12 +143,14 @@ export default function HomePage() {
                     Start a FitFund with your friends and family!
                   </p>
                   <div className="flex-grow" />
-                  <Button 
-                    size="lg"
-                    className="bg-white/10 hover:bg-white text-white hover:text-primary border-2 border-white/80 w-full sm:w-auto transition-colors"
-                  >
-                    Create
-                  </Button>
+                  <Link href="/create-game">
+                    <Button 
+                      size="lg"
+                      className="bg-white/10 hover:bg-white text-white hover:text-primary border-2 border-white/80 w-full sm:w-auto transition-colors"
+                    >
+                      Create
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
