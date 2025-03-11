@@ -119,24 +119,30 @@ export default function HomePage() {
                     Starts in 5 days
                   </p>
                 </div>
+
                 <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/20 to-primary/40 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">WANT TO LOSE 4%?</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">BACK-TO-BACK CHALLENGES</h3>
                   <p className="text-white/90 text-base mb-2">
-                    Join our Weekly Kickstarter
+                    Keep the momentum going! Join our continuous challenge series.
                   </p>
-                  <p className="text-white/80 text-sm mb-2">
-                    Or, create your own game!
+                  <p className="text-white/80 text-sm mb-4">
+                    Automatically re-enter with your group
                   </p>
                   <div className="flex-grow" />
-                  <Link href="/kickstarter-game">
-                    <Button 
-                      size="lg"
-                      className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
-                    >
-                      Play now
-                    </Button>
-                  </Link>
+                  <Button 
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
+                    onClick={() => {
+                      toast({
+                        title: "Coming Soon!",
+                        description: "Back-to-back challenges will be available soon. Stay tuned!",
+                      });
+                    }}
+                  >
+                    Join Series
+                  </Button>
                 </div>
+
                 <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/30 to-primary/50 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
                   <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">HOST A FITFUND</h3>
                   <p className="text-white/90 text-base mb-2">
