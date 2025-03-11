@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   currentWeight: numeric("current_weight"),
   targetWeight: numeric("target_weight"),
+  isHost: boolean("is_host").notNull().default(false),
 });
 
 // Challenges table

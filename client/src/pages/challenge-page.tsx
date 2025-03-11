@@ -8,9 +8,15 @@ import { Feed } from "@/components/feed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, DollarSign, Target, Users, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Crown, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+
 
 export default function ChallengePage() {
-  // Fix: Use useRoute instead of useParams
+  const { user } = useAuth();
   const [match, params] = useRoute<{ id: string }>("/challenge/:id");
   const challengeId = match && params ? parseInt(params.id) : NaN;
 
@@ -86,15 +92,41 @@ export default function ChallengePage() {
       100
   );
 
+  const isHost = user?.isHost;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        {isHost && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Crown className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold">Host Dashboard</h2>
+              <Badge variant="outline" className="bg-primary/5">Host View</Badge>
+            </div>
+            <Alert>
+              <AlertDescription className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                As the host, you have access to additional controls and can manage this challenge.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Challenge Info */}
           <div className="lg:col-span-2 space-y-8">
             <Card>
               <CardHeader>
-                <CardTitle>{challenge.title}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>{challenge.title}</CardTitle>
+                  {isHost && (
+                    <Badge variant="secondary">
+                      <Crown className="h-4 w-4 mr-1" />
+                      Host
+                    </Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-6">
@@ -122,6 +154,20 @@ export default function ChallengePage() {
                 <p className="text-sm text-muted-foreground mt-2">
                   Challenge Progress: {Math.round(progress)}%
                 </p>
+
+                {isHost && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                    <h3 className="text-sm font-medium mb-2">Host Controls</h3>
+                    <div className="space-y-2">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Send Reminder to All
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Detailed Stats
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -144,6 +190,7 @@ export default function ChallengePage() {
             <Leaderboard
               participants={participants}
               weightRecords={weightRecords}
+              isHost={isHost}
             />
           </div>
         </div>
