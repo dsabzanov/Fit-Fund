@@ -29,7 +29,7 @@ export function FitbitConnect() {
               </li>
               <li className="flex justify-between">
                 <span>Distance</span>
-                <span className="font-mono">5.2 km</span>
+                <span className="font-mono">3.2 miles</span>
               </li>
             </ul>
           </div>

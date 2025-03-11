@@ -40,7 +40,7 @@ export class FitbitService {
           steps: 8432,
           activeMinutes: 45,
           calories: 1867,
-          distance: 5.2
+          distance: 3.2 // Changed from 5.2km to 3.2 miles
         }
       ]
     };
