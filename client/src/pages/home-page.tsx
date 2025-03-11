@@ -102,7 +102,7 @@ export default function HomePage() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto">
                 <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/10 to-primary/30 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">Want to lose 10%?</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">WANT TO LOSE 4%?</h3>
                   <p className="text-white/90 text-base mb-2">
                     Join our Weekly Transformer FitFund
                   </p>
