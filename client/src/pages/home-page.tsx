@@ -165,14 +165,22 @@ export default function HomePage() {
                     Start a FitFund with your friends and family!
                   </p>
                   <div className="flex-grow" />
-                  <Link href="/create-game">
-                    <Button 
-                      size="lg"
-                      className="bg-white/10 hover:bg-white text-white hover:text-primary border-2 border-white/80 w-full sm:w-auto transition-colors"
-                    >
-                      Create
-                    </Button>
-                  </Link>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        size="lg"
+                        className="bg-white/10 hover:bg-white text-white hover:text-primary border-2 border-white/80 w-full sm:w-auto transition-colors"
+                      >
+                        Create FitFund
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Create New FitFund Challenge</DialogTitle>
+                      </DialogHeader>
+                      <CreateChallengeForm />
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </div>
