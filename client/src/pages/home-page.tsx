@@ -24,21 +24,27 @@ export default function HomePage() {
     }
   }, [user]);
 
-  const { data: challenges, isLoading } = useQuery<Challenge[]>({
-    queryKey: ["/api/challenges", user?.id],
-    queryFn: async () => {
-      // If user is logged in, get their challenges
-      if (user?.id) {
-        const res = await fetch(`/api/challenges/user/${user.id}`);
-        return res.json();
-      }
-      // Otherwise, only get open challenges
-      const res = await fetch("/api/challenges/open");
-      return res.json();
-    }
+  // Separate queries for open challenges and user challenges
+  const { data: challenges = [], isLoading } = useQuery<Challenge[]>({
+    queryKey: ["/api/challenges/open"],
+    enabled: !user // Only fetch open challenges when not logged in
   });
 
-  if (isLoading) {
+  const { data: userChallenges = [], isLoading: isLoadingUserChallenges } = useQuery<Challenge[]>({
+    queryKey: ["/api/challenges/user", user?.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/challenges/user/${user?.id}`);
+      if (!res.ok) throw new Error("Failed to fetch user challenges");
+      return res.json();
+    },
+    enabled: !!user // Only fetch user challenges when logged in
+  });
+
+  // Combine challenges based on user status
+  const displayChallenges = user ? userChallenges : challenges;
+  const isLoadingAny = isLoading || isLoadingUserChallenges;
+
+  if (isLoadingAny) {
     return (
       <div className="flex items-center justify-center min-h-screen" role="status" aria-label="Loading challenges">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -48,7 +54,7 @@ export default function HomePage() {
 
   return (
     <>
-      {showWelcome && <OnboardingTour />}
+      {showWelcome && user && <OnboardingTour />}
 
       <div className="min-h-screen bg-background">
         <div 
@@ -174,14 +180,28 @@ export default function HomePage() {
         </div>
 
         <main className="container mx-auto px-4 py-8 sm:py-12" role="main">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Active Challenges</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">
+            {user ? "Your Challenges" : "Open Challenges"}
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8" role="list" aria-label="Fitness challenges" data-tour="challenges">
-            {challenges?.map((challenge) => (
+            {displayChallenges.map((challenge) => (
               <ChallengeCard
                 key={challenge.id}
                 challenge={challenge}
               />
             ))}
+            {displayChallenges.length === 0 && (
+              <div className="col-span-full text-center text-muted-foreground">
+                <p>No challenges available at the moment.</p>
+                {!user && (
+                  <p className="mt-2">
+                    <Link href="/auth">
+                      <a className="text-primary hover:underline">Sign in</a>
+                    </Link>
+                    {" "}to see more challenges or create your own!</p>
+                )}
+              </div>
+            )}
           </div>
         </main>
       </div>
