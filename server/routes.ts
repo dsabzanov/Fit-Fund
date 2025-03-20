@@ -8,7 +8,7 @@ import { getAuth } from "firebase-admin/auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import express from 'express'; // Added import for express.static
+import express from 'express';
 import {
   insertChallengeSchema,
   insertWeightRecordSchema,
@@ -113,6 +113,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const challenge = await storage.createChallenge(req.body);
     res.status(201).json(challenge);
   });
+
+  // Add new route for open challenges
+  app.get("/api/challenges/open", async (req, res) => {
+    const challenges = await storage.getAllChallenges();
+    // Only return challenges that are open for registration
+    const openChallenges = challenges.filter(c => c.status === "open");
+    res.json(openChallenges);
+  });
+
+  // Add route for user-specific challenges
+  app.get("/api/challenges/user/:userId", async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    const challenges = await storage.getUserChallenges(userId);
+    res.json(challenges);
+  });
+
 
   // Participant routes
   app.post("/api/challenges/:challengeId/join", async (req, res) => {
