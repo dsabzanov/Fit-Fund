@@ -202,6 +202,20 @@ export default function ChallengePage() {
                     <WeightForm challengeId={challengeId} />
                   </div>
 
+                  <Alert className="bg-muted/50">
+                    <AlertDescription>
+                      <div className="space-y-2">
+                        <p className="font-medium">Photo Verification Guidelines:</p>
+                        <ul className="list-disc pl-4 space-y-1 text-sm">
+                          <li>Take a clear photo of your scale display</li>
+                          <li>Include today's date written on paper next to the scale</li>
+                          <li>Ensure the weight reading is clearly visible</li>
+                          <li>Maximum file size: 5MB</li>
+                        </ul>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+
                   <Separator />
 
                   <div>
