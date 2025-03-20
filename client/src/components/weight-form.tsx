@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ImageIcon } from "lucide-react";
+import { Loader2, ImageIcon, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
 
 interface WeightFormProps {
   challengeId: number;
@@ -17,6 +18,9 @@ interface WeightFormProps {
 
 export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
   const { toast } = useToast();
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const form = useForm({
     resolver: zodResolver(insertWeightRecordSchema),
     defaultValues: {
@@ -26,12 +30,53 @@ export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
     },
   });
 
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSelectedImage(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      form.setValue("imageUrl", url);
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: async (data: { weight: string; imageUrl?: string }) => {
-      const res = await apiRequest("POST", "/api/weight-records", {
-        ...data,
-        challengeId,
+      const formData = new FormData();
+      formData.append('weight', data.weight);
+      formData.append('challengeId', challengeId.toString());
+
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
+
+      const res = await fetch('/api/weight-records', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (!res.ok) {
+        throw new Error('Failed to submit weight record');
+      }
+
       return res.json();
     },
     onSuccess: () => {
@@ -41,6 +86,8 @@ export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
         description: "Your weight has been recorded successfully.",
       });
       form.reset();
+      setSelectedImage(null);
+      setPreviewUrl(null);
       onSuccess?.();
     },
     onError: (error: Error) => {
@@ -51,8 +98,6 @@ export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
       });
     },
   });
-
-  const imageUrl = form.watch("imageUrl");
 
   return (
     <Form {...form}>
@@ -71,41 +116,34 @@ export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="imageUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4" />
-                Verification Photo URL
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  type="url" 
-                  placeholder="https://example.com/your-weight-photo.jpg"
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <FormItem>
+          <FormLabel className="flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
+            Verification Photo
+          </FormLabel>
+          <FormControl>
+            <div className="flex items-center gap-2">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+              />
+              <Upload className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </FormControl>
+          <p className="text-sm text-muted-foreground mt-1">
+            Upload a photo of your scale for verification (max 5MB)
+          </p>
+        </FormItem>
 
-        {imageUrl && (
+        {previewUrl && (
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <img
-                src={imageUrl}
-                alt="Weight verification"
+                src={previewUrl}
+                alt="Weight verification preview"
                 className="w-full h-48 object-cover"
-                onError={() => {
-                  toast({
-                    title: "Image Error",
-                    description: "Failed to load the image. Please check the URL.",
-                    variant: "destructive",
-                  });
-                }}
               />
             </CardContent>
           </Card>

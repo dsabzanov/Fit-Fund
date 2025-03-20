@@ -5,6 +5,10 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { z } from "zod";
 import { getAuth } from "firebase-admin/auth";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import express from 'express'; // Added import for express.static
 import {
   insertChallengeSchema,
   insertWeightRecordSchema,
@@ -15,45 +19,39 @@ import {
 } from "@shared/schema";
 import { fitbitService } from "./services/fitbit";
 
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: './public/uploads',
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      cb(new Error('Only image files are allowed'));
+      return;
+    }
+    cb(null, true);
+  }
+});
+
+// Ensure uploads directory exists
+if (!fs.existsSync('./public/uploads')) {
+  fs.mkdirSync('./public/uploads', { recursive: true });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
 
-  // WebSocket connection handling
-  wss.on("connection", (ws) => {
-    console.log("WebSocket client connected");
-
-    ws.on("error", (error) => {
-      console.error("WebSocket error:", error);
-    });
-
-    ws.on("close", () => {
-      console.log("WebSocket client disconnected");
-    });
-
-    ws.on("message", async (message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        console.log("Received message:", data);
-
-        if (data.type === "chat") {
-          // Broadcast chat message to all clients
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({
-                type: "chat",
-                challengeId: data.challengeId,
-                message: data.message
-              }));
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error processing message:", error);
-      }
-    });
-  });
+  // Serve uploaded files statically
+  app.use('/uploads', express.static('public/uploads'));
 
   // Fitbit routes
   app.post("/api/fitbit/connect", async (req, res) => {
@@ -162,25 +160,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Weight record routes
-  app.post("/api/weight-records", async (req, res) => {
+  // Weight record routes with file upload
+  app.post("/api/weight-records", upload.single('image'), async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const weightRecord = await storage.addWeightRecord({
-      ...req.body,
-      userId: req.user!.id,
-    });
 
-    // Notify all clients about weight update
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({
-          type: "weight-update",
-          data: weightRecord
-        }));
-      }
-    });
+    try {
+      const weightRecord = await storage.addWeightRecord({
+        ...req.body,
+        userId: req.user!.id,
+        imageUrl: req.file ? `/uploads/${req.file.filename}` : null,
+      });
 
-    res.status(201).json(weightRecord);
+      // Notify all clients about weight update
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: "weight-update",
+            data: weightRecord
+          }));
+        }
+      });
+
+      res.status(201).json(weightRecord);
+    } catch (error) {
+      console.error("Error adding weight record:", error);
+      res.status(500).json({ error: "Failed to add weight record" });
+    }
   });
 
   app.get("/api/challenges/:id/users/:userId/weight-records", async (req, res) => {
