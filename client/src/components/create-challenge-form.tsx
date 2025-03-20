@@ -44,7 +44,9 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/challenges"] });
+      // Invalidate both open challenges and user challenges queries
+      queryClient.invalidateQueries({ queryKey: ["/api/challenges/open"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/challenges/user"] });
       toast({
         title: "Success",
         description: "Challenge created successfully. You are now the host of this FitFund!",
