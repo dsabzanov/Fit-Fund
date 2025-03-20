@@ -14,8 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { WeightHistory } from "@/components/weight-history"; // Import WeightHistory component
-
+import { WeightHistory } from "@/components/weight-history";
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -194,9 +193,22 @@ export default function ChallengePage() {
                 <CardTitle>Track Your Progress</CardTitle>
               </CardHeader>
               <CardContent>
-                <WeightForm challengeId={challengeId} />
-                <Separator className="my-6" />
-                <WeightHistory challengeId={challengeId} userId={user?.id || 0} />
+                <div className="space-y-6">
+                  <div className="bg-primary/5 rounded-lg p-4">
+                    <h3 className="font-semibold mb-2">Quick Weight Update</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Track your progress by submitting your current weight. Don't forget to include a verification photo!
+                    </p>
+                    <WeightForm challengeId={challengeId} />
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <h3 className="font-semibold mb-2">Your Progress History</h3>
+                    <WeightHistory challengeId={challengeId} userId={user?.id || 0} />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 

@@ -82,8 +82,8 @@ export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}`] });
       toast({
-        title: "Weight Updated",
-        description: "Your weight has been recorded successfully.",
+        title: "Success!",
+        description: "Your weight has been recorded. Keep up the great work! 💪",
       });
       form.reset();
       setSelectedImage(null);
@@ -109,7 +109,12 @@ export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
             <FormItem>
               <FormLabel>Current Weight (lbs)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.1" {...field} />
+                <Input 
+                  type="number" 
+                  step="0.1" 
+                  placeholder="Enter your current weight"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -149,7 +154,11 @@ export function WeightForm({ challengeId, onSuccess }: WeightFormProps) {
           </Card>
         )}
 
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button 
+          type="submit" 
+          disabled={mutation.isPending} 
+          className="w-full bg-primary hover:bg-primary/90"
+        >
           {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Submit Weight
         </Button>
