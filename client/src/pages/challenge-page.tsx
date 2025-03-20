@@ -13,6 +13,8 @@ import { Crown, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { WeightHistory } from "@/components/weight-history"; // Import WeightHistory component
 
 
 export default function ChallengePage() {
@@ -124,9 +126,8 @@ export default function ChallengePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Challenge Info */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-8">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -184,20 +185,21 @@ export default function ChallengePage() {
 
             <Feed challengeId={challengeId} />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Submit Weight</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <WeightForm challengeId={challengeId} />
-              </CardContent>
-            </Card>
-
             <Chat challengeId={challengeId} initialMessages={chatMessages} />
           </div>
 
-          {/* Leaderboard */}
-          <div className="space-y-8">
+          <div className="lg:col-span-4 space-y-8">
+            <Card className="sticky top-4">
+              <CardHeader>
+                <CardTitle>Track Your Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WeightForm challengeId={challengeId} />
+                <Separator className="my-6" />
+                <WeightHistory challengeId={challengeId} userId={user?.id || 0} />
+              </CardContent>
+            </Card>
+
             <Leaderboard
               participants={participants}
               weightRecords={weightRecords}
