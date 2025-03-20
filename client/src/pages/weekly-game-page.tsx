@@ -54,17 +54,23 @@ export default function WeeklyGamePage() {
           <p className="text-xl text-muted-foreground mb-8">
             Join our community and transform your health journey in just 4 weeks
           </p>
+        </div>
+
+        <WeeklyGameInstructions />
+
+        <div className="max-w-4xl mx-auto text-center mt-12">
           <Button 
             size="lg" 
             className="bg-primary text-white"
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Creating Challenge..." : "Join Now - $40"}
+            {mutation.isPending ? "Creating Challenge..." : "Start Your Challenge Now - $40"}
           </Button>
+          <p className="text-sm text-muted-foreground mt-4">
+            Click to create your challenge and begin your transformation journey!
+          </p>
         </div>
-
-        <WeeklyGameInstructions />
       </main>
     </div>
   );
