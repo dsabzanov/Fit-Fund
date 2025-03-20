@@ -299,6 +299,42 @@ export class MemStorage implements IStorage {
   async removeFitbitTokens(userId: number): Promise<void> {
     this.fitbitTokens.delete(userId);
   }
+
+  async getUserChallenges(userId: number): Promise<Challenge[]> {
+    // Get all challenges where the user is a participant
+    const userParticipations = Array.from(this.participants.values())
+      .filter(p => p.userId === userId)
+      .map(p => p.challengeId);
+
+    // Return challenges that are either:
+    // 1. Created by the user (if they're a host)
+    // 2. The user is participating in
+    // 3. Open for registration
+    return Array.from(this.challenges.values())
+      .filter(challenge =>
+        challenge.status === "open" ||
+        userParticipations.includes(challenge.id)
+      );
+  }
+
+  async getChallengeIfParticipant(id: number, userId: number): Promise<Challenge | undefined> {
+    const challenge = await this.getChallenge(id);
+    if (!challenge) return undefined;
+
+    // Allow access if:
+    // 1. Challenge is open for registration
+    // 2. User is a participant
+    // 3. User is a host
+    const isParticipant = Array.from(this.participants.values())
+      .some(p => p.challengeId === id && p.userId === userId);
+    const user = await this.getUser(userId);
+
+    if (challenge.status === "open" || isParticipant || user?.isHost) {
+      return challenge;
+    }
+
+    return undefined;
+  }
 }
 
 export const storage = new MemStorage();

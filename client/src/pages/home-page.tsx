@@ -25,7 +25,17 @@ export default function HomePage() {
   }, [user]);
 
   const { data: challenges, isLoading } = useQuery<Challenge[]>({
-    queryKey: ["/api/challenges"],
+    queryKey: ["/api/challenges", user?.id],
+    queryFn: async () => {
+      // If user is logged in, get their challenges
+      if (user?.id) {
+        const res = await fetch(`/api/challenges/user/${user.id}`);
+        return res.json();
+      }
+      // Otherwise, only get open challenges
+      const res = await fetch("/api/challenges/open");
+      return res.json();
+    }
   });
 
   if (isLoading) {

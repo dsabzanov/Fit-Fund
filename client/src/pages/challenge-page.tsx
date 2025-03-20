@@ -21,8 +21,19 @@ export default function ChallengePage() {
   const challengeId = match && params ? parseInt(params.id) : NaN;
 
   const { data: challenge, isLoading: isLoadingChallenge, error } = useQuery<Challenge>({
-    queryKey: [`/api/challenges/${challengeId}`],
-    enabled: !isNaN(challengeId),
+    queryKey: [`/api/challenges/${challengeId}`, user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("Must be logged in to view challenge");
+      const res = await fetch(`/api/challenges/${challengeId}/user/${user.id}`);
+      if (!res.ok) {
+        if (res.status === 403) {
+          throw new Error("You don't have access to this challenge");
+        }
+        throw new Error("Failed to load challenge");
+      }
+      return res.json();
+    },
+    enabled: !isNaN(challengeId) && !!user?.id,
   });
 
   const { data: participants = [] } = useQuery<Participant[]>({
