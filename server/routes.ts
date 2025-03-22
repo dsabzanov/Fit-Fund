@@ -20,7 +20,7 @@ import {
 import { fitbitService } from "./services/fitbit";
 import Stripe from "stripe";
 
-// Validate Stripe secret key
+// Validate required environment variables
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecretKey) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -28,7 +28,7 @@ if (!stripeSecretKey) {
 
 // Initialize Stripe with explicit type and strict version
 const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2023-10-16' as const,
+  apiVersion: '2023-10-16',
   typescript: true
 });
 
