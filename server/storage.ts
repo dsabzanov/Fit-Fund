@@ -183,17 +183,33 @@ export class MemStorage implements IStorage {
   }
 
   async getAllChallenges(): Promise<Challenge[]> {
+    console.log('Fetching all challenges, current count:', this.challenges.size);
     return Array.from(this.challenges.values());
   }
 
   async getChallenge(id: number): Promise<Challenge | undefined> {
-    return this.challenges.get(id);
+    console.log('Looking up challenge:', { id });
+    const challenge = this.challenges.get(id);
+    console.log('Challenge lookup result:', {
+      found: !!challenge,
+      details: challenge ? {
+        id: challenge.id,
+        title: challenge.title,
+        status: challenge.status
+      } : undefined
+    });
+    return challenge;
   }
 
   async createChallenge(challenge: InsertChallenge): Promise<Challenge> {
     const id = this.currentId++;
     const newChallenge: Challenge = { ...challenge, id };
     this.challenges.set(id, newChallenge);
+    console.log('Created new challenge:', {
+      id: newChallenge.id,
+      title: newChallenge.title,
+      status: newChallenge.status
+    });
     return newChallenge;
   }
 

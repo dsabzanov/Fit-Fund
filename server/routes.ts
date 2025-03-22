@@ -161,12 +161,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if challenge exists
       const challenge = await storage.getChallenge(challengeId);
       if (!challenge) {
+        console.log('Challenge not found:', { challengeId });
         return res.status(404).json({ error: "Challenge not found" });
       }
 
       // Check if already participating
       const existingParticipant = await storage.getParticipant(userId, challengeId);
       if (existingParticipant) {
+        console.log('User already participating:', { userId, challengeId });
         return res.status(400).json({ error: "Already joined this challenge" });
       }
 
@@ -175,6 +177,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         challengeId,
         startWeight,
+      });
+
+      console.log('New participant added:', {
+        participantId: participant.id,
+        userId,
+        challengeId,
+        startWeight
       });
 
       res.status(201).json(participant);
