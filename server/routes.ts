@@ -20,11 +20,21 @@ import {
 import { fitbitService } from "./services/fitbit";
 import Stripe from "stripe";
 
+// Validate Stripe secret key
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
+
+// Initialize Stripe with explicit type
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
+  apiVersion: '2023-10-16',
+  typescript: true
+});
+
+// Payment session validation schema
+const createPaymentSessionSchema = z.object({
+  challengeId: z.number(),
+  amount: z.number().min(0)
 });
 
 // Configure multer for file uploads
@@ -359,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      const { challengeId, amount } = req.body;
+      const { challengeId, amount } = createPaymentSessionSchema.parse(req.body);
 
       console.log('Creating payment session:', {
         userId: req.user?.id,
@@ -378,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 name: 'Challenge Entry Fee',
                 description: 'Entry fee for FitFund weight loss challenge',
               },
-              unit_amount: amount * 100, // Convert to cents
+              unit_amount: Math.round(amount * 100), // Convert to cents
             },
             quantity: 1,
           },
@@ -399,8 +409,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.json({ sessionId: session.id });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating payment session:', error);
+
+      // Send more specific error messages based on the type of error
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid payment data provided' });
+      }
+
+      if (error instanceof Stripe.errors.StripeError) {
+        return res.status(400).json({ error: error.message });
+      }
+
       res.status(500).json({ error: 'Failed to create payment session' });
     }
   });
