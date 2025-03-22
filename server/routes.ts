@@ -22,6 +22,11 @@ import Stripe from "stripe";
 
 // Validate required environment variables
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+console.log('Stripe Config:', {
+  secretKeyExists: !!stripeSecretKey,
+  secretKeyFormat: stripeSecretKey ? stripeSecretKey.substring(0, 3) + '...' : 'none'
+});
+
 if (!stripeSecretKey) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
