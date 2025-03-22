@@ -18,6 +18,14 @@ import {
   insertParticipantSchema,
 } from "@shared/schema";
 import { fitbitService } from "./services/fitbit";
+import Stripe from "stripe";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
 
 // Configure multer for file uploads
 const upload = multer({
@@ -176,6 +184,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add new route to get participant information
+  app.get("/api/challenges/:challengeId/participants/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const challengeId = parseInt(req.params.challengeId);
+      const userId = parseInt(req.params.userId);
+
+      console.log('Fetching participant:', { challengeId, userId });
+
+      const participant = await storage.getParticipant(userId, challengeId);
+
+      if (!participant) {
+        console.log('No participant found for:', { challengeId, userId });
+        return res.status(404).json({ error: "Participant not found" });
+      }
+
+      console.log('Found participant:', { 
+        id: participant.id, 
+        paid: participant.paid,
+        startWeight: participant.startWeight 
+      });
+
+      res.json(participant);
+    } catch (error) {
+      console.error("Error fetching participant:", error);
+      res.status(500).json({ error: "Failed to fetch participant information" });
+    }
+  });
+
   // Weight record routes with file upload
   app.post("/api/weight-records", upload.single('image'), async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
@@ -305,6 +343,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       parseInt(req.params.userId)
     );
     res.json(participations);
+  });
+
+  // Payment routes
+  app.post("/api/create-payment-session", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const { challengeId, amount } = req.body;
+
+      // Create a Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Challenge Entry Fee',
+                description: 'Entry fee for FitFund weight loss challenge',
+              },
+              unit_amount: amount * 100, // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.protocol}://${req.get('host')}/challenge/${challengeId}?payment=success`,
+        cancel_url: `${req.protocol}://${req.get('host')}/challenge/${challengeId}?payment=cancelled`,
+        metadata: {
+          challengeId: challengeId.toString(),
+          userId: req.user!.id.toString()
+        }
+      });
+
+      res.json({ sessionId: session.id });
+    } catch (error) {
+      console.error('Error creating payment session:', error);
+      res.status(500).json({ error: 'Failed to create payment session' });
+    }
+  });
+
+  // Add logging in webhook handler
+  app.post("/api/stripe-webhook", express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+
+    try {
+      const event = stripe.webhooks.constructEvent(
+        req.body,
+        sig!,
+        process.env.STRIPE_WEBHOOK_SECRET!
+      );
+
+      console.log('Received Stripe webhook event:', event.type);
+
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        console.log('Payment successful, metadata:', session.metadata);
+
+        // Update challenge participation status after successful payment
+        const challengeId = parseInt(session.metadata!.challengeId);
+        const userId = parseInt(session.metadata!.userId);
+
+        console.log('Updating payment status for:', { challengeId, userId });
+        await storage.updateParticipantPaymentStatus(challengeId, userId, true);
+        console.log('Payment status updated successfully');
+      }
+
+      res.json({received: true});
+    } catch (err) {
+      console.error('Webhook Error:', err);
+      res.status(400).send(`Webhook Error: ${err.message}`);
+    }
   });
 
   return httpServer;

@@ -19,6 +19,11 @@ import {
 
 const MemoryStore = createMemoryStore(session);
 
+export interface IStorage {
+  // ... existing interface methods ...
+  updateParticipantPaymentStatus(challengeId: number, userId: number, paid: boolean): Promise<void>;
+}
+
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private challenges: Map<number, Challenge>;
@@ -334,6 +339,17 @@ export class MemStorage implements IStorage {
     }
 
     return undefined;
+  }
+
+  async updateParticipantPaymentStatus(challengeId: number, userId: number, paid: boolean): Promise<void> {
+    const participant = Array.from(this.participants.values()).find(
+      p => p.challengeId === challengeId && p.userId === userId
+    );
+
+    if (participant) {
+      participant.paid = paid;
+      this.participants.set(participant.id, participant);
+    }
   }
 }
 

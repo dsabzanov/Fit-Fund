@@ -1,16 +1,80 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { WeightForm } from "@/components/weight-form";
 import { WeightHistory } from "@/components/weight-history";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function WeightTrackingPage() {
   const { user } = useAuth();
   const params = useParams<{ id: string }>();
   const challengeId = parseInt(params.id);
+  const [location] = useLocation();
+  const { toast } = useToast();
 
-  if (!user) return null;
+  // Query to check if user has paid for the challenge
+  const { data: participant, isLoading, error } = useQuery({
+    queryKey: [`/api/challenges/${challengeId}/participants/${user?.id}`],
+    enabled: !!user?.id && !!challengeId,
+    onError: (error: Error) => {
+      console.error('Error fetching participant:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load participant information. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  console.log('Weight tracking page:', {
+    challengeId,
+    userId: user?.id,
+    participant,
+    isLoading,
+    error
+  });
+
+  if (!user) {
+    console.log('No user found, redirecting to auth');
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-4 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8">
+        <Alert>
+          <AlertDescription>
+            Error loading participant information. Please try again later.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // If user hasn't paid, show message
+  if (!participant?.paid) {
+    console.log('Participant not paid:', participant);
+    return (
+      <div className="container mx-auto py-8">
+        <Alert>
+          <AlertDescription>
+            Please complete the payment process to access weight tracking.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 space-y-8">
