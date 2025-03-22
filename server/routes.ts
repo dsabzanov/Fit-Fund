@@ -210,10 +210,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Participant not found" });
       }
 
-      console.log('Found participant:', { 
-        id: participant.id, 
+      console.log('Found participant:', {
+        id: participant.id,
         paid: participant.paid,
-        startWeight: participant.startWeight 
+        startWeight: participant.startWeight
       });
 
       res.json(participant);
@@ -361,6 +361,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { challengeId, amount } = req.body;
 
+      console.log('Creating payment session:', {
+        userId: req.user?.id,
+        challengeId,
+        amount
+      });
+
       // Create a Stripe checkout session
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -384,6 +390,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           challengeId: challengeId.toString(),
           userId: req.user!.id.toString()
         }
+      });
+
+      console.log('Payment session created successfully:', {
+        sessionId: session.id,
+        userId: req.user?.id,
+        challengeId
       });
 
       res.json({ sessionId: session.id });
