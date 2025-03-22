@@ -26,6 +26,11 @@ if (!stripeSecretKey) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 
+// Validate key format
+if (!stripeSecretKey.startsWith('sk_')) {
+  throw new Error('Invalid Stripe secret key format. Must start with "sk_"');
+}
+
 // Initialize Stripe with explicit type and strict version
 const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2023-10-16',
