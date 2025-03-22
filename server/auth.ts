@@ -49,31 +49,47 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log('Attempting authentication for user:', username);
         const user = await storage.getUserByUsername(username);
         if (!user || !(await comparePasswords(password, user.password))) {
+          console.log('Authentication failed for user:', username);
           return done(null, false);
         }
+        console.log('Authentication successful for user:', username);
         return done(null, user);
       } catch (err) {
+        console.error('Authentication error:', err);
         return done(err);
       }
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log('Serializing user:', user.id);
+    done(null, user.id);
+  });
+
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log('Deserializing user:', id);
       const user = await storage.getUser(id);
+      if (!user) {
+        console.log('User not found during deserialization:', id);
+        return done(null, false);
+      }
       done(null, user);
     } catch (err) {
+      console.error('Deserialization error:', err);
       done(err);
     }
   });
 
   app.post("/api/register", async (req, res, next) => {
     try {
+      console.log('Registration attempt for username:', req.body.username);
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
+        console.log('Registration failed - username exists:', req.body.username);
         return res.status(400).send("Username already exists");
       }
 
@@ -82,27 +98,39 @@ export function setupAuth(app: Express) {
         password: await hashPassword(req.body.password),
       });
 
+      console.log('User registered successfully:', user.id);
       req.login(user, (err) => {
         if (err) return next(err);
         res.status(201).json(user);
       });
     } catch (err) {
+      console.error('Registration error:', err);
       next(err);
     }
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
+    console.log('Login successful for user:', req.user?.id);
     res.status(200).json(req.user);
   });
 
   app.post("/api/logout", (req, res, next) => {
+    console.log('Logout attempt for user:', req.user?.id);
     req.logout((err) => {
-      if (err) return next(err);
+      if (err) {
+        console.error('Logout error:', err);
+        return next(err);
+      }
+      console.log('Logout successful');
       res.sendStatus(200);
     });
   });
 
   app.get("/api/user", (req, res) => {
+    console.log('User session check:', {
+      isAuthenticated: req.isAuthenticated(),
+      userId: req.user?.id
+    });
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
