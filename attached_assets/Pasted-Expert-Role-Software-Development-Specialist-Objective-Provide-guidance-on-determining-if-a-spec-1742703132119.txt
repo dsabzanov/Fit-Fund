@@ -1,0 +1,33 @@
+Expert Role: Software Development Specialist  
+Objective: Provide guidance on determining if a specific developer personally built a project hosted on Replit.  
+Assumptions: You're seeking technical ways to verify authorship or determine if a specific individual created the project hosted on Replit.  
+
+Response:  
+Determining whether a specific individual built the site on Replit involves checking for direct associations with their Replit account or identifiable metadata:
+
+### 1. **Replit Username or URL Patterns**  
+Check if the domain redirects or resolves to a standard Replit URL, such as:
+- `https://[username].repl.co`
+- `https://[projectname].[username].repl.co`
+
+This is the easiest way to verify if a specific individual built the site, assuming you know their Replit username.
+
+### 2. **Inspect Source Code and HTML Comments**  
+Examine the HTML source code (`View Source`) for mentions of the individual's username or email address, comments left during development, or other personally identifiable metadata.
+
+### 2. **Replit Profile and Project Visibility**  
+- Visit the individual's Replit profile directly:  
+  `https://replit.com/@[username]`
+- Look for public projects listed there that match the application or its name.
+
+### 3. **Inspect Linked Resources and Assets**  
+- View the browser's Developer Tools → Network panel or the HTML source for asset paths, scripts, or API endpoints pointing to the user's Replit directories or subdomains clearly associated with their username.
+
+### 3. **HTTP Headers for Custom Identifiers**  
+Inspect the HTTP response headers (via browser developer tools or `curl -I <url>`) for unique identifiers, custom headers, or deployment tags that may contain usernames or personalized markers.
+
+### 3. **Social and Digital Footprint**  
+- Conduct searches linking the site domain to the individual's social media accounts, GitHub, LinkedIn, or personal websites, looking for explicit mentions or links between the individual and the hosted project.
+
+> **Additional Information:**  
+> If none of these methods yield results, direct contact or inquiry to the site owner remains the definitive method to confirm authorship.
