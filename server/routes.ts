@@ -79,6 +79,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Challenge not found:', challengeId);
       return res.status(404).json({ error: "Challenge not found" });
     }
+
+    // If user is authenticated, attach additional user-specific data
+    if (req.isAuthenticated()) {
+      console.log('User is authenticated:', req.user?.id);
+    }
+
     res.json(challenge);
   });
 

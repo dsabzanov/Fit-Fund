@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { Challenge, Participant, WeightRecord, ChatMessage } from "@shared/schema";
+import { Challenge } from "@shared/schema";
 import { WeightForm } from "@/components/weight-form";
 import { Leaderboard } from "@/components/leaderboard";
 import { Chat } from "@/components/chat";
@@ -23,32 +23,21 @@ export default function ChallengePage() {
   const challengeId = match && params ? parseInt(params.id) : NaN;
 
   const { data: challenge, isLoading: isLoadingChallenge, error } = useQuery<Challenge>({
-    queryKey: [`/api/challenges/${challengeId}`, user?.id],
-    queryFn: async () => {
-      if (!user?.id) throw new Error("Must be logged in to view challenge");
-      const res = await fetch(`/api/challenges/${challengeId}/user/${user.id}`);
-      if (!res.ok) {
-        if (res.status === 403) {
-          throw new Error("You don't have access to this challenge");
-        }
-        throw new Error("Failed to load challenge");
-      }
-      return res.json();
-    },
-    enabled: !isNaN(challengeId) && !!user?.id,
+    queryKey: [`/api/challenges/${challengeId}`],
+    enabled: !isNaN(challengeId),
   });
 
-  const { data: participants = [] } = useQuery<Participant[]>({
+  const { data: participants = [] } = useQuery({
     queryKey: [`/api/challenges/${challengeId}/participants`],
     enabled: !isNaN(challengeId),
   });
 
-  const { data: weightRecords = [] } = useQuery<WeightRecord[]>({
+  const { data: weightRecords = [] } = useQuery({
     queryKey: [`/api/challenges/${challengeId}/weight-records`],
     enabled: !isNaN(challengeId),
   });
 
-  const { data: chatMessages = [] } = useQuery<ChatMessage[]>({
+  const { data: chatMessages = [] } = useQuery({
     queryKey: [`/api/challenges/${challengeId}/chat`],
     enabled: !isNaN(challengeId),
   });
@@ -60,7 +49,7 @@ export default function ChallengePage() {
           <h1 className="text-2xl font-bold text-red-500">Invalid Challenge ID</h1>
           <p className="text-muted-foreground mt-2">Please check the URL and try again.</p>
           <Link href="/">
-            <a className="text-primary hover:underline mt-4 block">Return to Home</a>
+            <Button variant="link" className="mt-4">Return to Home</Button>
           </Link>
         </div>
       </div>
@@ -69,7 +58,7 @@ export default function ChallengePage() {
 
   if (isLoadingChallenge) {
     return (
-      <div className="flex items-center justify-center min-h-screen" role="status" aria-label="Loading challenge details">
+      <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -82,7 +71,7 @@ export default function ChallengePage() {
           <h1 className="text-2xl font-bold text-red-500">Challenge Not Found</h1>
           <p className="text-muted-foreground mt-2">The challenge you're looking for doesn't exist.</p>
           <Link href="/">
-            <a className="text-primary hover:underline mt-4 block">Return to Home</a>
+            <Button variant="link" className="mt-4">Return to Home</Button>
           </Link>
         </div>
       </div>
@@ -105,7 +94,7 @@ export default function ChallengePage() {
       100
   );
 
-  const isHost = user?.isHost;
+  const isHost = challenge.userId === user?.id;
 
   return (
     <div className="min-h-screen bg-background">
