@@ -1,7 +1,7 @@
 import { WeeklyGameInstructions } from "@/components/weekly-game-instructions";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import {  queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format, addDays } from "date-fns";
@@ -26,11 +26,18 @@ export default function WeeklyGamePage() {
 
       console.log('Creating challenge with data:', challenge);
 
-      const res = await apiRequest("POST", "/api/challenges", challenge);
+      const res = await fetch('/api/challenges', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(challenge),
+        credentials: 'include',
+      });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to create challenge');
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to create challenge');
       }
 
       const createdChallenge = await res.json();

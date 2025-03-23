@@ -87,13 +87,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Validated challenge data:', validatedData);
 
       // Create the challenge
-      const challenge = await storage.createChallenge(validatedData);
+      const challenge = await storage.createChallenge({
+        ...validatedData,
+        userId: req.user!.id, // Add the user ID who created the challenge
+      });
+
       console.log('Created new challenge:', {
         id: challenge.id,
         title: challenge.title,
         status: challenge.status
       });
 
+      // Return the full challenge object
       res.status(201).json(challenge);
     } catch (error: any) {
       console.error('Error creating challenge:', error);
