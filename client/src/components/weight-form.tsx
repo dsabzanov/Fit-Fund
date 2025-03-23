@@ -99,17 +99,21 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       });
 
       if (!res.ok) {
-        throw new Error('Failed to submit weight record');
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to submit weight record');
       }
 
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/weight-records`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/users/${challengeId}/weight-records`] });
+
       toast({
         title: "Success!",
         description: "Your weight has been recorded. Keep up the great work! 💪",
       });
+
       form.reset();
       setSelectedImage(null);
       setPreviewUrl(null);
@@ -217,7 +221,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
 
         <Button 
           type="submit" 
-          disabled={mutation.isPending} 
+          disabled={mutation.isPending || !form.getValues().weight} 
           className="w-full"
         >
           {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
