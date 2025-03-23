@@ -76,49 +76,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files statically
   app.use('/uploads', express.static('public/uploads'));
 
-  // Fitbit routes
-  app.post("/api/fitbit/connect", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const authUrl = fitbitService.getAuthorizationUrl(req.user!.id);
-    res.json({ authUrl });
-  });
-
-  app.get("/api/fitbit/callback", async (req, res) => {
-    try {
-      const code = req.query.code as string;
-      if (!code) {
-        return res.status(400).send("Missing authorization code");
-      }
-
-      const tokens = await fitbitService.handleCallback(code);
-
-      // Store tokens in database
-      await storage.storeFitbitTokens(parseInt(req.query.state as string), tokens);
-
-      res.redirect("/profile"); // Redirect to profile page after successful connection
-    } catch (error) {
-      console.error("Fitbit callback error:", error);
-      res.status(500).send("Failed to connect Fitbit account");
-    }
-  });
-
-  app.get("/api/fitbit/status", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    const tokens = await storage.getFitbitTokens(req.user!.id);
-    res.json({
-      connected: !!tokens,
-      username: tokens?.username
-    });
-  });
-
-  app.post("/api/fitbit/disconnect", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    await storage.removeFitbitTokens(req.user!.id);
-    res.sendStatus(200);
-  });
-
   // Challenge routes
   app.get("/api/challenges", async (req, res) => {
     const challenges = await storage.getAllChallenges();
@@ -170,61 +127,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid challenge data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to create challenge' });
-    }
-  });
-
-  // Participant routes
-  app.post("/api/challenges/:challengeId/join", async (req, res) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: "Not authenticated" });
-      }
-
-      const challengeId = parseInt(req.params.challengeId);
-      const userId = req.user!.id;
-      const startWeight = Number(req.body.startWeight);
-
-      // Basic validation
-      if (isNaN(challengeId)) {
-        return res.status(400).json({ error: "Invalid challenge ID" });
-      }
-
-      if (isNaN(startWeight) || startWeight <= 0) {
-        return res.status(400).json({ error: "Invalid weight value" });
-      }
-
-      // Check if challenge exists
-      const challenge = await storage.getChallenge(challengeId);
-      if (!challenge) {
-        console.log('Challenge not found:', { challengeId });
-        return res.status(404).json({ error: "Challenge not found" });
-      }
-
-      // Check if already participating
-      const existingParticipant = await storage.getParticipant(userId, challengeId);
-      if (existingParticipant) {
-        console.log('User already participating:', { userId, challengeId });
-        return res.status(400).json({ error: "Already joined this challenge" });
-      }
-
-      // Create participant
-      const participant = await storage.addParticipant({
-        userId,
-        challengeId,
-        startWeight,
-      });
-
-      console.log('New participant added:', {
-        participantId: participant.id,
-        userId,
-        challengeId,
-        startWeight
-      });
-
-      res.status(201).json(participant);
-    } catch (error) {
-      console.error("Error joining challenge:", error);
-      res.status(500).json({ error: "Failed to join challenge" });
     }
   });
 
