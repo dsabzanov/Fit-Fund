@@ -376,9 +376,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment routes
-  // Add debugging logs for the payment session route
+  // Update payment route with better error handling
   app.post("/api/create-payment-session", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
 
     try {
       const { challengeId, amount } = createPaymentSessionSchema.parse(req.body);
