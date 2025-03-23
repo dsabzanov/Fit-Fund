@@ -144,9 +144,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/challenges", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const challenge = await storage.createChallenge(req.body);
-    res.status(201).json(challenge);
+    try {
+      if (!req.isAuthenticated()) {
+        return res.sendStatus(401);
+      }
+
+      console.log('Creating challenge with data:', req.body);
+
+      // Validate the challenge data
+      const validatedData = insertChallengeSchema.parse(req.body);
+      console.log('Validated challenge data:', validatedData);
+
+      // Create the challenge
+      const challenge = await storage.createChallenge(validatedData);
+      console.log('Created new challenge:', {
+        id: challenge.id,
+        title: challenge.title,
+        status: challenge.status
+      });
+
+      res.status(201).json(challenge);
+    } catch (error: any) {
+      console.error('Error creating challenge:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid challenge data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to create challenge' });
+    }
   });
 
   // Participant routes
