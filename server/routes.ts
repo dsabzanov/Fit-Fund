@@ -42,32 +42,6 @@ const createPaymentSessionSchema = z.object({
   amount: z.number().min(0)
 });
 
-// Configure multer for file uploads
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: './public/uploads',
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
-  }),
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith('image/')) {
-      cb(new Error('Only image files are allowed'));
-      return;
-    }
-    cb(null, true);
-  }
-});
-
-// Ensure uploads directory exists
-if (!fs.existsSync('./public/uploads')) {
-  fs.mkdirSync('./public/uploads', { recursive: true });
-}
-
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   const httpServer = createServer(app);
@@ -96,14 +70,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/challenges/:id", async (req, res) => {
     const challenge = await storage.getChallenge(parseInt(req.params.id));
-    if (!challenge) return res.status(404).send("Challenge not found");
+    if (!challenge) return res.status(404).json({ error: "Challenge not found" });
     res.json(challenge);
   });
 
   app.post("/api/challenges", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
-        return res.sendStatus(401);
+        return res.status(401).json({ error: "Not authenticated" });
       }
 
       console.log('Creating challenge with data:', req.body);
@@ -127,6 +101,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid challenge data', details: error.errors });
       }
       res.status(500).json({ error: 'Failed to create challenge' });
+    }
+  });
+
+  // Participant routes
+  app.post("/api/challenges/:challengeId/join", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const challengeId = parseInt(req.params.challengeId);
+      const userId = req.user!.id;
+      const startWeight = Number(req.body.startWeight);
+
+      // Basic validation
+      if (isNaN(challengeId)) {
+        return res.status(400).json({ error: "Invalid challenge ID" });
+      }
+
+      if (isNaN(startWeight) || startWeight <= 0) {
+        return res.status(400).json({ error: "Invalid weight value" });
+      }
+
+      // Check if challenge exists
+      const challenge = await storage.getChallenge(challengeId);
+      if (!challenge) {
+        console.log('Challenge not found:', { challengeId });
+        return res.status(404).json({ error: "Challenge not found" });
+      }
+
+      // Check if already participating
+      const existingParticipant = await storage.getParticipant(userId, challengeId);
+      if (existingParticipant) {
+        console.log('User already participating:', { userId, challengeId });
+        return res.status(400).json({ error: "Already joined this challenge" });
+      }
+
+      // Create participant
+      const participant = await storage.addParticipant({
+        userId,
+        challengeId,
+        startWeight,
+      });
+
+      console.log('New participant added:', {
+        participantId: participant.id,
+        userId,
+        challengeId,
+        startWeight
+      });
+
+      res.json(participant);
+    } catch (error: any) {
+      console.error("Error joining challenge:", error);
+      res.status(500).json({ error: "Failed to join challenge" });
     }
   });
 
