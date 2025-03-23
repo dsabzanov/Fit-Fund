@@ -20,27 +20,21 @@ import {
 import { fitbitService } from "./services/fitbit";
 import Stripe from "stripe";
 
-// Validate required environment variables
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-console.log('Stripe Config:', {
-  secretKeyExists: !!stripeSecretKey,
-  secretKeyFormat: stripeSecretKey ? stripeSecretKey.substring(0, 3) + '...' : 'none'
-});
-
-if (!stripeSecretKey) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+// Initialize Stripe with error handling
+let stripe: Stripe | null = null;
+try {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Missing STRIPE_SECRET_KEY environment variable');
+  }
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+  console.log('Stripe initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize Stripe:', error);
+  stripe = null;
 }
-
-// Validate key format
-if (!stripeSecretKey.startsWith('sk_')) {
-  throw new Error('Invalid Stripe secret key format. Must start with "sk_"');
-}
-
-// Initialize Stripe with explicit type and strict version
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2023-10-16',
-  typescript: true
-});
 
 // Payment session validation schema
 const createPaymentSessionSchema = z.object({
@@ -131,6 +125,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(challenges);
   });
 
+  app.get("/api/challenges/open", async (req, res) => {
+    const challenges = await storage.getAllChallenges();
+    const openChallenges = challenges.filter(c => c.status === "open");
+    res.json(openChallenges);
+  });
+
+  app.get("/api/challenges/user/:userId", async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    const challenges = await storage.getUserChallenges(userId);
+    res.json(challenges);
+  });
+
   app.get("/api/challenges/:id", async (req, res) => {
     const challenge = await storage.getChallenge(parseInt(req.params.id));
     if (!challenge) return res.status(404).send("Challenge not found");
@@ -142,22 +148,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const challenge = await storage.createChallenge(req.body);
     res.status(201).json(challenge);
   });
-
-  // Add new route for open challenges
-  app.get("/api/challenges/open", async (req, res) => {
-    const challenges = await storage.getAllChallenges();
-    // Only return challenges that are open for registration
-    const openChallenges = challenges.filter(c => c.status === "open");
-    res.json(openChallenges);
-  });
-
-  // Add route for user-specific challenges
-  app.get("/api/challenges/user/:userId", async (req, res) => {
-    const userId = parseInt(req.params.userId);
-    const challenges = await storage.getUserChallenges(userId);
-    res.json(challenges);
-  });
-
 
   // Participant routes
   app.post("/api/challenges/:challengeId/join", async (req, res) => {
@@ -214,175 +204,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add new route to get participant information
-  app.get("/api/challenges/:challengeId/participants/:userId", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    try {
-      const challengeId = parseInt(req.params.challengeId);
-      const userId = parseInt(req.params.userId);
-
-      console.log('Fetching participant:', { challengeId, userId });
-
-      const participant = await storage.getParticipant(userId, challengeId);
-
-      if (!participant) {
-        console.log('No participant found for:', { challengeId, userId });
-        return res.status(404).json({ error: "Participant not found" });
-      }
-
-      console.log('Found participant:', {
-        id: participant.id,
-        paid: participant.paid,
-        startWeight: participant.startWeight
-      });
-
-      res.json(participant);
-    } catch (error) {
-      console.error("Error fetching participant:", error);
-      res.status(500).json({ error: "Failed to fetch participant information" });
-    }
-  });
-
-  // Weight record routes with file upload
-  app.post("/api/weight-records", upload.single('image'), async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    try {
-      const weightRecord = await storage.addWeightRecord({
-        ...req.body,
-        userId: req.user!.id,
-        imageUrl: req.file ? `/uploads/${req.file.filename}` : null,
-      });
-
-      // Notify all clients about weight update
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({
-            type: "weight-update",
-            data: weightRecord
-          }));
-        }
-      });
-
-      res.status(201).json(weightRecord);
-    } catch (error) {
-      console.error("Error adding weight record:", error);
-      res.status(500).json({ error: "Failed to add weight record" });
-    }
-  });
-
-  app.get("/api/challenges/:id/users/:userId/weight-records", async (req, res) => {
-    const records = await storage.getWeightRecords(
-      parseInt(req.params.id),
-      parseInt(req.params.userId)
-    );
-    res.json(records);
-  });
-
-  // Feed post routes
-  app.post("/api/challenges/:id/posts", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const post = await storage.createFeedPost({
-      ...req.body,
-      userId: req.user!.id,
-      challengeId: parseInt(req.params.id),
-    });
-    res.status(201).json(post);
-  });
-
-  app.get("/api/challenges/:id/posts", async (req, res) => {
-    const posts = await storage.getFeedPosts(parseInt(req.params.id));
-    res.json(posts);
-  });
-
-  app.patch("/api/posts/:id", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const post = await storage.updateFeedPost(parseInt(req.params.id), req.body);
-    if (!post) return res.status(404).send("Post not found");
-    res.json(post);
-  });
-
-  // Comment routes
-  app.post("/api/posts/:id/comments", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const comment = await storage.addComment({
-      ...req.body,
-      userId: req.user!.id,
-      postId: parseInt(req.params.id),
-    });
-    res.status(201).json(comment);
-  });
-
-  app.get("/api/posts/:id/comments", async (req, res) => {
-    const comments = await storage.getComments(parseInt(req.params.id));
-    res.json(comments);
-  });
-
-  // Chat routes
-  app.post("/api/chat", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const message = await storage.addChatMessage({
-      ...req.body,
-      userId: req.user!.id,
-    });
-    res.status(201).json(message);
-  });
-
-  // Google Auth endpoint
-  app.post("/api/auth/google", async (req, res) => {
-    try {
-      const { idToken } = req.body;
-      const decodedToken = await getAuth().verifyIdToken(idToken);
-
-      // Check if user exists
-      let user = await storage.getUserByUsername(decodedToken.email!);
-
-      if (!user) {
-        // Create new user if they don't exist
-        user = await storage.createUser({
-          username: decodedToken.email!,
-          password: "", // Google users don't need a password
-        });
-      }
-
-      // Log them in
-      req.login(user, (err) => {
-        if (err) throw err;
-        res.json(user);
-      });
-    } catch (error) {
-      console.error("Google auth error:", error);
-      res.status(401).json({ error: "Authentication failed" });
-    }
-  });
-
-  // Add new routes for user data
-  app.get("/api/users/:userId/weight-records", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const records = await storage.getWeightRecords(
-      parseInt(req.params.userId),
-      undefined // Don't filter by challenge ID when getting all records
-    );
-    res.json(records);
-  });
-
-  app.get("/api/users/:userId/participations", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const participations = await storage.getParticipants(
-      parseInt(req.params.userId)
-    );
-    res.json(participations);
-  });
-
-  // Payment routes
-  // Update payment route with better error handling
+  // Payment routes with improved error handling
   app.post("/api/create-payment-session", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
-    }
-
     try {
+      // Check authentication
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      // Check if Stripe is initialized
+      if (!stripe) {
+        console.error('Stripe not initialized');
+        return res.status(500).json({ error: "Payment service unavailable" });
+      }
+
+      // Validate request data
       const { challengeId, amount } = createPaymentSessionSchema.parse(req.body);
 
       console.log('Creating payment session:', {
@@ -391,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount
       });
 
-      // Create a Stripe checkout session
+      // Create Stripe checkout session
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
@@ -426,7 +262,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error creating payment session:', error);
 
-      // Send more specific error messages based on the type of error
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: 'Invalid payment data provided' });
       }
@@ -439,8 +274,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add logging in webhook handler
+  // Stripe webhook handler
   app.post("/api/stripe-webhook", express.raw({type: 'application/json'}), async (req, res) => {
+    if (!stripe) {
+      console.error('Stripe not initialized in webhook handler');
+      return res.status(500).json({ error: "Payment service unavailable" });
+    }
+
     const sig = req.headers['stripe-signature'];
 
     try {
@@ -456,7 +296,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const session = event.data.object;
         console.log('Payment successful, metadata:', session.metadata);
 
-        // Update challenge participation status after successful payment
         const challengeId = parseInt(session.metadata!.challengeId);
         const userId = parseInt(session.metadata!.userId);
 
@@ -466,7 +305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json({received: true});
-    } catch (err) {
+    } catch (err: any) {
       console.error('Webhook Error:', err);
       res.status(400).send(`Webhook Error: ${err.message}`);
     }
