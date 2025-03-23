@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { WeightHistory } from "@/components/weight-history";
+import { ShareButton } from "@/components/share-button";
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -131,12 +132,18 @@ export default function ChallengePage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>{challenge.title}</CardTitle>
-                  {isHost && (
-                    <Badge variant="secondary">
-                      <Crown className="h-4 w-4 mr-1" />
-                      Host
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <ShareButton 
+                      challenge={challenge}
+                      customMessage={`I'm participating in "${challenge.title}" on FitFund! Join me in this ${challenge.percentageGoal}% weight loss challenge. 💪`}
+                    />
+                    {isHost && (
+                      <Badge variant="secondary">
+                        <Crown className="h-4 w-4 mr-1" />
+                        Host
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

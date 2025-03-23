@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Link } from "wouter";
 import { useState } from "react";
 import { JoinChallengeDialog } from "./join-challenge-dialog";
+import { ShareButton } from "./share-button";
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -72,7 +73,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-between gap-2">
         <Link href={`/challenge/${challenge.id}`}>
           <Button 
             variant="outline" 
@@ -81,14 +82,21 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             View Details
           </Button>
         </Link>
-        {challenge.status === 'open' && (
-          <Button 
-            onClick={() => setShowJoinDialog(true)}
-            aria-label={`Join ${challenge.title} challenge`}
-          >
-            Join Challenge
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <ShareButton 
+            challenge={challenge} 
+            variant="outline"
+            size="default"
+          />
+          {challenge.status === 'open' && (
+            <Button 
+              onClick={() => setShowJoinDialog(true)}
+              aria-label={`Join ${challenge.title} challenge`}
+            >
+              Join Challenge
+            </Button>
+          )}
+        </div>
       </CardFooter>
 
       <JoinChallengeDialog
