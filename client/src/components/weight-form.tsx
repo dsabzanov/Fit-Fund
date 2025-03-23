@@ -96,6 +96,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       const res = await fetch('/api/weight-records', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       if (!res.ok) {
@@ -114,7 +115,11 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
         description: "Your weight has been recorded. Keep up the great work! 💪",
       });
 
-      form.reset();
+      form.reset({
+        challengeId,
+        weight: "",
+        imageUrl: "",
+      });
       setSelectedImage(null);
       setPreviewUrl(null);
       onSuccess?.();
@@ -128,10 +133,22 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
     },
   });
 
+  const onSubmit = form.handleSubmit((data) => {
+    if (!data.weight) {
+      toast({
+        title: "Error",
+        description: "Please enter your weight",
+        variant: "destructive",
+      });
+      return;
+    }
+    mutation.mutate(data);
+  });
+
   return (
     <Form {...form}>
       <form 
-        onSubmit={form.handleSubmit((data) => mutation.mutate(data))} 
+        onSubmit={onSubmit} 
         className={cn("space-y-4", className)}
       >
         <FormField
@@ -146,6 +163,10 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
                   step="0.1" 
                   placeholder="Enter your current weight"
                   {...field} 
+                  onChange={(e) => {
+                    field.onChange(e);
+                    form.trigger("weight");
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -221,7 +242,6 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
 
         <Button 
           type="submit" 
-          disabled={mutation.isPending || !form.getValues().weight} 
           className="w-full"
         >
           {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
