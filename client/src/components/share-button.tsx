@@ -23,7 +23,7 @@ export function ShareButton({
 }: ShareButtonProps) {
   const baseUrl = window.location.origin;
   const challengeUrl = `${baseUrl}/challenge/${challenge.id}`;
-  
+
   const defaultMessage = `Join me in the "${challenge.title}" fitness challenge on FitFund! 🏋️‍♂️`;
   const shareMessage = customMessage || defaultMessage;
 
@@ -59,27 +59,25 @@ export function ShareButton({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={variant} size={size}>
-          <Share2 className="h-4 w-4 mr-2" />
+        <Button variant={variant} size={size} className="flex items-center gap-2">
+          <Share2 className="h-4 w-4" />
           Share
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {navigator.share && (
-          <DropdownMenuItem onClick={shareViaWebShare}>
-            <Share2 className="h-4 w-4 mr-2" />
-            Share Challenge
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={shareToTwitter}>
+        <DropdownMenuItem onClick={shareViaWebShare} className="cursor-pointer">
+          <Share2 className="h-4 w-4 mr-2" />
+          Share Challenge
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={shareToTwitter} className="cursor-pointer">
           <Twitter className="h-4 w-4 mr-2" />
           Share on Twitter
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={shareToFacebook}>
+        <DropdownMenuItem onClick={shareToFacebook} className="cursor-pointer">
           <Facebook className="h-4 w-4 mr-2" />
           Share on Facebook
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={shareToLinkedIn}>
+        <DropdownMenuItem onClick={shareToLinkedIn} className="cursor-pointer">
           <Linkedin className="h-4 w-4 mr-2" />
           Share on LinkedIn
         </DropdownMenuItem>
