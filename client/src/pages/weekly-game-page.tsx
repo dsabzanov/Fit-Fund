@@ -5,6 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format, addDays } from "date-fns";
+import { Loader2 } from "lucide-react";
 
 export default function WeeklyGamePage() {
   const { toast } = useToast();
@@ -13,7 +14,7 @@ export default function WeeklyGamePage() {
   const mutation = useMutation({
     mutationFn: async () => {
       // First create the challenge
-      const challengeRes = await apiRequest("POST", "/api/challenges", {
+      const res = await apiRequest("POST", "/api/challenges", {
         title: `4% Weight Loss Challenge - Starting ${format(new Date(), 'MMM d')}`,
         description: "Join our community and transform your health journey in just 4 weeks. Lose 4% of your body weight and split the pot with other winners!",
         startDate: new Date(),
@@ -23,19 +24,24 @@ export default function WeeklyGamePage() {
         status: "open",
       });
 
-      return challengeRes.json();
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Failed to create challenge');
+      }
+
+      return res.json();
     },
     onSuccess: (challenge) => {
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/open"] });
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/user"] });
 
-      // Navigate to the challenge page where they can join
-      setLocation(`/challenge/${challenge.id}`);
-
       toast({
         title: "Challenge Created!",
         description: "You can now join the 4% weight loss challenge.",
       });
+
+      // Navigate to the challenge page where they can join
+      setLocation(`/challenge/${challenge.id}`);
     },
     onError: (error: Error) => {
       toast({
@@ -65,7 +71,14 @@ export default function WeeklyGamePage() {
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Creating Challenge..." : "Start Your Challenge Now - $40"}
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Challenge...
+              </>
+            ) : (
+              "Start Your Challenge Now - $40"
+            )}
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
             Click to create your challenge and begin your transformation journey!
