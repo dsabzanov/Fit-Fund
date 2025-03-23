@@ -1,7 +1,7 @@
 import { WeeklyGameInstructions } from "@/components/weekly-game-instructions";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
-import {  queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format, addDays } from "date-fns";
@@ -60,16 +60,10 @@ export default function WeeklyGamePage() {
         description: "You can now join the 4% weight loss challenge.",
       });
 
-      // Ensure we have a valid challenge ID before redirecting
-      if (challenge.id) {
+      // Add a small delay before redirecting to ensure state updates are complete
+      setTimeout(() => {
         setLocation(`/challenge/${challenge.id}`);
-      } else {
-        toast({
-          title: "Error",
-          description: "Challenge created but ID is missing. Please try again.",
-          variant: "destructive",
-        });
-      }
+      }, 100);
     },
     onError: (error: Error) => {
       console.error('Error creating challenge:', error);

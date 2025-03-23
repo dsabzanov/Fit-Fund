@@ -69,8 +69,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/challenges/:id", async (req, res) => {
-    const challenge = await storage.getChallenge(parseInt(req.params.id));
-    if (!challenge) return res.status(404).json({ error: "Challenge not found" });
+    const challengeId = parseInt(req.params.id);
+    console.log('Fetching challenge:', challengeId);
+
+    const challenge = await storage.getChallenge(challengeId);
+    console.log('Retrieved challenge:', challenge);
+
+    if (!challenge) {
+      console.log('Challenge not found:', challengeId);
+      return res.status(404).json({ error: "Challenge not found" });
+    }
     res.json(challenge);
   });
 
@@ -92,11 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id, // Add the user ID who created the challenge
       });
 
-      console.log('Created new challenge:', {
-        id: challenge.id,
-        title: challenge.title,
-        status: challenge.status
-      });
+      console.log('Created new challenge:', challenge);
 
       // Return the full challenge object
       res.status(201).json(challenge);
