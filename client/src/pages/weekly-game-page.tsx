@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format, addDays } from "date-fns";
 import { Loader2 } from "lucide-react";
+import { Challenge } from "@shared/schema";
 
 export default function WeeklyGamePage() {
   const { toast } = useToast();
@@ -13,25 +14,37 @@ export default function WeeklyGamePage() {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      // First create the challenge
-      const res = await apiRequest("POST", "/api/challenges", {
+      const challenge = {
         title: `4% Weight Loss Challenge - Starting ${format(new Date(), 'MMM d')}`,
         description: "Join our community and transform your health journey in just 4 weeks. Lose 4% of your body weight and split the pot with other winners!",
-        startDate: new Date(),
-        endDate: addDays(new Date(), 28), // 4 weeks
+        startDate: new Date().toISOString(),
+        endDate: addDays(new Date(), 28).toISOString(), // 4 weeks
         entryFee: 40,
         percentageGoal: 4,
         status: "open",
-      });
+      };
+
+      console.log('Creating challenge with data:', challenge);
+
+      const res = await apiRequest("POST", "/api/challenges", challenge);
 
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || 'Failed to create challenge');
       }
 
-      return res.json();
+      const createdChallenge = await res.json();
+      console.log('Created new challenge:', createdChallenge);
+
+      if (!createdChallenge.id) {
+        throw new Error('Created challenge is missing ID');
+      }
+
+      return createdChallenge as Challenge;
     },
     onSuccess: (challenge) => {
+      console.log('Challenge creation successful, redirecting to:', `/challenge/${challenge.id}`);
+
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/open"] });
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/user"] });
 
@@ -40,10 +53,19 @@ export default function WeeklyGamePage() {
         description: "You can now join the 4% weight loss challenge.",
       });
 
-      // Navigate to the challenge page where they can join
-      setLocation(`/challenge/${challenge.id}`);
+      // Ensure we have a valid challenge ID before redirecting
+      if (challenge.id) {
+        setLocation(`/challenge/${challenge.id}`);
+      } else {
+        toast({
+          title: "Error",
+          description: "Challenge created but ID is missing. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error: Error) => {
+      console.error('Error creating challenge:', error);
       toast({
         title: "Error",
         description: error.message,
