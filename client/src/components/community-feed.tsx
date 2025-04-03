@@ -9,12 +9,12 @@ import { getWebSocket, sendMessage } from "@/lib/websocket";
 import { ChatMessage } from "@shared/schema";
 import { format } from "date-fns";
 
-interface ChatProps {
+interface CommunityFeedProps {
   challengeId: number;
   initialMessages: ChatMessage[];
 }
 
-export function Chat({ challengeId, initialMessages }: ChatProps) {
+export function CommunityFeed({ challengeId, initialMessages }: CommunityFeedProps) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [newMessage, setNewMessage] = useState("");

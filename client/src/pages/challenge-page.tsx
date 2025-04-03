@@ -3,7 +3,7 @@ import { useRoute, Link } from "wouter";
 import { Challenge, Participant, WeightRecord, ChatMessage } from "@shared/schema";
 import { WeightForm } from "@/components/weight-form";
 import { Leaderboard } from "@/components/leaderboard";
-import { Chat } from "@/components/chat";
+import { CommunityFeed } from "@/components/community-feed";
 import { Feed } from "@/components/feed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -282,7 +282,7 @@ export default function ChallengePage() {
 
             <Feed challengeId={challengeId} />
 
-            <Chat challengeId={challengeId} initialMessages={chatMessages} />
+            <CommunityFeed challengeId={challengeId} initialMessages={chatMessages} />
           </div>
 
           <div className="lg:col-span-4 space-y-8">
