@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
@@ -19,12 +20,7 @@ import {AnimatedLogo} from "@/components/animated-logo"; //Import the AnimatedLo
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [, setLocation] = useLocation();
-
-  if (user) {
-    setLocation("/");
-    return null;
-  }
-
+  
   const loginForm = useForm({
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
@@ -40,6 +36,15 @@ export default function AuthPage() {
       password: "",
     },
   });
+  
+  // Move this check after all hooks have been called
+  if (user) {
+    // Use a React effect for navigation to avoid state updates during render
+    React.useEffect(() => {
+      setLocation("/");
+    }, [setLocation]);
+    return null;
+  }
 
   const handleGoogleSignIn = async () => {
     try {

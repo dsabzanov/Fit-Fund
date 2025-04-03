@@ -2,8 +2,103 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/use-auth";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Textarea } from "@/components/ui/textarea"; 
+import { addDays } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { apiRequest } from "@/lib/queryClient";
+
+// Create schema for the game form
+const createGameSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  percentageGoal: z.coerce.number().min(1, "Goal must be at least 1%").max(30, "Goal cannot exceed 30%"),
+  durationWeeks: z.coerce.number().min(1, "Duration must be at least 1 week").max(12, "Duration cannot exceed 12 weeks"),
+  entryFee: z.coerce.number().min(1, "Entry fee must be at least $1").max(1000, "Entry fee cannot exceed $1000"),
+});
+
+type CreateGameFormValues = z.infer<typeof createGameSchema>;
 
 export default function CreateGamePage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  
+  const form = useForm<CreateGameFormValues>({
+    resolver: zodResolver(createGameSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      percentageGoal: 4, // Default 4% goal
+      durationWeeks: 4,  // Default 4 weeks
+      entryFee: 40,      // Default $40
+    },
+  });
+
+  const createGameMutation = useMutation({
+    mutationFn: async (data: CreateGameFormValues) => {
+      const startDate = new Date();
+      const endDate = addDays(startDate, data.durationWeeks * 7); // Convert weeks to days
+      
+      const challengeData = {
+        title: data.title,
+        description: data.description,
+        percentageGoal: data.percentageGoal.toString(), // Convert to string as expected by API
+        entryFee: data.entryFee,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        status: "open"
+      };
+      
+      const response = await apiRequest("POST", "/api/challenges", challengeData);
+      return await response.json();
+    },
+    onSuccess: (challenge) => {
+      toast({
+        title: "Success!",
+        description: "Your FitFund has been created successfully.",
+      });
+      navigate(`/challenge/${challenge.id}`);
+    },
+    onError: (error) => {
+      console.error("Failed to create FitFund:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create FitFund. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const onSubmit = (data: CreateGameFormValues) => {
+    createGameMutation.mutate(data);
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">Authentication Required</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center mb-4">You need to log in to create a FitFund.</p>
+            <Button onClick={() => navigate("/auth")} className="w-full">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
@@ -20,27 +115,114 @@ export default function CreateGamePage() {
               <CardTitle>Game Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Game Title</Label>
-                  <Input id="title" placeholder="Enter a catchy title for your game" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="goal">Weight Loss Goal (%)</Label>
-                  <Input id="goal" type="number" placeholder="e.g. 4" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duration (weeks)</Label>
-                  <Input id="duration" type="number" placeholder="e.g. 4" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bet">Bet Amount ($)</Label>
-                  <Input id="bet" type="number" placeholder="e.g. 40" />
-                </div>
-              </div>
-              <Button size="lg" className="w-full bg-primary text-white">
-                Create FitFund
-              </Button>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2 md:col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Game Title</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter a catchy title for your game" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2 md:col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Describe your challenge and set the rules" 
+                                className="h-24"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="percentageGoal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weight Loss Goal (%)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="e.g. 4" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Recommended: 4% of starting weight
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="durationWeeks"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Duration (weeks)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="e.g. 4" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Recommended: 4 to 8 weeks
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="entryFee"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bet Amount ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="e.g. 40" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            How much each participant will bet
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="w-full bg-primary text-white"
+                    disabled={createGameMutation.isPending}
+                  >
+                    {createGameMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create FitFund"
+                    )}
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
         </div>
