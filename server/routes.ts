@@ -120,6 +120,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     res.json(challenge);
   });
+  
+  // Add missing endpoint for participants
+  app.get("/api/challenges/:id/participants", async (req, res) => {
+    try {
+      const challengeId = parseInt(req.params.id);
+      if (isNaN(challengeId)) {
+        return res.status(400).json({ error: "Invalid challenge ID" });
+      }
+      
+      const participants = await storage.getParticipants(challengeId);
+      console.log(`Fetched ${participants.length} participants for challenge ${challengeId}`);
+      
+      res.json(participants);
+    } catch (error) {
+      console.error('Error fetching participants:', error);
+      res.status(500).json({ error: "Failed to fetch participants" });
+    }
+  });
+  
+  // Add missing endpoint for weight records
+  app.get("/api/challenges/:id/weight-records", async (req, res) => {
+    try {
+      const challengeId = parseInt(req.params.id);
+      if (isNaN(challengeId)) {
+        return res.status(400).json({ error: "Invalid challenge ID" });
+      }
+      
+      // Get all participants for this challenge
+      const participants = await storage.getParticipants(challengeId);
+      
+      // Get all weight records for all participants
+      const weightRecords = [];
+      for (const participant of participants) {
+        const records = await storage.getWeightRecords(participant.userId, challengeId);
+        weightRecords.push(...records);
+      }
+      
+      console.log(`Fetched ${weightRecords.length} weight records for challenge ${challengeId}`);
+      
+      res.json(weightRecords);
+    } catch (error) {
+      console.error('Error fetching weight records:', error);
+      res.status(500).json({ error: "Failed to fetch weight records" });
+    }
+  });
+  
+  // Add missing endpoint for chat messages
+  app.get("/api/challenges/:id/chat", async (req, res) => {
+    try {
+      const challengeId = parseInt(req.params.id);
+      if (isNaN(challengeId)) {
+        return res.status(400).json({ error: "Invalid challenge ID" });
+      }
+      
+      const chatMessages = await storage.getChatMessages(challengeId);
+      console.log(`Fetched ${chatMessages.length} chat messages for challenge ${challengeId}`);
+      
+      res.json(chatMessages);
+    } catch (error) {
+      console.error('Error fetching chat messages:', error);
+      res.status(500).json({ error: "Failed to fetch chat messages" });
+    }
+  });
 
   app.post("/api/challenges", async (req, res) => {
     try {
@@ -345,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create post
-      const post = await storage.createPost({
+      const post = await storage.createFeedPost({
         userId,
         challengeId,
         content: req.body.content,
@@ -375,7 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid challenge ID" });
       }
       
-      const posts = await storage.getPostsByChallenge(challengeId);
+      const posts = await storage.getFeedPosts(challengeId);
       return res.json(posts);
     } catch (error: any) {
       console.error('Error fetching posts:', error);

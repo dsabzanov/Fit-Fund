@@ -17,6 +17,7 @@ export interface IStorage {
   getChatMessages(challengeId: number): Promise<ChatMessage[]>;
   createFeedPost(post: InsertFeedPost): Promise<FeedPost>;
   getFeedPosts(challengeId: number): Promise<FeedPost[]>;
+  getPostsByChallenge(challengeId: number): Promise<FeedPost[]>;
   addComment(comment: InsertComment): Promise<Comment>;
   getComments(postId: number): Promise<Comment[]>;
   updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined>;

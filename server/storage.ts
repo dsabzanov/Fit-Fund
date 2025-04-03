@@ -46,7 +46,7 @@ export interface IStorage {
   getChatMessages(challengeId: number): Promise<ChatMessage[]>;
   
   // Feed post methods
-  createPost(post: InsertFeedPost): Promise<FeedPost>;
+  createFeedPost(post: InsertFeedPost): Promise<FeedPost>;
   getPostsByChallenge(challengeId: number): Promise<FeedPost[]>;
   updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined>;
   
@@ -308,7 +308,7 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createPost(post: InsertFeedPost): Promise<FeedPost> {
+  async createFeedPost(post: InsertFeedPost): Promise<FeedPost> {
     const id = this.currentId++;
     const newPost: FeedPost = { ...post, id };
     this.feedPosts.set(id, newPost);
@@ -316,6 +316,10 @@ export class MemStorage implements IStorage {
   }
 
   async getPostsByChallenge(challengeId: number): Promise<FeedPost[]> {
+    return this.getFeedPosts(challengeId);
+  }
+  
+  async getFeedPosts(challengeId: number): Promise<FeedPost[]> {
     return Array.from(this.feedPosts.values())
       .filter((p) => p.challengeId === challengeId)
       .sort((a, b) => {
