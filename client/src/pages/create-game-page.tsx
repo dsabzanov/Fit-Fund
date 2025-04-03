@@ -1,75 +1,60 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea"; 
 import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Textarea } from "@/components/ui/textarea"; 
 import { addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
-
-// Create schema for the game form
-const createGameSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  percentageGoal: z.coerce.number().min(1, "Goal must be at least 1%").max(30, "Goal cannot exceed 30%"),
-  durationWeeks: z.coerce.number().min(1, "Duration must be at least 1 week").max(12, "Duration cannot exceed 12 weeks"),
-  entryFee: z.coerce.number().min(1, "Entry fee must be at least $1").max(1000, "Entry fee cannot exceed $1000"),
-});
-
-type CreateGameFormValues = z.infer<typeof createGameSchema>;
 
 export default function CreateGamePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
-  // Use local state for the form values to simplify handling
-  const [formValues, setFormValues] = useState({
-    title: "",
-    description: "",
-    percentageGoal: 4,
-    durationWeeks: 4,
-    entryFee: 40
-  });
+  // Use local state for form values
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [percentageGoal, setPercentageGoal] = useState(4);
+  const [durationWeeks, setDurationWeeks] = useState(4);
+  const [entryFee, setEntryFee] = useState(40);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   
-  // Handle direct form changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (type === 'number') {
-      // For number inputs, convert to number or use empty string
-      setFormValues((prev: typeof formValues) => ({
-        ...prev,
-        [name]: value === '' ? '' : Number(value)
-      }));
-    } else {
-      // For text inputs
-      setFormValues((prev: typeof formValues) => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
-  
-  // Create the form controller with our values
-  const form = useForm<CreateGameFormValues>({
-    resolver: zodResolver(createGameSchema),
-    values: formValues, // Use our state values instead of defaultValues
-  });
-
   const createGameMutation = useMutation({
-    mutationFn: async (data: CreateGameFormValues) => {
+    mutationFn: async () => {
+      // Validate form inputs
+      const newErrors: {[key: string]: string} = {};
+      
+      if (!title) newErrors.title = "Title is required";
+      else if (title.length < 3) newErrors.title = "Title must be at least 3 characters";
+      
+      if (!description) newErrors.description = "Description is required";
+      else if (description.length < 10) newErrors.description = "Description must be at least 10 characters";
+      
+      if (!percentageGoal) newErrors.percentageGoal = "Weight loss goal is required";
+      else if (percentageGoal < 1) newErrors.percentageGoal = "Goal must be at least 1%";
+      else if (percentageGoal > 30) newErrors.percentageGoal = "Goal cannot exceed 30%";
+      
+      if (!durationWeeks) newErrors.durationWeeks = "Duration is required";
+      else if (durationWeeks < 1) newErrors.durationWeeks = "Duration must be at least 1 week";
+      else if (durationWeeks > 12) newErrors.durationWeeks = "Duration cannot exceed 12 weeks";
+      
+      if (!entryFee) newErrors.entryFee = "Bet amount is required";
+      else if (entryFee < 1) newErrors.entryFee = "Entry fee must be at least $1";
+      else if (entryFee > 1000) newErrors.entryFee = "Entry fee cannot exceed $1000";
+      
+      setErrors(newErrors);
+      if (Object.keys(newErrors).length > 0) {
+        throw new Error("Please fix form errors");
+      }
+      
       const startDate = new Date();
-      const endDate = addDays(startDate, data.durationWeeks * 7); // Convert weeks to days
+      const endDate = addDays(startDate, durationWeeks * 7); // Convert weeks to days
       
       // Make sure we have the userId which is required by the API
       if (!user?.id) {
@@ -77,10 +62,10 @@ export default function CreateGamePage() {
       }
       
       const challengeData = {
-        title: data.title,
-        description: data.description,
-        percentageGoal: data.percentageGoal.toString(), // Convert to string as expected by API
-        entryFee: data.entryFee,
+        title,
+        description,
+        percentageGoal: percentageGoal.toString(), // Convert to string as expected by API
+        entryFee,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         status: "open",
@@ -107,10 +92,6 @@ export default function CreateGamePage() {
       });
     }
   });
-
-  const onSubmit = (data: CreateGameFormValues) => {
-    createGameMutation.mutate(data);
-  };
 
   if (!user) {
     return (
@@ -146,139 +127,113 @@ export default function CreateGamePage() {
               <CardTitle>Game Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2 md:col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Game Title</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Enter a catchy title for your game" 
-                                name="title"
-                                value={formValues.title}
-                                onChange={handleInputChange}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  createGameMutation.mutate();
+                }} 
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <div>
+                      <Label htmlFor="title">Game Title</Label>
+                      <Input 
+                        id="title"
+                        placeholder="Enter a catchy title for your game" 
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
                       />
+                      {errors.title && (
+                        <p className="text-sm text-red-500 mt-1">{errors.title}</p>
+                      )}
                     </div>
-                    
-                    <div className="space-y-2 md:col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                name="description"
-                                placeholder="Describe your challenge and set the rules" 
-                                className="h-24"
-                                value={formValues.description}
-                                onChange={handleInputChange}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="percentageGoal"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Weight Loss Goal (%)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              name="percentageGoal"
-                              placeholder="e.g. 4" 
-                              value={formValues.percentageGoal}
-                              onChange={handleInputChange}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Recommended: 4% of starting weight
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="durationWeeks"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Duration (weeks)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              name="durationWeeks"
-                              placeholder="e.g. 4" 
-                              value={formValues.durationWeeks}
-                              onChange={handleInputChange}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Recommended: 4 to 8 weeks
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="entryFee"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Bet Amount ($)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              name="entryFee"
-                              placeholder="e.g. 40" 
-                              value={formValues.entryFee}
-                              onChange={handleInputChange}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            How much each participant will bet
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
                   
-                  <Button 
-                    type="submit" 
-                    size="lg" 
-                    className="w-full bg-primary text-white"
-                    disabled={createGameMutation.isPending}
-                  >
-                    {createGameMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create FitFund"
+                  <div className="space-y-2 md:col-span-2">
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea 
+                        id="description"
+                        placeholder="Describe your challenge and set the rules" 
+                        className="h-24"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                      />
+                      {errors.description && (
+                        <p className="text-sm text-red-500 mt-1">{errors.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="percentageGoal">Weight Loss Goal (%)</Label>
+                    <Input 
+                      id="percentageGoal"
+                      type="number" 
+                      placeholder="e.g. 4" 
+                      value={percentageGoal}
+                      onChange={(e) => setPercentageGoal(Number(e.target.value))}
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Recommended: 4% of starting weight
+                    </p>
+                    {errors.percentageGoal && (
+                      <p className="text-sm text-red-500 mt-1">{errors.percentageGoal}</p>
                     )}
-                  </Button>
-                </form>
-              </Form>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="durationWeeks">Duration (weeks)</Label>
+                    <Input 
+                      id="durationWeeks"
+                      type="number" 
+                      placeholder="e.g. 4" 
+                      value={durationWeeks}
+                      onChange={(e) => setDurationWeeks(Number(e.target.value))}
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Recommended: 4 to 8 weeks
+                    </p>
+                    {errors.durationWeeks && (
+                      <p className="text-sm text-red-500 mt-1">{errors.durationWeeks}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="entryFee">Bet Amount ($)</Label>
+                    <Input 
+                      id="entryFee"
+                      type="number" 
+                      placeholder="e.g. 40" 
+                      value={entryFee}
+                      onChange={(e) => setEntryFee(Number(e.target.value))}
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      How much each participant will bet
+                    </p>
+                    {errors.entryFee && (
+                      <p className="text-sm text-red-500 mt-1">{errors.entryFee}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="w-full bg-primary text-white"
+                  disabled={createGameMutation.isPending}
+                >
+                  {createGameMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create FitFund"
+                  )}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
