@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
 
   // Configure multer for file uploads
-  const storage = multer.diskStorage({
+  const multerStorage = multer.diskStorage({
     destination: (req, file, cb) => {
       const uploadDir = 'public/uploads';
       // Ensure uploads directory exists
@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   const upload = multer({ 
-    storage,
+    storage: multerStorage,
     limits: {
       fileSize: 5 * 1024 * 1024, // 5MB file size limit
     },
