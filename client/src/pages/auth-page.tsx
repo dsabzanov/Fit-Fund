@@ -38,13 +38,20 @@ export default function AuthPage() {
     },
   });
   
-  // Move this check after all hooks have been called
-  if (user) {
-    // Use a React effect for navigation to avoid state updates during render
-    React.useEffect(() => {
+  // Handle redirect when user is logged in
+  React.useEffect(() => {
+    if (user) {
       setLocation("/");
-    }, [setLocation]);
-    return null;
+    }
+  }, [user, setLocation]);
+  
+  // Render nothing when redirecting
+  if (user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const handleGoogleSignIn = async () => {
