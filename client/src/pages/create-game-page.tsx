@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/queryClient";
+import { useState } from "react";
 
 // Create schema for the game form
 const createGameSchema = z.object({
@@ -31,15 +32,38 @@ export default function CreateGamePage() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
+  // Use local state for the form values to simplify handling
+  const [formValues, setFormValues] = useState({
+    title: "",
+    description: "",
+    percentageGoal: 4,
+    durationWeeks: 4,
+    entryFee: 40
+  });
+  
+  // Handle direct form changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'number') {
+      // For number inputs, convert to number or use empty string
+      setFormValues((prev: typeof formValues) => ({
+        ...prev,
+        [name]: value === '' ? '' : Number(value)
+      }));
+    } else {
+      // For text inputs
+      setFormValues((prev: typeof formValues) => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+  
+  // Create the form controller with our values
   const form = useForm<CreateGameFormValues>({
     resolver: zodResolver(createGameSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      percentageGoal: 4, // Default 4% goal
-      durationWeeks: 4,  // Default 4 weeks
-      entryFee: 40,      // Default $40
-    },
+    values: formValues, // Use our state values instead of defaultValues
   });
 
   const createGameMutation = useMutation({
@@ -133,7 +157,12 @@ export default function CreateGamePage() {
                           <FormItem>
                             <FormLabel>Game Title</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter a catchy title for your game" {...field} />
+                              <Input 
+                                placeholder="Enter a catchy title for your game" 
+                                name="title"
+                                value={formValues.title}
+                                onChange={handleInputChange}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -150,9 +179,11 @@ export default function CreateGamePage() {
                             <FormLabel>Description</FormLabel>
                             <FormControl>
                               <Textarea 
+                                name="description"
                                 placeholder="Describe your challenge and set the rules" 
                                 className="h-24"
-                                {...field} 
+                                value={formValues.description}
+                                onChange={handleInputChange}
                               />
                             </FormControl>
                             <FormMessage />
@@ -170,10 +201,10 @@ export default function CreateGamePage() {
                           <FormControl>
                             <Input 
                               type="number" 
+                              name="percentageGoal"
                               placeholder="e.g. 4" 
-                              {...field} 
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || '')}
-                              value={field.value}
+                              value={formValues.percentageGoal}
+                              onChange={handleInputChange}
                             />
                           </FormControl>
                           <FormDescription>
@@ -193,10 +224,10 @@ export default function CreateGamePage() {
                           <FormControl>
                             <Input 
                               type="number" 
+                              name="durationWeeks"
                               placeholder="e.g. 4" 
-                              {...field} 
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || '')}
-                              value={field.value}
+                              value={formValues.durationWeeks}
+                              onChange={handleInputChange}
                             />
                           </FormControl>
                           <FormDescription>
@@ -216,10 +247,10 @@ export default function CreateGamePage() {
                           <FormControl>
                             <Input 
                               type="number" 
+                              name="entryFee"
                               placeholder="e.g. 40" 
-                              {...field} 
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || '')}
-                              value={field.value}
+                              value={formValues.entryFee}
+                              onChange={handleInputChange}
                             />
                           </FormControl>
                           <FormDescription>
