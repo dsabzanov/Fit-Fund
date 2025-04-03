@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertFeedPostSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -10,8 +10,9 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, ImageIcon, ImagePlus, Upload, X, Check } from "lucide-react";
-import { useState, useRef } from "react";
+import { Loader2, ImageIcon, ImagePlus, Upload, X, Check, CalendarClock, Pin } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { format, addDays, addHours } from "date-fns";
 
 interface CreatePostFormProps {
   challengeId: number;
@@ -146,6 +147,21 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
     },
   });
 
+  // Listen for changes to isScheduled
+  useEffect(() => {
+    // When isScheduled changes to true, set a default future date if empty
+    const isScheduled = form.watch("isScheduled");
+    const currentScheduledFor = form.watch("scheduledFor");
+    
+    if (isScheduled && !currentScheduledFor) {
+      // Set default to 24 hours from now
+      const futureDate = addHours(new Date(), 24);
+      // Format as yyyy-MM-ddThh:mm (compatible with datetime-local input)
+      const formattedDate = futureDate.toISOString().slice(0, 16);
+      form.setValue("scheduledFor", formattedDate, { shouldValidate: true });
+    }
+  }, [form.watch("isScheduled")]);
+  
   const isHost = user?.isHost;
 
   return (
@@ -296,19 +312,33 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
             name="scheduledFor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Schedule for</FormLabel>
+                <FormLabel className="flex items-center gap-2">
+                  <CalendarClock className="h-4 w-4" />
+                  Schedule for
+                </FormLabel>
                 <FormControl>
                   <Input type="datetime-local" {...field} />
                 </FormControl>
+                <FormDescription>
+                  Your post will automatically be published at the selected date and time.
+                  (Default is 24 hours from now)
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         )}
 
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={mutation.isPending || (form.watch("isScheduled") && !form.watch("scheduledFor"))}
+        >
           {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create Post
+          {form.watch("isScheduled") 
+            ? "Schedule Post" 
+            : "Create Post"
+          }
         </Button>
       </form>
     </Form>

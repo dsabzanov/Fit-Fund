@@ -159,7 +159,20 @@ export const insertWeightRecordSchema = createInsertSchema(weightRecords)
     recordedAt: z.coerce.date().optional(),
   });
 export const insertChatMessageSchema = createInsertSchema(chatMessages);
-export const insertFeedPostSchema = createInsertSchema(feedPosts);
+export const insertFeedPostSchema = createInsertSchema(feedPosts)
+  .extend({
+    isScheduled: z.boolean().default(false),
+    scheduledFor: z.string().optional()
+      .refine(date => {
+        if (!date) return true;
+        const dateObj = new Date(date);
+        return !isNaN(dateObj.getTime()) && dateObj > new Date();
+      }, {
+        message: "Scheduled date must be in the future"
+      }),
+    isPinned: z.boolean().default(false),
+    imageUrl: z.string().optional(),
+  });
 export const insertCommentSchema = createInsertSchema(comments);
 
 // Export types

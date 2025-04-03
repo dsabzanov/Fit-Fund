@@ -88,14 +88,27 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
     mutationFn: async (data: { weight: string; imageUrl?: string }) => {
       console.log("Submitting weight data:", data);
       
+      // Validate weight before submission
+      const weightNum = parseFloat(data.weight);
+      if (isNaN(weightNum) || weightNum <= 0) {
+        throw new Error("Please enter a valid weight");
+      }
+      
+      // Validate that we have an image if required
+      if (!selectedImage) {
+        throw new Error("Please upload a verification photo");
+      }
+      
       const formData = new FormData();
       formData.append('weight', data.weight);
       formData.append('challengeId', challengeId.toString());
 
       if (selectedImage) {
         formData.append('image', selectedImage);
+        console.log('Image added to form data:', selectedImage.name, selectedImage.type, selectedImage.size);
       }
 
+      console.log('Submitting form data to server');
       const res = await fetch('/api/weight-records', {
         method: 'POST',
         body: formData,
@@ -103,13 +116,21 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'Failed to submit weight record');
+        console.error('Weight submission error:', res.status, res.statusText);
+        let errorMessage = 'Failed to submit weight record';
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Error parsing error response:', e);
+        }
+        throw new Error(errorMessage);
       }
 
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Weight record submitted successfully:', data);
       queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/weight-records`] });
       queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/users/${challengeId}/weight-records`] });
 
@@ -128,6 +149,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       onSuccess?.();
     },
     onError: (error: Error) => {
+      console.error('Weight form submission error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -149,9 +171,9 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
     mutation.mutate(data);
   });
 
-  // Weight is required for submission
+  // Weight and image are required for submission
   const weightValue = form.watch("weight");
-  const isSubmitDisabled = !weightValue || mutation.isPending;
+  const isSubmitDisabled = !weightValue || !selectedImage || mutation.isPending;
 
   return (
     <Form {...form}>
