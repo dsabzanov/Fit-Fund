@@ -136,8 +136,44 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/20 to-primary/40 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white">BACK-TO-BACK CHALLENGES</h3>
+                <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/20 to-primary/40 backdrop-blur-sm border-2 border-primary/20 shadow-lg relative">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white flex items-center gap-2">
+                    BACK-TO-BACK CHALLENGES
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="rounded-full p-1 bg-white/20 hover:bg-white/30 transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                          </svg>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[550px]">
+                        <DialogHeader>
+                          <DialogTitle>About Back-to-Back Challenges</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <p>
+                            <strong>What are Back-to-Back Challenges?</strong> These are continuous weight loss challenges that automatically start a new round when the previous one completes.
+                          </p>
+                          <p>
+                            <strong>How does it work?</strong> 
+                          </p>
+                          <ul className="list-disc pl-6 space-y-2">
+                            <li>Join a challenge series with friends or colleagues</li>
+                            <li>When one challenge ends, a new one begins automatically</li>
+                            <li>Maintain your momentum by continuing with the same group</li>
+                            <li>Your entry fee from a winning round can be automatically applied to the next round</li>
+                            <li>Track your progress across multiple challenges over time</li>
+                          </ul>
+                          <p>
+                            <strong>Benefits:</strong> Consistent accountability, sustainable weight management, deeper community connections, and long-term habit formation.
+                          </p>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </h3>
                   <p className="text-white/90 text-base mb-2">
                     Keep the momentum going! Join our continuous challenge series.
                   </p>

@@ -33,28 +33,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+      try {
+        const res = await apiRequest("POST", "/api/login", credentials);
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || "Invalid username or password");
+        }
+        return await res.json();
+      } catch (error) {
+        console.error("Login error:", error);
+        if (error instanceof Error) {
+          throw error;
+        } else {
+          throw new Error("Login failed. Please try again.");
+        }
+      }
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-    },
-    onError: (error: Error) => {
       toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
+        title: "Login successful",
+        description: `Welcome back, ${user.username}!`,
       });
     },
+    // We'll handle error display in the component
   });
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
-      const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+      try {
+        const res = await apiRequest("POST", "/api/register", credentials);
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || "Registration failed");
+        }
+        return await res.json();
+      } catch (error) {
+        console.error("Registration error:", error);
+        if (error instanceof Error) {
+          throw error;
+        } else {
+          throw new Error("Registration failed. Please try again.");
+        }
+      }
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      toast({
+        title: "Registration successful",
+        description: `Welcome to FitFund, ${user.username}!`,
+      });
     },
     onError: (error: Error) => {
       toast({

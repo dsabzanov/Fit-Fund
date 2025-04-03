@@ -38,6 +38,24 @@ export default function AuthPage() {
     },
   });
   
+  // Handle error display for login and registration errors
+  const [loginError, setLoginError] = React.useState<string | null>(null);
+  const [registerError, setRegisterError] = React.useState<string | null>(null);
+  
+  // Clear login error when form values change
+  React.useEffect(() => {
+    if (loginError) {
+      setLoginError(null);
+    }
+  }, [loginForm.watch("username"), loginForm.watch("password"), loginError]);
+  
+  // Clear registration error when form values change
+  React.useEffect(() => {
+    if (registerError) {
+      setRegisterError(null);
+    }
+  }, [registerForm.watch("username"), registerForm.watch("password"), registerError]);
+  
   // Handle redirect when user is logged in
   React.useEffect(() => {
     if (user) {
@@ -195,7 +213,15 @@ export default function AuthPage() {
 
               <TabsContent value="login">
                 <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit((data) => loginMutation.mutate(data))} className="space-y-4">
+                  <form onSubmit={loginForm.handleSubmit(
+                    (data) => {
+                      loginMutation.mutate(data, {
+                        onError: (error) => {
+                          setLoginError(error.message);
+                        }
+                      });
+                    }
+                  )} className="space-y-4">
                     <FormField
                       control={loginForm.control}
                       name="username"
@@ -222,6 +248,11 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
+                    {loginError && (
+                      <div className="text-destructive text-sm p-2 bg-destructive/10 rounded border border-destructive/20">
+                        {loginError}
+                      </div>
+                    )}
                     <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
                       {loginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Login
@@ -232,7 +263,15 @@ export default function AuthPage() {
 
               <TabsContent value="register">
                 <Form {...registerForm}>
-                  <form onSubmit={registerForm.handleSubmit((data) => registerMutation.mutate(data))} className="space-y-4">
+                  <form onSubmit={registerForm.handleSubmit(
+                    (data) => {
+                      registerMutation.mutate(data, {
+                        onError: (error) => {
+                          setRegisterError(error.message);
+                        }
+                      });
+                    }
+                  )} className="space-y-4">
                     <FormField
                       control={registerForm.control}
                       name="username"
@@ -259,6 +298,11 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
+                    {registerError && (
+                      <div className="text-destructive text-sm p-2 bg-destructive/10 rounded border border-destructive/20">
+                        {registerError}
+                      </div>
+                    )}
                     <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
                       {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Register
