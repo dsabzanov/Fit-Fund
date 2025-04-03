@@ -159,6 +159,18 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
         onSubmit={onSubmit} 
         className={cn("space-y-4", className)}
       >
+        <div className="bg-blue-50 p-3 rounded-md border border-blue-100 mb-4">
+          <h4 className="text-sm font-medium text-blue-700 mb-1 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+            How to Submit Your Weight
+          </h4>
+          <ol className="text-xs text-blue-600 pl-5 space-y-1 list-decimal">
+            <li>Enter your current weight in pounds below</li>
+            <li>Upload a clear photo of your scale showing the weight</li>
+            <li>Click "Submit Weight" to record your progress</li>
+          </ol>
+        </div>
+
         <FormField
           control={form.control}
           name="weight"
@@ -254,7 +266,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
             </div>
           </FormControl>
           <p className="text-sm text-muted-foreground mt-1">
-            Upload a photo of your scale for verification (max 5MB)
+            Upload a photo of your scale showing today's date for verification (max 5MB)
           </p>
         </FormItem>
 

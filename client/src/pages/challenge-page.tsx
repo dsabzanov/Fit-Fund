@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar, DollarSign, Target, Users, Loader2, MoreHorizontal } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Crown, Shield } from "lucide-react";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -221,6 +222,52 @@ export default function ChallengePage() {
                   Challenge Progress: {Math.round(progress)}%
                 </p>
 
+                {!isHost && (
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium flex items-center">
+                        <Target className="h-4 w-4 mr-2 text-blue-600" />
+                        Your Challenge Overview
+                      </h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Entry Fee:</span>
+                          <span className="font-medium">${challenge.entryFee}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Goal:</span>
+                          <span className="font-medium">{challenge.percentageGoal}% weight loss</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">End Date:</span>
+                          <span className="font-medium">{format(new Date(challenge.endDate), 'MMM d, yyyy')}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Time Remaining:</span>
+                          <span className="font-medium">{daysRemaining} days</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Participants:</span>
+                          <span className="font-medium">{participants.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Potential Prize:</span>
+                          <span className="font-medium">${challenge.entryFee * participants.length}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-blue-600 mt-4">
+                      Track your progress by submitting regular weight updates with verification photos. Keep up the good work!
+                    </p>
+                  </div>
+                )}
+
                 {isHost && (
                   <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between mb-3">
@@ -281,8 +328,11 @@ export default function ChallengePage() {
             </Card>
 
             <Feed challengeId={challengeId} />
-
-            <CommunityFeed challengeId={challengeId} initialMessages={chatMessages} />
+            
+            {/* Only show community feed to hosts for better focus on challenge for participants */}
+            {isHost && (
+              <CommunityFeed challengeId={challengeId} initialMessages={chatMessages} />
+            )}
           </div>
 
           <div className="lg:col-span-4 space-y-8">
