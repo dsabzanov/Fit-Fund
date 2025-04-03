@@ -42,6 +42,7 @@ export const users = pgTable("users", {
 // Challenges table
 export const challenges = pgTable("challenges", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // Host user ID
   title: text("title").notNull(),
   description: text("description").notNull(),
   startDate: timestamp("start_date").notNull(),
