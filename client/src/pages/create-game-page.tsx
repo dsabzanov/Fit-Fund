@@ -47,6 +47,11 @@ export default function CreateGamePage() {
       const startDate = new Date();
       const endDate = addDays(startDate, data.durationWeeks * 7); // Convert weeks to days
       
+      // Make sure we have the userId which is required by the API
+      if (!user?.id) {
+        throw new Error("You must be logged in to create a challenge");
+      }
+      
       const challengeData = {
         title: data.title,
         description: data.description,
@@ -54,9 +59,11 @@ export default function CreateGamePage() {
         entryFee: data.entryFee,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        status: "open"
+        status: "open",
+        userId: user.id // Add userId from the authenticated user
       };
       
+      console.log("Creating challenge with data:", challengeData);
       const response = await apiRequest("POST", "/api/challenges", challengeData);
       return await response.json();
     },
@@ -161,7 +168,13 @@ export default function CreateGamePage() {
                         <FormItem>
                           <FormLabel>Weight Loss Goal (%)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="e.g. 4" {...field} />
+                            <Input 
+                              type="number" 
+                              placeholder="e.g. 4" 
+                              {...field} 
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || '')}
+                              value={field.value}
+                            />
                           </FormControl>
                           <FormDescription>
                             Recommended: 4% of starting weight
@@ -178,7 +191,13 @@ export default function CreateGamePage() {
                         <FormItem>
                           <FormLabel>Duration (weeks)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="e.g. 4" {...field} />
+                            <Input 
+                              type="number" 
+                              placeholder="e.g. 4" 
+                              {...field} 
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || '')}
+                              value={field.value}
+                            />
                           </FormControl>
                           <FormDescription>
                             Recommended: 4 to 8 weeks
@@ -195,7 +214,13 @@ export default function CreateGamePage() {
                         <FormItem>
                           <FormLabel>Bet Amount ($)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="e.g. 40" {...field} />
+                            <Input 
+                              type="number" 
+                              placeholder="e.g. 40" 
+                              {...field} 
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || '')}
+                              value={field.value}
+                            />
                           </FormControl>
                           <FormDescription>
                             How much each participant will bet
