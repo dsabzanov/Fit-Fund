@@ -1,71 +1,69 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea"; 
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
-import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useRef, FormEvent } from "react";
 
 export default function CreateGamePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Use local state for form values
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [percentageGoal, setPercentageGoal] = useState(4);
-  const [durationWeeks, setDurationWeeks] = useState(4);
-  const [entryFee, setEntryFee] = useState(40);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  // Use refs for direct form access
+  const formRef = useRef<HTMLFormElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const percentageGoalRef = useRef<HTMLInputElement>(null);
+  const durationWeeksRef = useRef<HTMLInputElement>(null);
+  const entryFeeRef = useRef<HTMLInputElement>(null);
   
-  const createGameMutation = useMutation({
-    mutationFn: async () => {
-      // Validate form inputs
-      const newErrors: {[key: string]: string} = {};
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      // Validate and gather all form values
+      const title = titleRef.current?.value;
+      const description = descriptionRef.current?.value;
+      const percentageGoal = percentageGoalRef.current?.value;
+      const durationWeeks = durationWeeksRef.current?.value;
+      const entryFee = entryFeeRef.current?.value;
       
-      if (!title) newErrors.title = "Title is required";
-      else if (title.length < 3) newErrors.title = "Title must be at least 3 characters";
-      
-      if (!description) newErrors.description = "Description is required";
-      else if (description.length < 10) newErrors.description = "Description must be at least 10 characters";
-      
-      if (!percentageGoal) newErrors.percentageGoal = "Weight loss goal is required";
-      else if (percentageGoal < 1) newErrors.percentageGoal = "Goal must be at least 1%";
-      else if (percentageGoal > 30) newErrors.percentageGoal = "Goal cannot exceed 30%";
-      
-      if (!durationWeeks) newErrors.durationWeeks = "Duration is required";
-      else if (durationWeeks < 1) newErrors.durationWeeks = "Duration must be at least 1 week";
-      else if (durationWeeks > 12) newErrors.durationWeeks = "Duration cannot exceed 12 weeks";
-      
-      if (!entryFee) newErrors.entryFee = "Bet amount is required";
-      else if (entryFee < 1) newErrors.entryFee = "Entry fee must be at least $1";
-      else if (entryFee > 1000) newErrors.entryFee = "Entry fee cannot exceed $1000";
-      
-      setErrors(newErrors);
-      if (Object.keys(newErrors).length > 0) {
-        throw new Error("Please fix form errors");
+      // Simple validation
+      if (!title || title.length < 3) {
+        toast({ title: "Error", description: "Title must be at least 3 characters", variant: "destructive" });
+        return;
       }
       
-      const startDate = new Date();
-      const endDate = addDays(startDate, durationWeeks * 7); // Convert weeks to days
+      if (!description || description.length < 10) {
+        toast({ title: "Error", description: "Description must be at least 10 characters", variant: "destructive" });
+        return;
+      }
       
       // Make sure we have the userId which is required by the API
       if (!user?.id) {
-        throw new Error("You must be logged in to create a challenge");
+        toast({ title: "Error", description: "You must be logged in to create a challenge", variant: "destructive" });
+        return;
       }
+      
+      // Parse numeric values
+      const percentGoalNum = parseFloat(percentageGoal || "4");
+      const durationNum = parseInt(durationWeeks || "4", 10);
+      const entryFeeNum = parseInt(entryFee || "40", 10);
+      
+      const startDate = new Date();
+      const endDate = addDays(startDate, durationNum * 7); // Convert weeks to days
       
       const challengeData = {
         title,
         description,
-        percentageGoal: percentageGoal.toString(), // Convert to string as expected by API
-        entryFee,
+        percentageGoal: percentGoalNum.toString(), // Convert to string as expected by API
+        entryFee: entryFeeNum,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         status: "open",
@@ -74,24 +72,25 @@ export default function CreateGamePage() {
       
       console.log("Creating challenge with data:", challengeData);
       const response = await apiRequest("POST", "/api/challenges", challengeData);
-      return await response.json();
-    },
-    onSuccess: (challenge) => {
+      const challenge = await response.json();
+      
       toast({
         title: "Success!",
         description: "Your FitFund has been created successfully.",
       });
+      
       navigate(`/challenge/${challenge.id}`);
-    },
-    onError: (error) => {
+    } catch (error) {
       console.error("Failed to create FitFund:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create FitFund. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
-  });
+  };
 
   if (!user) {
     return (
@@ -128,93 +127,96 @@ export default function CreateGamePage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  createGameMutation.mutate();
-                }} 
+                ref={formRef}
+                onSubmit={handleSubmit} 
                 className="space-y-6"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
                     <div>
-                      <Label htmlFor="title">Game Title</Label>
-                      <Input 
-                        id="title"
-                        placeholder="Enter a catchy title for your game" 
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                      <label htmlFor="title" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Game Title
+                      </label>
+                      <input 
+                        ref={titleRef}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        id="title" 
+                        name="title"
+                        placeholder="Enter a catchy title for your game"
+                        defaultValue=""
                       />
-                      {errors.title && (
-                        <p className="text-sm text-red-500 mt-1">{errors.title}</p>
-                      )}
                     </div>
                   </div>
                   
                   <div className="space-y-2 md:col-span-2">
                     <div>
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea 
-                        id="description"
-                        placeholder="Describe your challenge and set the rules" 
-                        className="h-24"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                      <label htmlFor="description" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Description
+                      </label>
+                      <textarea 
+                        ref={descriptionRef}
+                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        id="description" 
+                        name="description"
+                        placeholder="Describe your challenge and set the rules"
+                        defaultValue=""
+                        rows={4}
                       />
-                      {errors.description && (
-                        <p className="text-sm text-red-500 mt-1">{errors.description}</p>
-                      )}
                     </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="percentageGoal">Weight Loss Goal (%)</Label>
-                    <Input 
-                      id="percentageGoal"
+                    <label htmlFor="percentageGoal" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Weight Loss Goal (%)
+                    </label>
+                    <input 
+                      ref={percentageGoalRef}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      id="percentageGoal" 
+                      name="percentageGoal"
                       type="number" 
                       placeholder="e.g. 4" 
-                      value={percentageGoal}
-                      onChange={(e) => setPercentageGoal(Number(e.target.value))}
+                      defaultValue="4"
                     />
                     <p className="text-sm text-muted-foreground mt-1">
                       Recommended: 4% of starting weight
                     </p>
-                    {errors.percentageGoal && (
-                      <p className="text-sm text-red-500 mt-1">{errors.percentageGoal}</p>
-                    )}
                   </div>
                   
                   <div>
-                    <Label htmlFor="durationWeeks">Duration (weeks)</Label>
-                    <Input 
-                      id="durationWeeks"
+                    <label htmlFor="durationWeeks" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Duration (weeks)
+                    </label>
+                    <input 
+                      ref={durationWeeksRef}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      id="durationWeeks" 
+                      name="durationWeeks"
                       type="number" 
                       placeholder="e.g. 4" 
-                      value={durationWeeks}
-                      onChange={(e) => setDurationWeeks(Number(e.target.value))}
+                      defaultValue="4"
                     />
                     <p className="text-sm text-muted-foreground mt-1">
                       Recommended: 4 to 8 weeks
                     </p>
-                    {errors.durationWeeks && (
-                      <p className="text-sm text-red-500 mt-1">{errors.durationWeeks}</p>
-                    )}
                   </div>
                   
                   <div>
-                    <Label htmlFor="entryFee">Bet Amount ($)</Label>
-                    <Input 
-                      id="entryFee"
+                    <label htmlFor="entryFee" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Bet Amount ($)
+                    </label>
+                    <input 
+                      ref={entryFeeRef}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      id="entryFee" 
+                      name="entryFee"
                       type="number" 
                       placeholder="e.g. 40" 
-                      value={entryFee}
-                      onChange={(e) => setEntryFee(Number(e.target.value))}
+                      defaultValue="40"
                     />
                     <p className="text-sm text-muted-foreground mt-1">
                       How much each participant will bet
                     </p>
-                    {errors.entryFee && (
-                      <p className="text-sm text-red-500 mt-1">{errors.entryFee}</p>
-                    )}
                   </div>
                 </div>
                 
@@ -222,9 +224,9 @@ export default function CreateGamePage() {
                   type="submit" 
                   size="lg" 
                   className="w-full bg-primary text-white"
-                  disabled={createGameMutation.isPending}
+                  disabled={isSubmitting}
                 >
-                  {createGameMutation.isPending ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
