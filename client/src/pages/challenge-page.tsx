@@ -3,7 +3,7 @@ import { useRoute, Link } from "wouter";
 import { Challenge, Participant, WeightRecord, ChatMessage } from "@shared/schema";
 import { WeightForm } from "@/components/weight-form";
 import { Leaderboard } from "@/components/leaderboard";
-import { CommunityFeed } from "@/components/community-feed";
+import { ChallengeFeed } from "@/components/challenge-feed";
 import { Feed } from "@/components/feed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -273,53 +273,87 @@ export default function ChallengePage() {
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium flex items-center">
                         <Crown className="h-4 w-4 mr-2 text-primary" />
-                        Host Controls
+                        Host Dashboard
                       </h3>
                       <Badge variant="outline" className="text-xs">Host Only</Badge>
                     </div>
                     
-                    <div className="space-y-4">
-                      <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="bg-primary/10 p-1.5 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                          </div>
+                          <h4 className="font-medium text-sm">Motivation Posts</h4>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Schedule automated posts to keep participants engaged and motivated
+                        </p>
                         <Button 
-                          variant="outline" 
+                          variant="default" 
                           size="sm" 
-                          className="w-full mb-1 bg-white/50 justify-start"
+                          className="mt-auto justify-center"
                           onClick={() => setSchedulingDialogOpen(true)}
                         >
-                          <span className="mr-2">📅</span>
-                          Schedule Motivational Posts
+                          Schedule Post
                         </Button>
-                        <p className="text-xs text-muted-foreground ml-1">
-                          Create and schedule posts to keep participants motivated throughout the challenge
-                        </p>
                       </div>
                       
-                      <div>
+                      <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="bg-primary/10 p-1.5 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                          </div>
+                          <h4 className="font-medium text-sm">Weigh-in Reminders</h4>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Send notifications to participants who haven't submitted their weights recently
+                        </p>
                         <Button 
                           variant="outline" 
-                          size="sm" 
-                          className="w-full mb-1 bg-white/50 justify-start"
+                          size="sm"
+                          className="mt-auto justify-center"
                         >
-                          <span className="mr-2">📧</span>
-                          Send Reminder to All
+                          Send Reminders
                         </Button>
-                        <p className="text-xs text-muted-foreground ml-1">
-                          Send notifications to all participants reminding them to submit their weights
-                        </p>
                       </div>
                       
-                      <div>
+                      <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="bg-primary/10 p-1.5 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                          </div>
+                          <h4 className="font-medium text-sm">Challenge Analytics</h4>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          View detailed statistics on participant progress and engagement
+                        </p>
                         <Button 
                           variant="outline" 
-                          size="sm" 
-                          className="w-full mb-1 bg-white/50 justify-start"
+                          size="sm"
+                          className="mt-auto justify-center"
                         >
-                          <span className="mr-2">📊</span>
-                          View Detailed Stats
+                          View Stats
                         </Button>
-                        <p className="text-xs text-muted-foreground ml-1">
-                          Access comprehensive statistics on participant progress, trends, and challenge metrics
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="bg-primary/10 p-1.5 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 3v18"></path><rect x="3" y="8" width="18" height="8" rx="1"></rect><path d="M2 12h20"></path></svg>
+                          </div>
+                          <h4 className="font-medium text-sm">Prize Management</h4>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Monitor total prize pool and configure payout settings
                         </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="mt-auto justify-center"
+                        >
+                          Manage Prize
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -329,9 +363,24 @@ export default function ChallengePage() {
 
             <Feed challengeId={challengeId} />
             
-            {/* Only show community feed to hosts for better focus on challenge for participants */}
+            {/* Only show challenge feed to hosts for better focus on challenge for participants */}
             {isHost && (
-              <CommunityFeed challengeId={challengeId} initialMessages={chatMessages} />
+              <div className="mt-8">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"></path></svg>
+                      Challenge Feed
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Post updates and communicate with participants
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <ChallengeFeed challengeId={challengeId} initialMessages={chatMessages} />
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
 
