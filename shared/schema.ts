@@ -119,10 +119,20 @@ export const insertUserSchema = createInsertSchema(users)
 
 export const insertChallengeSchema = createInsertSchema(challenges)
   .extend({
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
-    entryFee: z.coerce.number(),
+    startDate: z.coerce.date()
+      .refine(date => date > new Date(), {
+        message: "Start date must be in the future"
+      }),
+    endDate: z.coerce.date()
+      .refine(date => date > new Date(), {
+        message: "End date must be in the future"
+      }),
+    entryFee: z.coerce.number()
+      .min(10, "Entry fee must be at least $10")
+      .max(1000, "Entry fee cannot exceed $1000"),
     percentageGoal: z.coerce.number()
+      .min(1, "Weight loss goal must be at least 1%")
+      .max(10, "Weight loss goal cannot exceed 10%")
   });
 export const insertParticipantSchema = createInsertSchema(participants)
   .omit({ 

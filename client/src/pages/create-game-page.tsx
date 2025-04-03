@@ -56,7 +56,9 @@ export default function CreateGamePage() {
       const durationNum = parseInt(durationWeeks || "4", 10);
       const entryFeeNum = parseInt(entryFee || "40", 10);
       
-      const startDate = new Date();
+      // Set start date to tomorrow to ensure it's in the future
+      const startDate = addDays(new Date(), 1);
+      // Set end date based on duration (start date + duration in weeks)
       const endDate = addDays(startDate, durationNum * 7); // Convert weeks to days
       
       const challengeData = {
@@ -174,7 +176,10 @@ export default function CreateGamePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       id="percentageGoal" 
                       name="percentageGoal"
-                      type="number" 
+                      type="number"
+                      min="1"
+                      max="10"
+                      step="0.1"
                       placeholder="e.g. 4" 
                       defaultValue="4"
                     />
@@ -192,7 +197,10 @@ export default function CreateGamePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       id="durationWeeks" 
                       name="durationWeeks"
-                      type="number" 
+                      type="number"
+                      min="1"
+                      max="52"
+                      step="1"
                       placeholder="e.g. 4" 
                       defaultValue="4"
                     />
@@ -210,7 +218,10 @@ export default function CreateGamePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       id="entryFee" 
                       name="entryFee"
-                      type="number" 
+                      type="number"
+                      min="10"
+                      max="1000"
+                      step="10"
                       placeholder="e.g. 40" 
                       defaultValue="40"
                     />

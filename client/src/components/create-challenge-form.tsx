@@ -181,7 +181,8 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
                 <FormControl>
                   <Input 
                     type="number" 
-                    disabled
+                    min="10"
+                    max="1000"
                     {...field}
                   />
                 </FormControl>
@@ -199,7 +200,9 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
                 <FormControl>
                   <Input 
                     type="number" 
-                    disabled
+                    min="1"
+                    max="10"
+                    step="0.1"
                     {...field}
                   />
                 </FormControl>
