@@ -40,19 +40,40 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
         percentageGoal: Number(data.percentageGoal),
       };
 
+      console.log('Creating challenge with data:', formattedData);
+
       const res = await apiRequest("POST", "/api/challenges", formattedData);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to create challenge');
+      }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (challenge) => {
+      console.log('Challenge created successfully:', challenge);
+      
       // Invalidate both open challenges and user challenges queries
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/open"] });
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/user"] });
+      // Also invalidate the specific challenge endpoint to ensure it's available
+      queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challenge.id}`] });
+      
       toast({
         title: "Success",
         description: "Challenge created successfully. You are now the host of this FitFund!",
       });
+      
       form.reset();
-      onSuccess?.();
+      
+      // If onSuccess callback is provided, call it with the challenge data
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        // If no callback is provided, redirect to the challenge page
+        setTimeout(() => {
+          window.location.href = `/challenge/${challenge.id}`;
+        }, 500);
+      }
     },
     onError: (error: Error) => {
       toast({

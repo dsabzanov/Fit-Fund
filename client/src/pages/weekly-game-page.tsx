@@ -1,7 +1,7 @@
 import { WeeklyGameInstructions } from "@/components/weekly-game-instructions";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format, addDays } from "date-fns";
@@ -26,14 +26,8 @@ export default function WeeklyGamePage() {
 
       console.log('Creating challenge with data:', challenge);
 
-      const res = await fetch('/api/challenges', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(challenge),
-        credentials: 'include',
-      });
+      // Use apiRequest instead of fetch directly to ensure proper credentials handling
+      const res = await apiRequest("POST", "/api/challenges", challenge);
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -52,18 +46,22 @@ export default function WeeklyGamePage() {
     onSuccess: (challenge) => {
       console.log('Challenge creation successful, redirecting to:', `/challenge/${challenge.id}`);
 
+      // Invalidate the queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/open"] });
       queryClient.invalidateQueries({ queryKey: ["/api/challenges/user"] });
+      // Also invalidate the specific challenge endpoint to ensure it's available
+      queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challenge.id}`] });
 
       toast({
         title: "Challenge Created!",
         description: "You can now join the 4% weight loss challenge.",
       });
 
-      // Add a small delay before redirecting to ensure state updates are complete
+      // Increase the delay to ensure state updates are complete
       setTimeout(() => {
-        setLocation(`/challenge/${challenge.id}`);
-      }, 100);
+        // Use window.location.href instead of setLocation for a hard refresh
+        window.location.href = `/challenge/${challenge.id}`;
+      }, 500);
     },
     onError: (error: Error) => {
       console.error('Error creating challenge:', error);

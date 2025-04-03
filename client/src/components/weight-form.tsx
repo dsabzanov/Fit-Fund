@@ -7,9 +7,8 @@ import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ImagePlus, Upload, X } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { Loader2, ImagePlus, Upload, X, Check } from "lucide-react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface WeightFormProps {
@@ -23,6 +22,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm({
     resolver: zodResolver(insertWeightRecordSchema),
@@ -31,6 +31,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       weight: "",
       imageUrl: "",
     },
+    mode: "onChange", // Enable validation on change
   });
 
   const handleImageChange = (file: File) => {
@@ -55,7 +56,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
     setSelectedImage(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    form.setValue("imageUrl", url);
+    form.setValue("imageUrl", url, { shouldValidate: true });
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -80,11 +81,13 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
   const removeImage = () => {
     setSelectedImage(null);
     setPreviewUrl(null);
-    form.setValue("imageUrl", "");
+    form.setValue("imageUrl", "", { shouldValidate: true });
   };
 
   const mutation = useMutation({
     mutationFn: async (data: { weight: string; imageUrl?: string }) => {
+      console.log("Submitting weight data:", data);
+      
       const formData = new FormData();
       formData.append('weight', data.weight);
       formData.append('challengeId', challengeId.toString());
@@ -134,6 +137,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
   });
 
   const onSubmit = form.handleSubmit((data) => {
+    console.log("Form submitted with data:", data);
     if (!data.weight) {
       toast({
         title: "Error",
@@ -144,6 +148,10 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
     }
     mutation.mutate(data);
   });
+
+  // Weight is required for submission
+  const weightValue = form.watch("weight");
+  const isSubmitDisabled = !weightValue || mutation.isPending;
 
   return (
     <Form {...form}>
@@ -186,6 +194,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
+              onClick={() => fileInputRef.current?.click()}
             >
               {!previewUrl ? (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -193,7 +202,8 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
                   <p className="text-sm font-medium">
                     Drag and drop your photo here or click to browse
                   </p>
-                  <Input
+                  <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
@@ -206,9 +216,9 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      const input = document.querySelector('input[type="file"]');
-                      if (input) (input as HTMLInputElement).click();
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
                     }}
                   >
                     <Upload className="h-4 w-4 mr-2" />
@@ -227,10 +237,18 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
                     variant="destructive"
                     size="icon"
                     className="absolute top-2 right-2"
-                    onClick={removeImage}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage();
+                    }}
                   >
                     <X className="h-4 w-4" />
                   </Button>
+                  {selectedImage && (
+                    <div className="absolute bottom-2 right-2 bg-green-500 text-white rounded-full p-1">
+                      <Check className="h-4 w-4" />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -243,6 +261,8 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
         <Button 
           type="submit" 
           className="w-full"
+          disabled={isSubmitDisabled}
+          aria-disabled={isSubmitDisabled}
         >
           {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Submit Weight

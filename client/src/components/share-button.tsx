@@ -5,8 +5,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Challenge } from "@shared/schema";
+import { SiInstagram, SiTiktok } from "react-icons/si";
 
 interface ShareButtonProps {
   challenge: Challenge;
@@ -56,6 +58,34 @@ export function ShareButton({
     window.open(linkedinUrl, '_blank');
   };
 
+  // For Instagram sharing via Stories
+  const shareToInstagram = () => {
+    // Instagram doesn't have a direct web sharing API
+    // Best approach is to copy the link to clipboard and guide user to share it on Instagram
+    navigator.clipboard.writeText(challengeUrl)
+      .then(() => {
+        alert("Link copied to clipboard! Open Instagram and paste the link in your story or message.");
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+        alert("Please copy this link manually: " + challengeUrl);
+      });
+  };
+
+  // For TikTok sharing
+  const shareToTikTok = () => {
+    // TikTok doesn't have a direct web sharing API either
+    // Similar to Instagram, guide the user to copy the link and share it on TikTok
+    navigator.clipboard.writeText(challengeUrl)
+      .then(() => {
+        alert("Link copied to clipboard! Open TikTok and paste the link in your video description or message.");
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+        alert("Please copy this link manually: " + challengeUrl);
+      });
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -69,6 +99,7 @@ export function ShareButton({
           <Share2 className="h-4 w-4 mr-2" />
           Share Challenge
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={shareToTwitter} className="cursor-pointer">
           <Twitter className="h-4 w-4 mr-2" />
           Share on Twitter
@@ -80,6 +111,14 @@ export function ShareButton({
         <DropdownMenuItem onClick={shareToLinkedIn} className="cursor-pointer">
           <Linkedin className="h-4 w-4 mr-2" />
           Share on LinkedIn
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={shareToInstagram} className="cursor-pointer">
+          <SiInstagram className="h-4 w-4 mr-2" />
+          Share on Instagram
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={shareToTikTok} className="cursor-pointer">
+          <SiTiktok className="h-4 w-4 mr-2" />
+          Share on TikTok
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
