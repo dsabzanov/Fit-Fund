@@ -105,10 +105,16 @@ export const chatMessages = pgTable("chat_messages", {
 });
 
 // Create insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
+export const insertUserSchema = createInsertSchema(users)
+  .pick({
+    username: true,
+    password: true,
+  })
+  .extend({
+    isHost: z.boolean().default(false).optional(),
+    currentWeight: z.string().nullable().optional(),
+    targetWeight: z.string().nullable().optional(),
+  });
 
 export const insertChallengeSchema = createInsertSchema(challenges)
   .extend({

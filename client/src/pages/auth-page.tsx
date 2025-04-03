@@ -15,7 +15,8 @@ import { useLocation } from "wouter";
 import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
-import {AnimatedLogo} from "@/components/animated-logo"; //Import the AnimatedLogo component
+import { queryClient } from "@/lib/queryClient";
+import { AnimatedLogo } from "@/components/animated-logo"; //Import the AnimatedLogo component
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -48,30 +49,45 @@ export default function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
       toast({
         title: "Signing in...",
         description: "Please wait while we complete the authentication.",
       });
-
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Google sign-in successful:", result.user.email);
+      
+      // Get the ID token
       const idToken = await result.user.getIdToken();
+      console.log("ID token obtained, sending to backend");
+      
+      // Send the token to our backend
       const response = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
+        credentials: "include" // Important for cookies
       });
 
       if (!response.ok) {
-        throw new Error("Failed to authenticate with backend");
+        const errorText = await response.text();
+        console.error("Backend auth failed:", response.status, errorText);
+        throw new Error(`Failed to authenticate with backend: ${errorText}`);
       }
 
+      console.log("Backend authentication successful");
       const user = await response.json();
-      loginMutation.mutate(user);
-
+      
+      // Manually update auth context with the user data
+      queryClient.setQueryData(["/api/user"], user);
+      
       toast({
         title: "Success!",
         description: "You have successfully signed in with Google.",
       });
+      
+      // Navigate after successful login
+      setLocation("/");
     } catch (error) {
       console.error("Google sign-in failed:", error);
       toast({

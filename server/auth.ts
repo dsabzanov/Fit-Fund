@@ -6,6 +6,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import { getAuth } from "firebase-admin/auth";
 
 declare global {
   namespace Express {
@@ -133,5 +134,63 @@ export function setupAuth(app: Express) {
     });
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
+  });
+  
+  // Google authentication callback endpoint
+  app.post("/api/auth/google", async (req, res, next) => {
+    try {
+      console.log('Google authentication attempt');
+      const { idToken } = req.body;
+      if (!idToken) {
+        console.log('Google auth failed: No ID token provided');
+        return res.status(400).json({ error: "ID token is required" });
+      }
+      
+      // Verify the Firebase token
+      try {
+        const decodedToken = await getAuth().verifyIdToken(idToken);
+        const { email, uid } = decodedToken;
+        
+        if (!email) {
+          console.log('Google auth failed: No email in token');
+          return res.status(400).json({ error: "Email not provided in token" });
+        }
+        
+        console.log('Google auth token verified for email:', email);
+        
+        // Check if user exists
+        let user = await storage.getUserByUsername(email);
+        
+        // If user doesn't exist, create a new account
+        if (!user) {
+          console.log('Creating new user from Google auth:', email);
+          user = await storage.createUser({
+            username: email,
+            password: await hashPassword(uid + '_firebase_auth'), // Create a secure password
+            isHost: false,
+            currentWeight: null,
+            targetWeight: null
+          });
+        } else {
+          console.log('Existing user found for Google auth:', email);
+        }
+        
+        // Log user in
+        req.login(user, (err) => {
+          if (err) {
+            console.error('Google auth login error:', err);
+            return next(err);
+          }
+          console.log('Google auth successful for user:', user.id);
+          res.json(user);
+        });
+      } catch (tokenError) {
+        console.error('Token verification error:', tokenError);
+        return res.status(401).json({ error: "Invalid ID token" });
+      }
+    } catch (error) {
+      console.error('Google auth error:', error);
+      next(error);
+    }
   });
 }
