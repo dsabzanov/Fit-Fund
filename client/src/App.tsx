@@ -10,8 +10,9 @@ import HomePage from "@/pages/home-page";
 import ChallengePage from "@/pages/challenge-page";
 import WeeklyGamePage from "@/pages/weekly-game-page";
 import KickstarterGamePage from "@/pages/kickstarter-game-page";
-import CreateGamePage from "@/pages/create-game-page";
+import CreateGameForm from "@/pages/create-game-form";
 import { ProtectedRoute } from "./lib/protected-route";
+import WeightTrackingPage from "@/pages/weight-tracking-page";
 
 function Router() {
   return (
@@ -20,7 +21,8 @@ function Router() {
       <ProtectedRoute path="/challenge/:id" component={ChallengePage} />
       <ProtectedRoute path="/weekly-game" component={WeeklyGamePage} />
       <ProtectedRoute path="/kickstarter-game" component={KickstarterGamePage} />
-      <ProtectedRoute path="/create-game" component={CreateGamePage} />
+      <ProtectedRoute path="/create-game" component={CreateGameForm} />
+      <ProtectedRoute path="/weight-tracking" component={WeightTrackingPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
