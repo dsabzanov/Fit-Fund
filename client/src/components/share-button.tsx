@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Challenge } from "@shared/schema";
 import { SiInstagram, SiTiktok } from "react-icons/si";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShareButtonProps {
   challenge: Challenge;
@@ -23,12 +24,34 @@ export function ShareButton({
   variant = "outline",
   size = "default" 
 }: ShareButtonProps) {
+  const { toast } = useToast();
   const baseUrl = window.location.origin;
   const challengeUrl = `${baseUrl}/challenge/${challenge.id}`;
 
   const defaultMessage = `Join me in the "${challenge.title}" fitness challenge on FitFund! 🏋️‍♂️`;
   const shareMessage = customMessage || defaultMessage;
 
+  // For Instagram and TikTok sharing
+  const copyToClipboard = (platform: string) => {
+    navigator.clipboard.writeText(challengeUrl)
+      .then(() => {
+        toast({
+          title: `Ready to share on ${platform}!`,
+          description: `Link copied to clipboard. Open ${platform} and paste in your ${platform === 'Instagram' ? 'story or message' : 'video description'}.`,
+          variant: "default",
+        });
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+        toast({
+          title: "Couldn't copy automatically",
+          description: "Please copy this link manually: " + challengeUrl,
+          variant: "destructive",
+        });
+      });
+  };
+
+  // Share functions
   const shareViaWebShare = async () => {
     if (navigator.share) {
       try {
@@ -58,33 +81,8 @@ export function ShareButton({
     window.open(linkedinUrl, '_blank');
   };
 
-  // For Instagram sharing via Stories
-  const shareToInstagram = () => {
-    // Instagram doesn't have a direct web sharing API
-    // Best approach is to copy the link to clipboard and guide user to share it on Instagram
-    navigator.clipboard.writeText(challengeUrl)
-      .then(() => {
-        alert("Link copied to clipboard! Open Instagram and paste the link in your story or message.");
-      })
-      .catch(err => {
-        console.error('Could not copy text: ', err);
-        alert("Please copy this link manually: " + challengeUrl);
-      });
-  };
-
-  // For TikTok sharing
-  const shareToTikTok = () => {
-    // TikTok doesn't have a direct web sharing API either
-    // Similar to Instagram, guide the user to copy the link and share it on TikTok
-    navigator.clipboard.writeText(challengeUrl)
-      .then(() => {
-        alert("Link copied to clipboard! Open TikTok and paste the link in your video description or message.");
-      })
-      .catch(err => {
-        console.error('Could not copy text: ', err);
-        alert("Please copy this link manually: " + challengeUrl);
-      });
-  };
+  const shareToInstagram = () => copyToClipboard('Instagram');
+  const shareToTikTok = () => copyToClipboard('TikTok');
 
   return (
     <DropdownMenu>
@@ -94,28 +92,37 @@ export function ShareButton({
           Share
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={shareViaWebShare} className="cursor-pointer">
-          <Share2 className="h-4 w-4 mr-2" />
-          Share Challenge
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+      <DropdownMenuContent align="end">
+        {navigator.share && (
+          <>
+            <DropdownMenuItem onClick={shareViaWebShare} className="cursor-pointer">
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Challenge
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        
         <DropdownMenuItem onClick={shareToTwitter} className="cursor-pointer">
           <Twitter className="h-4 w-4 mr-2" />
           Share on Twitter
         </DropdownMenuItem>
+        
         <DropdownMenuItem onClick={shareToFacebook} className="cursor-pointer">
           <Facebook className="h-4 w-4 mr-2" />
           Share on Facebook
         </DropdownMenuItem>
+        
         <DropdownMenuItem onClick={shareToLinkedIn} className="cursor-pointer">
           <Linkedin className="h-4 w-4 mr-2" />
           Share on LinkedIn
         </DropdownMenuItem>
+        
         <DropdownMenuItem onClick={shareToInstagram} className="cursor-pointer">
           <SiInstagram className="h-4 w-4 mr-2" />
           Share on Instagram
         </DropdownMenuItem>
+        
         <DropdownMenuItem onClick={shareToTikTok} className="cursor-pointer">
           <SiTiktok className="h-4 w-4 mr-2" />
           Share on TikTok
