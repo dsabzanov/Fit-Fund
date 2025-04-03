@@ -47,6 +47,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
 
+  // Configure multer for file uploads
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = 'public/uploads';
+      // Ensure uploads directory exists
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // Create unique filename with timestamp and original extension
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const extension = path.extname(file.originalname);
+      cb(null, file.fieldname + '-' + uniqueSuffix + extension);
+    }
+  });
+  
+  const upload = multer({ 
+    storage,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB file size limit
+    },
+    fileFilter: (req, file, cb) => {
+      // Accept only images
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+  
   // Serve uploaded files statically
   app.use('/uploads', express.static('public/uploads'));
 
@@ -241,6 +274,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.status(500).json({ error: 'Failed to create payment session' });
+    }
+  });
+
+  // Weight record route with file upload
+  app.post('/api/weight-records', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { weight, challengeId } = req.body;
+      
+      if (!weight || !challengeId) {
+        return res.status(400).json({ error: "Weight and challengeId are required" });
+      }
+
+      // Process the uploaded file if present
+      let imageUrl = '';
+      if (req.file) {
+        // Create a relative URL for the uploaded file
+        imageUrl = `/uploads/${req.file.filename}`;
+      }
+
+      // Create weight record
+      const weightRecord = await storage.addWeightRecord({
+        userId: req.user!.id,
+        challengeId: parseInt(challengeId),
+        weight: parseFloat(weight),
+        imageUrl,
+        verificationStatus: 'pending',
+        createdAt: new Date(),
+      });
+
+      return res.status(201).json(weightRecord);
+    } catch (error: any) {
+      console.error('Error adding weight record:', error);
+      return res.status(500).json({ error: 'Failed to add weight record' });
+    }
+  });
+
+  // Post routes with file upload support
+  app.post('/api/challenges/:challengeId/posts', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const challengeId = parseInt(req.params.challengeId);
+      const userId = req.user!.id;
+      
+      // Basic validation
+      if (!req.body.content) {
+        return res.status(400).json({ error: "Post content is required" });
+      }
+      
+      // Process uploaded file if present
+      let imageUrl = '';
+      if (req.file) {
+        // Create a relative URL for the uploaded file
+        imageUrl = `/uploads/${req.file.filename}`;
+      }
+      
+      // Handle scheduled posts
+      const isScheduled = req.body.isScheduled === 'true';
+      let scheduledFor = null;
+      
+      if (isScheduled && req.body.scheduledFor) {
+        scheduledFor = new Date(req.body.scheduledFor);
+      }
+      
+      // Create post
+      const post = await storage.createPost({
+        userId,
+        challengeId,
+        content: req.body.content,
+        imageUrl,
+        isPinned: req.body.isPinned === 'true',
+        isScheduled,
+        scheduledFor,
+        createdAt: new Date(),
+      });
+      
+      console.log('Created new post:', post);
+      
+      return res.status(201).json(post);
+    } catch (error: any) {
+      console.error('Error creating post:', error);
+      return res.status(500).json({ error: 'Failed to create post' });
+    }
+  });
+  
+  // Get posts for a challenge
+  app.get('/api/challenges/:challengeId/posts', async (req, res) => {
+    try {
+      const challengeId = parseInt(req.params.challengeId);
+      
+      // Basic validation
+      if (isNaN(challengeId)) {
+        return res.status(400).json({ error: "Invalid challenge ID" });
+      }
+      
+      const posts = await storage.getPostsByChallenge(challengeId);
+      return res.json(posts);
+    } catch (error: any) {
+      console.error('Error fetching posts:', error);
+      return res.status(500).json({ error: 'Failed to fetch posts' });
     }
   });
 

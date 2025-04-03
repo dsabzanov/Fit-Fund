@@ -1,4 +1,3 @@
-import { IStorage } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import {
@@ -20,8 +19,48 @@ import {
 const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
-  // ... existing interface methods ...
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(insertUser: InsertUser): Promise<User>;
+  
+  // Challenge methods
+  getAllChallenges(): Promise<Challenge[]>;
+  getChallenge(id: number): Promise<Challenge | undefined>;
+  createChallenge(challenge: InsertChallenge): Promise<Challenge>;
+  getUserChallenges(userId: number): Promise<Challenge[]>;
+  getChallengeIfParticipant(id: number, userId: number): Promise<Challenge | undefined>;
+  
+  // Participant methods
+  getParticipant(userId: number, challengeId: number): Promise<Participant | undefined>;
+  addParticipant(data: { userId: number; challengeId: number; startWeight: number }): Promise<Participant>;
+  getParticipants(challengeId: number): Promise<Participant[]>;
   updateParticipantPaymentStatus(challengeId: number, userId: number, paid: boolean): Promise<void>;
+  
+  // Weight record methods
+  addWeightRecord(record: InsertWeightRecord): Promise<WeightRecord>;
+  getWeightRecords(userId: number, challengeId: number): Promise<WeightRecord[]>;
+  
+  // Chat message methods
+  addChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessages(challengeId: number): Promise<ChatMessage[]>;
+  
+  // Feed post methods
+  createPost(post: InsertFeedPost): Promise<FeedPost>;
+  getPostsByChallenge(challengeId: number): Promise<FeedPost[]>;
+  updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined>;
+  
+  // Comment methods
+  addComment(comment: InsertComment): Promise<Comment>;
+  getComments(postId: number): Promise<Comment[]>;
+  
+  // Fitbit token methods
+  storeFitbitTokens(userId: number, tokens: { access_token: string; refresh_token: string; user_id: string }): Promise<void>;
+  getFitbitTokens(userId: number): Promise<{ access_token: string; refresh_token: string; user_id: string; username?: string } | undefined>;
+  removeFitbitTokens(userId: number): Promise<void>;
+  
+  // Session store
+  sessionStore: session.SessionStore;
 }
 
 export class MemStorage implements IStorage {
@@ -269,14 +308,14 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createFeedPost(post: InsertFeedPost): Promise<FeedPost> {
+  async createPost(post: InsertFeedPost): Promise<FeedPost> {
     const id = this.currentId++;
     const newPost: FeedPost = { ...post, id };
     this.feedPosts.set(id, newPost);
     return newPost;
   }
 
-  async getFeedPosts(challengeId: number): Promise<FeedPost[]> {
+  async getPostsByChallenge(challengeId: number): Promise<FeedPost[]> {
     return Array.from(this.feedPosts.values())
       .filter((p) => p.challengeId === challengeId)
       .sort((a, b) => {
