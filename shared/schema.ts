@@ -149,7 +149,8 @@ export const insertChallengeSchema = createInsertSchema(challenges)
       .max(1000, "Entry fee cannot exceed $1000"),
     percentageGoal: z.coerce.number()
       .min(1, "Weight loss goal must be at least 1%")
-      .max(10, "Weight loss goal cannot exceed 10%")
+      .max(10, "Weight loss goal cannot exceed 10%"),
+    userId: z.number().optional() // Make userId optional as it will be filled by the server
   })
   .refine(data => {
     try {
