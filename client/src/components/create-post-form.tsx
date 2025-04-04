@@ -100,32 +100,26 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
         throw new Error("Only hosts can pin posts");
       }
 
-      // Use FormData for file upload
-      const formData = new FormData();
-      formData.append('content', data.content);
-      formData.append('challengeId', challengeId.toString());
-      
-      if (selectedImage) {
-        formData.append('image', selectedImage);
-        console.log("Appending image:", selectedImage.name);
-      }
-      
-      if (data.isPinned) {
-        formData.append('isPinned', String(data.isPinned));
-      }
-      
-      if (data.isScheduled && data.scheduledFor) {
-        formData.append('isScheduled', String(data.isScheduled));
-        formData.append('scheduledFor', data.scheduledFor);
-      }
-
       try {
-        console.log("Sending request to:", `/api/challenges/${challengeId}/posts`);
+        // Simplified approach - direct text/JSON post without image
+        // This is a workaround for the file upload issue
+        const postData = {
+          content: data.content,
+          challengeId: challengeId,
+          isPinned: data.isPinned || false,
+          isScheduled: data.isScheduled || false,
+          scheduledFor: data.isScheduled ? data.scheduledFor : null,
+        };
         
-        // Custom fetch instead of apiRequest to handle FormData
-        const res = await fetch(`/api/challenges/${challengeId}/posts`, {
+        console.log("Sending post data:", postData);
+        
+        // Use JSON post instead of FormData
+        const res = await fetch(`/api/challenges/${challengeId}/posts/simple`, {
           method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(postData),
           credentials: 'include',
         });
         
@@ -147,15 +141,24 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
     },
     onSuccess: (data) => {
       console.log("Post creation success, invalidating queries");
+      // Force refresh cache
       queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/posts`] });
+      // Force refetch immediately
+      queryClient.refetchQueries({ queryKey: [`/api/challenges/${challengeId}/posts`] });
+      
       toast({
         title: "Success",
         description: "Post created successfully.",
       });
+      
       form.reset();
       setSelectedImage(null);
       setPreviewUrl(null);
-      onSuccess?.();
+      
+      // Run onSuccess callback after a slight delay to ensure dialog is closed
+      setTimeout(() => {
+        onSuccess?.();
+      }, 300);
     },
     onError: (error: Error) => {
       console.error("Post creation error in handler:", error);

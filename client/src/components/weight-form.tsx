@@ -306,10 +306,15 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
           type="submit" 
           className="w-full"
           disabled={isSubmitDisabled}
-          aria-disabled={isSubmitDisabled}
         >
-          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Submit Weight
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Submit Weight"
+          )}
         </Button>
       </form>
     </Form>

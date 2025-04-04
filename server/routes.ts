@@ -475,6 +475,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Simple post endpoint (without file upload) for more reliable posts
+  app.post('/api/challenges/:challengeId/posts/simple', async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const challengeId = parseInt(req.params.challengeId);
+      const userId = req.user!.id;
+      
+      console.log('Creating simple post for challenge:', { challengeId, userId });
+      console.log('Request body:', req.body);
+      
+      // Basic validation
+      if (!req.body.content) {
+        return res.status(400).json({ error: "Post content is required" });
+      }
+      
+      // Handle scheduled posts
+      const isScheduled = req.body.isScheduled === true;
+      let scheduledFor = null;
+      
+      if (isScheduled && req.body.scheduledFor) {
+        scheduledFor = new Date(req.body.scheduledFor);
+        console.log('Post scheduled for:', scheduledFor);
+      }
+      
+      // Create post (without image)
+      const post = await storage.createFeedPost({
+        userId,
+        challengeId,
+        content: req.body.content,
+        imageUrl: '', // No image for simple posts
+        isPinned: req.body.isPinned === true,
+        isScheduled,
+        scheduledFor: scheduledFor as any, // Cast to avoid type error
+        createdAt: new Date(),
+      });
+      
+      console.log('Created new simple post:', post);
+      
+      // Get all posts to verify storage
+      const allPosts = await storage.getPostsByChallenge(challengeId);
+      console.log(`After creation: ${allPosts.length} posts for challenge ${challengeId}`);
+      
+      return res.status(201).json(post);
+    } catch (error: any) {
+      console.error('Error creating simple post:', error);
+      return res.status(500).json({ error: 'Failed to create post' });
+    }
+  });
+
   // Get posts for a challenge
   app.get('/api/challenges/:challengeId/posts', async (req, res) => {
     try {

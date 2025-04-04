@@ -16,12 +16,22 @@ export function Feed({ challengeId }: FeedProps) {
     queryKey: [`/api/challenges/${challengeId}/posts`],
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    staleTime: 5000, // Consider data stale after 5 seconds
+    refetchInterval: 10000, // Auto-refresh every 10 seconds
   });
 
-  // This is a hack to force refetch when the dialog closes
+  // This is a more robust approach to force refetch when the dialog closes
   const handlePostCreated = () => {
-    console.log("Post created, refetching feed...");
-    setTimeout(() => refetch(), 500);
+    console.log("Post created, refetching feed immediately...");
+    // Execute multiple refetches to ensure we get the latest data
+    refetch().then(() => {
+      console.log("First refetch complete, trying again in 500ms");
+      setTimeout(() => {
+        refetch().then(() => {
+          console.log("Second refetch complete");
+        });
+      }, 500);
+    });
   };
 
   if (isLoading) {
