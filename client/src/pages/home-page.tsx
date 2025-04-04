@@ -137,6 +137,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/20 to-primary/40 backdrop-blur-sm border-2 border-primary/20 shadow-lg relative">
+                  <span className="absolute top-0 right-0 -mt-2 -mr-2 bg-primary/80 text-white text-xs px-2 py-1 rounded-full">Coming Soon</span>
                   <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white flex items-center gap-2">
                     BACK-TO-BACK CHALLENGES
                     <Dialog>
@@ -175,24 +176,27 @@ export default function HomePage() {
                     </Dialog>
                   </h3>
                   <p className="text-white/90 text-base mb-2">
-                    Keep the momentum going! Join our continuous challenge series.
+                    Our back-to-back challenge series keeps the momentum going 
                   </p>
-                  <p className="text-white/80 text-sm mb-4">
-                    Automatically re-enter with your group
+                  <div className="bg-white/10 rounded-lg p-3 my-2 w-full">
+                    <ul className="text-white/90 text-sm space-y-1.5">
+                      <li className="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white mt-0.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>Automatic re-entry with your group</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white mt-0.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>Continuous accountability</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white mt-0.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>Long-term sustainable results</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <p className="text-sm text-white/80 italic mt-2">
+                    Watch for this feature coming soon!
                   </p>
-                  <div className="flex-grow" />
-                  <Button 
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
-                    onClick={() => {
-                      toast({
-                        title: "Coming Soon!",
-                        description: "Back-to-back challenges will be available soon. Stay tuned!",
-                      });
-                    }}
-                  >
-                    Join Series
-                  </Button>
                 </div>
 
                 <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/30 to-primary/50 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
