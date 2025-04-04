@@ -122,15 +122,28 @@ export const insertChallengeSchema = createInsertSchema(challenges)
   .extend({
     startDate: z.coerce.date()
       .refine(date => {
-        // Allow today's date as the start date (comparing just the date portion)
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const startDateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        return startDateDay >= today;
+        try {
+          if (!(date instanceof Date) || isNaN(date.getTime())) {
+            return false;
+          }
+          // Allow today's date as the start date (comparing just the date portion)
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const startDateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          return startDateDay >= today;
+        } catch (error) {
+          console.error("Date validation error:", error);
+          return false;
+        }
       }, {
         message: "Start date must be today or in the future"
       }),
-    endDate: z.coerce.date(),
+    endDate: z.coerce.date()
+      .refine(date => {
+        return date instanceof Date && !isNaN(date.getTime());
+      }, {
+        message: "End date must be a valid date"
+      }),
     entryFee: z.coerce.number()
       .min(10, "Entry fee must be at least $10")
       .max(1000, "Entry fee cannot exceed $1000"),
@@ -139,8 +152,22 @@ export const insertChallengeSchema = createInsertSchema(challenges)
       .max(10, "Weight loss goal cannot exceed 10%")
   })
   .refine(data => {
-    // Cross-validate start date and end date - end date must be after start date
-    return new Date(data.endDate) > new Date(data.startDate);
+    try {
+      // Parse dates safely
+      const startDate = new Date(data.startDate);
+      const endDate = new Date(data.endDate);
+
+      // Check if dates are valid
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return false;
+      }
+
+      // Cross-validate start date and end date - end date must be after start date
+      return endDate > startDate;
+    } catch (error) {
+      console.error("Date comparison error:", error);
+      return false;
+    }
   }, {
     message: "End date must be after start date",
     path: ["endDate"] // Show error on the end date field

@@ -230,26 +230,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Creating challenge with data:', req.body);
 
-      // Validate the challenge data
-      const validatedData = insertChallengeSchema.parse(req.body);
-      console.log('Validated challenge data:', validatedData);
+      try {
+        // Validate the challenge data
+        const validatedData = insertChallengeSchema.parse(req.body);
+        console.log('Validated challenge data:', validatedData);
 
-      // Create the challenge
-      const challenge = await storage.createChallenge({
-        ...validatedData,
-        userId: req.user!.id, // Add the user ID who created the challenge
-      });
+        // Create the challenge
+        const challenge = await storage.createChallenge({
+          ...validatedData,
+          userId: req.user!.id, // Add the user ID who created the challenge
+        });
 
-      console.log('Created new challenge:', challenge);
+        console.log('Created new challenge:', challenge);
 
-      // Return the full challenge object
-      res.status(201).json(challenge);
-    } catch (error: any) {
-      console.error('Error creating challenge:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid challenge data', details: error.errors });
+        // Return the full challenge object
+        res.status(201).json(challenge);
+      } catch (validationError: any) {
+        console.error('Validation error creating challenge:', validationError);
+        
+        if (validationError instanceof z.ZodError) {
+          return res.status(400).json({ 
+            error: 'Invalid challenge data', 
+            details: validationError.errors.map(err => ({
+              path: err.path,
+              message: err.message
+            }))
+          });
+        }
+        
+        // Other validation errors
+        return res.status(400).json({ 
+          error: validationError.message || 'Invalid challenge data'
+        });
       }
-      res.status(500).json({ error: 'Failed to create challenge' });
+    } catch (error: any) {
+      console.error('Server error creating challenge:', error);
+      res.status(500).json({ error: 'Failed to create challenge: ' + (error.message || 'Unknown error') });
     }
   });
 

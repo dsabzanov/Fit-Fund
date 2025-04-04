@@ -28,14 +28,18 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
       percentageGoal: 4, // Default to 4%
       status: "open",
     },
+    mode: "onChange", // Validate on change for better user feedback
   });
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
+      // Ensure dates are properly formatted ISO strings
       const formattedData = {
         ...data,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
+        // Make sure these are properly formatted as ISO strings for the server
+        startDate: new Date(data.startDate).toISOString(),
+        endDate: new Date(data.endDate).toISOString(),
+        // Convert numeric strings to numbers
         entryFee: Number(data.entryFee),
         percentageGoal: Number(data.percentageGoal),
       };
@@ -45,6 +49,16 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
       const res = await apiRequest("POST", "/api/challenges", formattedData);
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('Challenge creation error:', errorData);
+        
+        if (errorData.details) {
+          // Format Zod validation errors in a readable way
+          const errors = errorData.details.map((e: any) => 
+            `${e.path.join('.')}: ${e.message}`
+          ).join(', ');
+          throw new Error(`Validation failed: ${errors}`);
+        }
+        
         throw new Error(errorData.error || 'Failed to create challenge');
       }
       return res.json();
@@ -223,24 +237,54 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
             const data = form.getValues();
             console.log("Form data:", data);
             
-            // Check form validity first
+            // Force all fields to validate and show their validation messages
             form.trigger().then(isValid => {
               console.log("Form is valid:", isValid);
               
               if (isValid) {
-                // Call mutation with the form data
-                mutation.mutate(data);
-                
-                // Show processing toast
-                toast({
-                  title: "Processing...",
-                  description: "Creating your challenge. Please wait.",
-                });
+                try {
+                  // Additional validation checks
+                  const startDate = new Date(data.startDate);
+                  const endDate = new Date(data.endDate);
+                  
+                  // Make sure dates are valid
+                  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    console.error("Invalid date format", { startDate, endDate });
+                    toast({
+                      title: "Invalid Dates",
+                      description: "Please enter valid dates in the correct format.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
+                  // Call mutation with the form data
+                  mutation.mutate(data);
+                  
+                  // Show processing toast
+                  toast({
+                    title: "Processing...",
+                    description: "Creating your challenge. Please wait.",
+                  });
+                } catch (error) {
+                  console.error("Error during validation:", error);
+                  toast({
+                    title: "Error",
+                    description: error instanceof Error ? error.message : "An unexpected error occurred",
+                    variant: "destructive",
+                  });
+                }
               } else {
-                // Show validation errors
+                // Get all errors and show them to the user
+                const errors = Object.entries(form.formState.errors)
+                  .map(([key, error]) => `${key}: ${error?.message}`)
+                  .join(', ');
+                
+                console.error("Form validation errors:", form.formState.errors);
+                
                 toast({
                   title: "Validation Error",
-                  description: "Please fill all required fields correctly.",
+                  description: errors || "Please fill all required fields correctly.",
                   variant: "destructive",
                 });
               }
