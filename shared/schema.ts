@@ -121,19 +121,29 @@ export const insertUserSchema = createInsertSchema(users)
 export const insertChallengeSchema = createInsertSchema(challenges)
   .extend({
     startDate: z.coerce.date()
-      .refine(date => date > new Date(), {
-        message: "Start date must be in the future"
+      .refine(date => {
+        // Allow today's date as the start date (comparing just the date portion)
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startDateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        return startDateDay >= today;
+      }, {
+        message: "Start date must be today or in the future"
       }),
-    endDate: z.coerce.date()
-      .refine(date => date > new Date(), {
-        message: "End date must be in the future"
-      }),
+    endDate: z.coerce.date(),
     entryFee: z.coerce.number()
       .min(10, "Entry fee must be at least $10")
       .max(1000, "Entry fee cannot exceed $1000"),
     percentageGoal: z.coerce.number()
       .min(1, "Weight loss goal must be at least 1%")
       .max(10, "Weight loss goal cannot exceed 10%")
+  })
+  .refine(data => {
+    // Cross-validate start date and end date - end date must be after start date
+    return new Date(data.endDate) > new Date(data.startDate);
+  }, {
+    message: "End date must be after start date",
+    path: ["endDate"] // Show error on the end date field
   });
 export const insertParticipantSchema = createInsertSchema(participants)
   .omit({ 
