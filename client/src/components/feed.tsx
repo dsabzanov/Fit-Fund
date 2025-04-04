@@ -12,14 +12,32 @@ interface FeedProps {
 }
 
 export function Feed({ challengeId }: FeedProps) {
-  const { data: posts = [], isLoading } = useQuery<FeedPostType[]>({
+  const { data: posts = [], isLoading, isError, refetch } = useQuery<FeedPostType[]>({
     queryKey: [`/api/challenges/${challengeId}/posts`],
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+
+  // This is a hack to force refetch when the dialog closes
+  const handlePostCreated = () => {
+    console.log("Post created, refetching feed...");
+    setTimeout(() => refetch(), 500);
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8" role="status" aria-label="Loading feed posts">
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+      </div>
+    );
+  }
+  
+  if (isError) {
+    console.error("Error loading posts");
+    return (
+      <div className="text-center text-muted-foreground py-8">
+        <p>Failed to load posts. Please try again.</p>
+        <Button onClick={() => refetch()} className="mt-2">Retry</Button>
       </div>
     );
   }
@@ -44,7 +62,7 @@ export function Feed({ challengeId }: FeedProps) {
             <DialogHeader>
               <DialogTitle>Create New Post</DialogTitle>
             </DialogHeader>
-            <CreatePostForm challengeId={challengeId} />
+            <CreatePostForm challengeId={challengeId} onSuccess={handlePostCreated} />
           </DialogContent>
         </Dialog>
       </div>

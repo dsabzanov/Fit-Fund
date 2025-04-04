@@ -47,21 +47,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
 
+  // Create the uploads directory at server startup
+  const uploadDir = 'public/uploads';
+  try {
+    if (!fs.existsSync(uploadDir)) {
+      console.log(`Creating upload directory: ${uploadDir}`);
+      fs.mkdirSync(uploadDir, { recursive: true });
+    } else {
+      console.log(`Upload directory already exists: ${uploadDir}`);
+    }
+  } catch (error) {
+    console.error('Failed to create upload directory:', error);
+  }
+  
   // Configure multer for file uploads
   const multerStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-      const uploadDir = 'public/uploads';
-      // Ensure uploads directory exists
+      // Double-check that uploads directory exists
       if (!fs.existsSync(uploadDir)) {
+        console.log(`Creating upload directory on-demand: ${uploadDir}`);
         fs.mkdirSync(uploadDir, { recursive: true });
       }
+      console.log(`Storing file in: ${uploadDir}`);
       cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
       // Create unique filename with timestamp and original extension
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const extension = path.extname(file.originalname);
-      cb(null, file.fieldname + '-' + uniqueSuffix + extension);
+      const filename = file.fieldname + '-' + uniqueSuffix + extension;
+      console.log(`Generated filename: ${filename}`);
+      cb(null, filename);
     }
   });
   
@@ -409,6 +425,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const challengeId = parseInt(req.params.challengeId);
       const userId = req.user!.id;
       
+      console.log('Creating post for challenge:', { challengeId, userId });
+      console.log('Request body:', req.body);
+      
       // Basic validation
       if (!req.body.content) {
         return res.status(400).json({ error: "Post content is required" });
@@ -419,6 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.file) {
         // Create a relative URL for the uploaded file
         imageUrl = `/uploads/${req.file.filename}`;
+        console.log('Image URL created:', imageUrl);
       }
       
       // Handle scheduled posts
@@ -427,6 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (isScheduled && req.body.scheduledFor) {
         scheduledFor = new Date(req.body.scheduledFor);
+        console.log('Post scheduled for:', scheduledFor);
       }
       
       // Create post
@@ -442,6 +463,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log('Created new post:', post);
+      
+      // Get all posts to verify storage
+      const allPosts = await storage.getFeedPosts(challengeId);
+      console.log(`After creation: ${allPosts.length} posts for challenge ${challengeId}`);
       
       return res.status(201).json(post);
     } catch (error: any) {
@@ -461,6 +486,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const posts = await storage.getFeedPosts(challengeId);
+      console.log(`GET posts for challenge ${challengeId}:`, posts.length);
+      
       return res.json(posts);
     } catch (error: any) {
       console.error('Error fetching posts:', error);

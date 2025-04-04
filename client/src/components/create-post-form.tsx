@@ -92,6 +92,9 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("Submitting post data:", data);
+      console.log("Challenge ID:", challengeId);
+      
       // Only allow host to pin posts
       if (data.isPinned && (!user || !user.isHost)) {
         throw new Error("Only hosts can pin posts");
@@ -104,6 +107,7 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
       
       if (selectedImage) {
         formData.append('image', selectedImage);
+        console.log("Appending image:", selectedImage.name);
       }
       
       if (data.isPinned) {
@@ -115,33 +119,49 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
         formData.append('scheduledFor', data.scheduledFor);
       }
 
-      // Custom fetch instead of apiRequest to handle FormData
-      const res = await fetch(`/api/challenges/${challengeId}/posts`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'Failed to create post');
+      try {
+        console.log("Sending request to:", `/api/challenges/${challengeId}/posts`);
+        
+        // Custom fetch instead of apiRequest to handle FormData
+        const res = await fetch(`/api/challenges/${challengeId}/posts`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
+        
+        console.log("Response status:", res.status);
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("API error:", errorData);
+          throw new Error(errorData.error || 'Failed to create post');
+        }
+        
+        const result = await res.json();
+        console.log("Post created successfully:", result);
+        return result;
+      } catch (error) {
+        console.error("Error in mutation:", error);
+        throw error;
       }
-      
-      return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Post creation success, invalidating queries");
       queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/posts`] });
       toast({
         title: "Success",
         description: "Post created successfully.",
       });
       form.reset();
+      setSelectedImage(null);
+      setPreviewUrl(null);
       onSuccess?.();
     },
     onError: (error: Error) => {
+      console.error("Post creation error in handler:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create post. Please try again.",
         variant: "destructive",
       });
     },
