@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Dumbbell, Trophy, Target } from "lucide-react";
+import { Loader2, Plus, Dumbbell, Trophy, Target, Crown } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 import { FitbitConnect } from "@/components/fitbit-connect";
@@ -92,16 +92,24 @@ export default function HomePage() {
                     <AccessibilitySettings />
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" data-tour="create-challenge" className="whitespace-nowrap">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          data-tour="create-challenge" 
+                          className="whitespace-nowrap"
+                          onClick={() => console.log("Nav create challenge button clicked")}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Create Challenge
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
+                      <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
                           <DialogTitle>Create New Challenge</DialogTitle>
                         </DialogHeader>
-                        <CreateChallengeForm />
+                        <CreateChallengeForm onSuccess={() => {
+                          console.log("Challenge created from navbar, redirecting...");
+                        }} />
                       </DialogContent>
                     </Dialog>
                   </div>
@@ -210,15 +218,19 @@ export default function HomePage() {
                       <Button 
                         size="lg"
                         className="bg-white/10 hover:bg-white text-white hover:text-primary border-2 border-white/80 w-full sm:w-auto transition-colors"
+                        onClick={() => console.log("Create FitFund button clicked")}
                       >
+                        <Trophy className="mr-2 h-4 w-4" />
                         Create FitFund
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="sm:max-w-[500px]">
                       <DialogHeader>
                         <DialogTitle>Create New FitFund Challenge</DialogTitle>
                       </DialogHeader>
-                      <CreateChallengeForm />
+                      <CreateChallengeForm onSuccess={() => {
+                        console.log("Challenge created successfully, redirecting...");
+                      }} />
                     </DialogContent>
                   </Dialog>
                 </div>

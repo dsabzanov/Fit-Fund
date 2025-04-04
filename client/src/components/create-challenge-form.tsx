@@ -212,9 +212,52 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create and Host Challenge
+        <Button 
+          type="button" 
+          className="w-full" 
+          disabled={mutation.isPending}
+          onClick={() => {
+            console.log("Create challenge button clicked directly");
+            
+            // Get the form data
+            const data = form.getValues();
+            console.log("Form data:", data);
+            
+            // Check form validity first
+            form.trigger().then(isValid => {
+              console.log("Form is valid:", isValid);
+              
+              if (isValid) {
+                // Call mutation with the form data
+                mutation.mutate(data);
+                
+                // Show processing toast
+                toast({
+                  title: "Processing...",
+                  description: "Creating your challenge. Please wait.",
+                });
+              } else {
+                // Show validation errors
+                toast({
+                  title: "Validation Error",
+                  description: "Please fill all required fields correctly.",
+                  variant: "destructive",
+                });
+              }
+            });
+          }}
+        >
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Crown className="mr-2 h-4 w-4" />
+              Create and Host Challenge
+            </>
+          )}
         </Button>
       </form>
     </Form>
