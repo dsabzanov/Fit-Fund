@@ -56,7 +56,16 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
     setSelectedImage(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    form.setValue("imageUrl", url, { shouldValidate: true });
+    
+    // Set a placeholder value to indicate file is ready
+    form.setValue("imageUrl", "file-upload-pending", { shouldValidate: true });
+    
+    // Display confirmation to the user
+    toast({
+      title: "Photo added",
+      description: "Your verification photo has been added. Click Submit Weight when ready.",
+      duration: 3000,
+    });
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -79,9 +88,25 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
   };
 
   const removeImage = () => {
+    // Clear the image data
     setSelectedImage(null);
+    
+    // Release the object URL to avoid memory leaks
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
     setPreviewUrl(null);
+    
+    // Reset the form value
     form.setValue("imageUrl", "", { shouldValidate: true });
+    
+    // Inform the user
+    toast({
+      title: "Photo removed",
+      description: "Please upload a new verification photo before submitting",
+      duration: 3000,
+    });
   };
 
   const mutation = useMutation({
@@ -139,11 +164,18 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
         description: "Your weight has been recorded. Keep up the great work! 💪",
       });
 
+      // Clean up form
       form.reset({
         challengeId,
         weight: "",
         imageUrl: "",
       });
+      
+      // Release any object URLs to avoid memory leaks
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      
       setSelectedImage(null);
       setPreviewUrl(null);
       onSuccess?.();
@@ -168,12 +200,24 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       });
       return;
     }
+    
+    // Check for image separately here
+    if (!selectedImage) {
+      toast({
+        title: "Error",
+        description: "Please upload a verification photo",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     mutation.mutate(data);
   });
 
   // Weight and image are required for submission
   const weightValue = form.watch("weight");
-  const isSubmitDisabled = !weightValue || !selectedImage || mutation.isPending;
+  // Only disable submit if no weight or during pending state - image is handled separately
+  const isSubmitDisabled = !weightValue || mutation.isPending;
 
   return (
     <Form {...form}>
