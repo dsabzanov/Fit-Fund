@@ -31,7 +31,7 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
     resolver: zodResolver(insertFeedPostSchema),
     defaultValues: {
       content: "",
-      imageUrl: "",
+      imageUrl: "", // We'll set this to empty string
       isPinned: false,
       isScheduled: false,
       scheduledFor: "",
@@ -204,92 +204,20 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
           )}
         />
 
+        {/* Temporarily disabled image upload to fix the form issue */}
+        <div className="rounded-lg border p-4 bg-muted/10">
+          <p className="text-sm text-muted-foreground">
+            Image upload is temporarily disabled to improve stability.
+          </p>
+        </div>
         <FormField
           control={form.control}
           name="imageUrl"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4" />
-                Image Upload
-              </FormLabel>
-              <FormControl>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-4 transition-colors ${
-                    isDragging ? "border-primary bg-primary/5" : "border-muted"
-                  } cursor-pointer`}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {!previewUrl ? (
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <ImagePlus className="h-8 w-8" />
-                      <p className="text-sm font-medium">
-                        Drag and drop an image here or click to browse
-                      </p>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleImageChange(file);
-                        }}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fileInputRef.current?.click();
-                        }}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Browse Files
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <img
-                        src={previewUrl}
-                        alt="Post image preview"
-                        className="w-full h-48 object-cover rounded-md"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeImage();
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      {selectedImage && (
-                        <div className="absolute bottom-2 right-2 bg-green-500 text-white rounded-full p-1">
-                          <Check className="h-4 w-4" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <input 
-                  type="hidden" 
-                  {...field}
-                  value={field.value}
-                />
-              </FormControl>
-              <p className="text-sm text-muted-foreground mt-1">
-                Upload an image for your post (optional, max 5MB)
-              </p>
-              <FormMessage />
-            </FormItem>
+            <input 
+              type="hidden" 
+              {...field}
+            />
           )}
         />
 
