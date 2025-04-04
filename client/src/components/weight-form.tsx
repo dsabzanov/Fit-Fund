@@ -191,6 +191,10 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
             <li>Upload a clear photo of your scale showing the weight</li>
             <li>Click "Submit Weight" to record your progress</li>
           </ol>
+          <p className="text-xs text-blue-600 mt-2 font-medium border-t border-blue-100 pt-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            All weight submissions are permanently stored and viewable throughout the challenge in your progress history and on the leaderboard.
+          </p>
         </div>
 
         <FormField
@@ -288,7 +292,13 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
             </div>
           </FormControl>
           <p className="text-sm text-muted-foreground mt-1">
-            Upload a photo of your scale showing today's date for verification (max 5MB)
+            Upload a photo of your scale showing your weight for verification (max 5MB)
+          </p>
+          <p className="text-xs text-muted-foreground italic mt-1">
+            <span className="flex items-center text-amber-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              For verification, make sure the weight on scale matches what you entered above!
+            </span>
           </p>
         </FormItem>
 

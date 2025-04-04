@@ -83,16 +83,22 @@ export default function WeightTrackingPage() {
                     <WeightForm challengeId={challengeId} />
                   </div>
 
-                  <Alert>
+                  <Alert className="bg-amber-50 text-amber-800 border-amber-200">
                     <AlertDescription>
                       <div className="space-y-2">
-                        <p className="font-medium">Photo Verification Guidelines:</p>
+                        <p className="font-medium flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          Photo Verification Guidelines:
+                        </p>
                         <ul className="list-disc pl-4 space-y-1 text-sm">
                           <li>Take a clear photo of your scale display</li>
-                          <li>Include today's date written on paper next to the scale</li>
-                          <li>Ensure the weight reading is clearly visible</li>
+                          <li>Make sure the weight shown matches what you entered</li>
+                          <li>All submissions are saved to your challenge history</li>
                           <li>Maximum file size: 5MB</li>
                         </ul>
+                        <p className="text-xs border-t border-amber-200 pt-2 mt-2">
+                          Your weigh-ins are used to calculate your progress percentage and determine winners. Multiple submissions are encouraged throughout the challenge!
+                        </p>
                       </div>
                     </AlertDescription>
                   </Alert>

@@ -71,6 +71,7 @@ export const weightRecords = pgTable("weight_records", {
   challengeId: integer("challenge_id").notNull(),
   weight: numeric("weight").notNull(),
   imageUrl: text("image_url"), // Optional image URL for verification
+  verificationStatus: text("verification_status").default("pending"), // Status of verification (pending, approved, rejected)
   recordedAt: timestamp("recorded_at").notNull().defaultNow(),
 });
 
@@ -156,6 +157,7 @@ export const insertWeightRecordSchema = createInsertSchema(weightRecords)
   .extend({
     weight: z.string().min(1, "Weight is required"),
     imageUrl: z.string().url("Please enter a valid image URL").nullable(),
+    verificationStatus: z.enum(["pending", "approved", "rejected"]).default("pending").optional(),
     recordedAt: z.coerce.date().optional(),
   });
 export const insertChatMessageSchema = createInsertSchema(chatMessages);
