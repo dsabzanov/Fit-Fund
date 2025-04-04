@@ -494,7 +494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Handle scheduled posts
-      const isScheduled = req.body.isScheduled === true;
+      const isScheduled = Boolean(req.body.isScheduled);
       let scheduledFor = null;
       
       if (isScheduled && req.body.scheduledFor) {
@@ -508,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         challengeId,
         content: req.body.content,
         imageUrl: '', // No image for simple posts
-        isPinned: req.body.isPinned === true,
+        isPinned: Boolean(req.body.isPinned),
         isScheduled,
         scheduledFor: scheduledFor as any, // Cast to avoid type error
         createdAt: new Date(),
@@ -516,14 +516,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Created new simple post:', post);
       
-      // Get all posts to verify storage
+      // Log the post we just created
+      console.log('New post details:', {
+        id: post.id,
+        content: post.content,
+        userId: post.userId,
+        challengeId: post.challengeId,
+        isPinned: post.isPinned,
+        isScheduled: post.isScheduled
+      });
+      
+      // Get all posts to verify storage and log each one for debugging
       const allPosts = await storage.getPostsByChallenge(challengeId);
       console.log(`After creation: ${allPosts.length} posts for challenge ${challengeId}`);
+      allPosts.forEach((p, i) => {
+        console.log(`Post ${i+1}:`, { 
+          id: p.id, 
+          content: p.content.substring(0, 20) + (p.content.length > 20 ? '...' : ''),
+          userId: p.userId 
+        });
+      });
       
       return res.status(201).json(post);
     } catch (error: any) {
       console.error('Error creating simple post:', error);
-      return res.status(500).json({ error: 'Failed to create post' });
+      return res.status(500).json({ error: 'Failed to create post: ' + (error.message || 'Unknown error') });
     }
   });
 
@@ -537,8 +554,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid challenge ID" });
       }
       
-      const posts = await storage.getFeedPosts(challengeId);
+      // Changed to use getPostsByChallenge to match what we're using for creating posts
+      const posts = await storage.getPostsByChallenge(challengeId);
       console.log(`GET posts for challenge ${challengeId}:`, posts.length);
+      
+      // Log the posts for debugging
+      if (posts.length > 0) {
+        posts.forEach((p, i) => {
+          console.log(`Post ${i+1}:`, { 
+            id: p.id, 
+            content: p.content.substring(0, 20) + (p.content.length > 20 ? '...' : ''),
+            userId: p.userId 
+          });
+        });
+      }
       
       return res.json(posts);
     } catch (error: any) {

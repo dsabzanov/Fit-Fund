@@ -101,8 +101,7 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
       }
 
       try {
-        // Simplified approach - direct text/JSON post without image
-        // This is a workaround for the file upload issue
+        // Prepare the post data
         const postData = {
           content: data.content,
           challengeId: challengeId,
@@ -113,15 +112,12 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
         
         console.log("Sending post data:", postData);
         
-        // Use JSON post instead of FormData
-        const res = await fetch(`/api/challenges/${challengeId}/posts/simple`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(postData),
-          credentials: 'include',
-        });
+        // Use apiRequest helper from queryClient
+        const res = await apiRequest(
+          'POST', 
+          `/api/challenges/${challengeId}/posts/simple`,
+          postData
+        );
         
         console.log("Response status:", res.status);
         
@@ -281,15 +277,66 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
         )}
 
         <Button 
-          type="submit" 
+          type="button" 
           className="w-full" 
-          disabled={mutation.isPending || (form.watch("isScheduled") && !form.watch("scheduledFor"))}
+          disabled={mutation.isPending || !form.getValues("content") || (form.watch("isScheduled") && !form.watch("scheduledFor"))}
+          onClick={() => {
+            console.log("Post submit button clicked directly");
+            
+            // Get the form data manually
+            const formData = form.getValues();
+            
+            // Validate content is present
+            if (!formData.content) {
+              toast({
+                title: "Error",
+                description: "Please enter a message for your post",
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            // Validate scheduledFor if isScheduled is true
+            if (formData.isScheduled && !formData.scheduledFor) {
+              toast({
+                title: "Error",
+                description: "Please select a date and time for your scheduled post",
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            // Manually call the mutation
+            console.log("Manually submitting post with data:", formData);
+            mutation.mutate(formData);
+            
+            // Provide feedback
+            toast({
+              title: "Processing...",
+              description: "Your post is being created. Please wait.",
+            });
+          }}
         >
-          {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {form.watch("isScheduled") 
-            ? "Schedule Post" 
-            : "Create Post"
-          }
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              {form.watch("isScheduled") ? (
+                <>
+                  <CalendarClock className="mr-2 h-4 w-4" />
+                  Schedule Post
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Create Post
+                </>
+              )}
+            </>
+          )}
         </Button>
       </form>
     </Form>
