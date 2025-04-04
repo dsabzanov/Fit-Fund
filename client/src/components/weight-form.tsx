@@ -35,6 +35,13 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
   });
 
   const handleImageChange = (file: File) => {
+    // Log the incoming file details
+    console.log("Image being processed:", {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+    
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
       toast({
         title: "Error",
@@ -53,12 +60,26 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       return;
     }
 
+    // First clean up any previous image
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
+    // Then set the new image
     setSelectedImage(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     
     // Set a placeholder value to indicate file is ready
     form.setValue("imageUrl", "file-upload-pending", { shouldValidate: true });
+    
+    // Log the confirmation of image set
+    console.log("Image has been set:", {
+      fileName: file.name,
+      fileType: file.type,
+      previewUrl: url,
+      selectedImageSet: true
+    });
     
     // Display confirmation to the user
     toast({
@@ -192,7 +213,12 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
 
   const onSubmit = form.handleSubmit((data) => {
     console.log("Form submitted with data:", data);
-    if (!data.weight) {
+    
+    // Get the weight value directly from the form input
+    const weightValue = form.getValues("weight");
+    console.log("Weight value from form:", weightValue);
+    
+    if (!weightValue) {
       toast({
         title: "Error",
         description: "Please enter your weight",
@@ -201,7 +227,8 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       return;
     }
     
-    // Check for image separately here
+    // Verify we have the selected image object
+    console.log("Selected image at submission:", selectedImage);
     if (!selectedImage) {
       toast({
         title: "Error",
@@ -211,13 +238,32 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       return;
     }
     
-    mutation.mutate(data);
+    // Call mutation explicitly with current values
+    mutation.mutate({
+      weight: weightValue,
+      imageUrl: form.getValues("imageUrl")
+    });
+    
+    // Show toast to confirm submission is in progress
+    toast({
+      title: "Processing...",
+      description: "Your weight submission is being processed. Please wait.",
+    });
   });
 
-  // Weight and image are required for submission
+  // Watch the weight value
   const weightValue = form.watch("weight");
-  // Only disable submit if no weight or during pending state - image is handled separately
-  const isSubmitDisabled = !weightValue || mutation.isPending;
+  
+  // Debug logging to help troubleshoot
+  console.log("Form state:", { 
+    weightValue, 
+    hasImage: !!selectedImage, 
+    isPending: mutation.isPending,
+    isSubmitDisabled: !weightValue || !selectedImage || mutation.isPending
+  });
+  
+  // Disable button if no weight, no image, or during pending state
+  const isSubmitDisabled = !weightValue || !selectedImage || mutation.isPending;
 
   return (
     <Form {...form}>
@@ -346,20 +392,58 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
           </p>
         </FormItem>
 
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={isSubmitDisabled}
-        >
-          {mutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            "Submit Weight"
-          )}
-        </Button>
+        <div className="relative">
+          {/* Status indicator for debugging */}
+          <div className="absolute -top-6 left-0 right-0 text-xs text-center text-muted-foreground">
+            {weightValue && selectedImage ? 
+              <span className="text-green-500">Ready to submit</span> : 
+              <span className="text-amber-500">
+                {!weightValue ? "Need weight" : ""}{!weightValue && !selectedImage ? " and " : ""}{!selectedImage ? "Need photo" : ""}
+              </span>
+            }
+          </div>
+          
+          <Button 
+            type="button" 
+            className="w-full"
+            disabled={isSubmitDisabled}
+            onClick={() => {
+              // Manual submit handler as a fallback - ensures the form submits even if the regular form submission doesn't work
+              console.log("Submit button clicked directly with state:", {
+                weightValue,
+                selectedImage,
+                isPending: mutation.isPending
+              });
+              
+              // Only proceed if we have both values and not already submitting
+              if (weightValue && selectedImage && !mutation.isPending) {
+                // Call mutation explicitly with current values
+                mutation.mutate({
+                  weight: form.getValues("weight"),
+                  imageUrl: form.getValues("imageUrl")
+                });
+                
+                // Show toast to confirm submission is in progress
+                toast({
+                  title: "Processing...",
+                  description: "Your weight submission is being processed. Please wait.",
+                });
+              }
+            }}
+          >
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Submit Weight
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );
