@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Participant } from "@shared/schema";
 
 export default function WeightTrackingPage() {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ export default function WeightTrackingPage() {
   const { toast } = useToast();
 
   // Query to check if user has paid for the challenge
-  const { data: participant, isLoading, error } = useQuery({
+  const { data: participant, isLoading, error } = useQuery<Participant>({
     queryKey: [`/api/challenges/${challengeId}/participants/${user?.id}`],
     enabled: !!user?.id && !!challengeId,
   });
@@ -45,7 +46,7 @@ export default function WeightTrackingPage() {
   }
 
   // If user hasn't paid, show message
-  if (!participant?.paid) {
+  if (!participant || participant.paid === undefined || participant.paid === false) {
     return (
       <div className="container mx-auto py-8">
         <Alert>

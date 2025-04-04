@@ -1,6 +1,7 @@
 import { FeedPost as FeedPostType } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CreatePostForm } from "./create-post-form";
 import { FeedPostCard } from "./feed-post";
@@ -26,7 +27,12 @@ export function Feed({ challengeId }: FeedProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold" id="feed-title">Challenge Feed</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold" id="feed-title">Community Feed</h2>
+          <Badge variant="outline" className="bg-primary/5">
+            Participant View
+          </Badge>
+        </div>
         <Dialog>
           <DialogTrigger asChild>
             <Button size="sm" aria-label="Create new post">

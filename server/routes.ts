@@ -139,6 +139,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Add endpoint for getting a single participant
+  app.get("/api/challenges/:id/participants/:userId", async (req, res) => {
+    try {
+      const challengeId = parseInt(req.params.id);
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(challengeId) || isNaN(userId)) {
+        return res.status(400).json({ error: "Invalid challenge ID or user ID" });
+      }
+      
+      const participant = await storage.getParticipant(userId, challengeId);
+      if (!participant) {
+        return res.status(404).json({ error: "Participant not found" });
+      }
+      
+      res.json(participant);
+    } catch (error) {
+      console.error('Error fetching participant:', error);
+      res.status(500).json({ error: "Failed to fetch participant" });
+    }
+  });
+  
   // Add missing endpoint for weight records
   app.get("/api/challenges/:id/weight-records", async (req, res) => {
     try {
