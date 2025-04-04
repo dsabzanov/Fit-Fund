@@ -29,6 +29,12 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -309,13 +315,22 @@ export default function ChallengePage() {
                         <p className="text-xs text-muted-foreground mb-2">
                           Send notifications to participants who haven't submitted their weights recently
                         </p>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="mt-auto justify-center"
-                        >
-                          Send Reminders
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="mt-auto justify-center"
+                              >
+                                Send Reminders
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>Send notification emails to all participants who haven't submitted their weight in the past 7 days</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       
                       <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
@@ -328,13 +343,22 @@ export default function ChallengePage() {
                         <p className="text-xs text-muted-foreground mb-2">
                           View detailed statistics on participant progress and engagement
                         </p>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="mt-auto justify-center"
-                        >
-                          View Stats
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="mt-auto justify-center"
+                              >
+                                View Stats
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>View detailed analytics about weight loss trends, participant engagement, and challenge progress</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       
                       <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
@@ -347,13 +371,22 @@ export default function ChallengePage() {
                         <p className="text-xs text-muted-foreground mb-2">
                           Monitor total prize pool and configure payout settings
                         </p>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="mt-auto justify-center"
-                        >
-                          Manage Prize
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="mt-auto justify-center"
+                              >
+                                Manage Prize
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>Configure prize distribution percentages and view current pot size (${challenge.entryFee * participants.length})</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
                   </div>
