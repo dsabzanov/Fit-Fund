@@ -4,7 +4,6 @@ import { insertFeedPostSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -12,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2, ImageIcon, ImagePlus, Upload, X, Check, CalendarClock, Pin } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { RichTextEditor } from "./rich-text-editor";
 import { format, addDays, addHours } from "date-fns";
 
 interface CreatePostFormProps {
@@ -193,7 +193,11 @@ export function CreatePostForm({ challengeId, onSuccess }: CreatePostFormProps) 
             <FormItem>
               <FormLabel>Message</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <RichTextEditor 
+                  content={field.value} 
+                  onChange={field.onChange}
+                  placeholder="Write your post here... You can format text, add links, and more!"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

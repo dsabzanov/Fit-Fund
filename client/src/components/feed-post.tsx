@@ -69,7 +69,10 @@ export function FeedPostCard({ post }: FeedPostProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p>{post.content}</p>
+        <div 
+          className="prose prose-sm max-w-none"
+          dangerouslySetInnerHTML={{ __html: post.content }} 
+        />
         {post.imageUrl && (
           <img
             src={post.imageUrl}
