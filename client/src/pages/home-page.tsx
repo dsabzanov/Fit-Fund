@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Dumbbell, Trophy, Target, Crown } from "lucide-react";
+import { Loader2, Plus, Dumbbell, Trophy, Target, Crown, HelpCircle } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 import { FitbitConnect } from "@/components/fitbit-connect";
@@ -151,11 +151,7 @@ export default function HomePage() {
                     <Dialog>
                       <DialogTrigger asChild>
                         <button className="rounded-full p-1 bg-white/20 hover:bg-white/30 transition-colors">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                          </svg>
+                          <HelpCircle className="h-4 w-4 text-white" />
                         </button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[550px]">
@@ -213,11 +209,7 @@ export default function HomePage() {
                     <Dialog>
                       <DialogTrigger asChild>
                         <button className="rounded-full p-1 bg-white/20 hover:bg-white/30 transition-colors">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                          </svg>
+                          <HelpCircle className="h-4 w-4 text-white" />
                         </button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[550px]">
