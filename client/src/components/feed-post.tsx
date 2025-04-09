@@ -1,24 +1,58 @@
 import { useState } from "react";
-import { FeedPost as FeedPostType, Comment, InsertComment } from "@shared/schema";
+import { FeedPost as FeedPostType, Comment, InsertComment, Challenge } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Loader2, Pin } from "lucide-react";
+import { Loader2, Pin, PinOff, Bookmark } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FeedPostProps {
   post: FeedPostType;
+  challenge?: Challenge;
+  isHost?: boolean;
 }
 
-export function FeedPostCard({ post }: FeedPostProps) {
+export function FeedPostCard({ post, challenge, isHost = false }: FeedPostProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [newComment, setNewComment] = useState("");
+  
+  // Pin/unpin mutation
+  const pinMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest(
+        "PUT", 
+        `/api/challenges/${post.challengeId}/posts/${post.id}/pin`,
+        {}
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      // Invalidate feed posts query to refresh data
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/challenges/${post.challengeId}/feed`] 
+      });
+      toast({
+        title: post.isPinned ? "Post unpinned" : "Post pinned",
+        description: post.isPinned 
+          ? "The post has been removed from pinned posts" 
+          : "The post will now appear at the top of the feed",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to pin/unpin post",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { data: comments = [] } = useQuery<Comment[]>({
     queryKey: [`/api/posts/${post.id}/comments`],
@@ -122,6 +156,38 @@ export function FeedPostCard({ post }: FeedPostProps) {
           </form>
         </div>
       </CardContent>
+      
+      {isHost && (
+        <CardFooter className="flex justify-end pt-0">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => pinMutation.mutate()}
+                  disabled={pinMutation.isPending}
+                  className="text-muted-foreground hover:text-primary"
+                >
+                  {pinMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : post.isPinned ? (
+                    <PinOff className="h-4 w-4" />
+                  ) : (
+                    <Pin className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">
+                    {post.isPinned ? "Unpin post" : "Pin post"}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{post.isPinned ? "Unpin from top" : "Pin to top of feed"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardFooter>
+      )}
     </Card>
   );
 }

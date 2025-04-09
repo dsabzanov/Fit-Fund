@@ -1,4 +1,4 @@
-import { FeedPost as FeedPostType } from "@shared/schema";
+import { FeedPost as FeedPostType, Challenge } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,12 +6,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CreatePostForm } from "./create-post-form";
 import { FeedPostCard } from "./feed-post";
 import { Plus, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface FeedProps {
   challengeId: number;
 }
 
 export function Feed({ challengeId }: FeedProps) {
+  const { user } = useAuth();
+  
+  // Fetch the challenge to determine if the current user is the host
+  const { data: challenge } = useQuery<Challenge>({
+    queryKey: [`/api/challenges/${challengeId}`],
+  });
+  
+  // Determine if the current user is the host of this challenge
+  const isHost = challenge ? challenge.userId === user?.id : false;
+  
   const { data: posts = [], isLoading, isError, refetch } = useQuery<FeedPostType[]>({
     queryKey: [`/api/challenges/${challengeId}/posts`],
     refetchOnMount: true,
@@ -57,8 +68,8 @@ export function Feed({ challengeId }: FeedProps) {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <h2 className="text-2xl font-bold" id="feed-title">Community Feed</h2>
-          <Badge variant="outline" className="bg-primary/5">
-            Participant View
+          <Badge variant="outline" className={isHost ? "bg-primary/20" : "bg-primary/5"}>
+            {isHost ? "Host View" : "Participant View"}
           </Badge>
         </div>
         <Dialog>
@@ -83,8 +94,22 @@ export function Feed({ challengeId }: FeedProps) {
         aria-labelledby="feed-title"
         aria-busy={isLoading}
       >
-        {posts.map((post) => (
-          <FeedPostCard key={post.id} post={post} />
+        {/* Sort posts so pinned posts appear first */}
+        {posts
+          .sort((a, b) => {
+            // Sort by pinned status (pinned first)
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            // Then sort by date (newest first)
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          })
+          .map((post) => (
+            <FeedPostCard 
+              key={post.id} 
+              post={post} 
+              challenge={challenge}
+              isHost={isHost} 
+            />
         ))}
         {posts.length === 0 && (
           <p 

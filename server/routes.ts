@@ -681,6 +681,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).send(`Webhook Error: ${err.message}`);
     }
   });
+  
+  // Toggle pin status of a feed post (host only)
+  app.put("/api/challenges/:challengeId/posts/:postId/pin", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const challengeId = parseInt(req.params.challengeId);
+      const postId = parseInt(req.params.postId);
+      
+      if (isNaN(challengeId) || isNaN(postId)) {
+        return res.status(400).json({ error: "Invalid IDs" });
+      }
+
+      // Verify if the user is the host of the challenge
+      const challenge = await storage.getChallenge(challengeId);
+      if (!challenge) {
+        return res.status(404).json({ error: "Challenge not found" });
+      }
+      
+      if (challenge.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Only the host can pin posts" });
+      }
+      
+      // Get the post to toggle its pin status
+      const posts = await storage.getPostsByChallenge(challengeId);
+      const post = posts.find(p => p.id === postId);
+      
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      
+      // Update the post with toggled pin status
+      const updatedPost = await storage.updateFeedPost(postId, {
+        isPinned: !post.isPinned
+      });
+      
+      res.json(updatedPost);
+    } catch (error) {
+      console.error("Error toggling post pin status:", error);
+      res.status(500).json({ error: "Failed to update post" });
+    }
+  });
 
   return httpServer;
 }
