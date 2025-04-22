@@ -1,18 +1,10 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+// Create SQLite database file
+const sqlite = new Database('sqlite.db');
 
-// Check for DATABASE_URL and provide fallback configuration
-const getDatabaseConfig = () => {
-  if (!process.env.DATABASE_URL) {
-    console.warn("DATABASE_URL not set - using fallback SQLite configuration");
-    return { connectionString: 'sqlite://database.db' };
-  }
-  return { connectionString: process.env.DATABASE_URL };
-};
-
-export const pool = new Pool(getDatabaseConfig());
-export const db = drizzle({ client: pool, schema });
+// Create drizzle database instance
+export const db = drizzle(sqlite, { schema });
