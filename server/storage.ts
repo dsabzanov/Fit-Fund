@@ -25,7 +25,7 @@ import {
   feedPosts,
   comments
 } from "@shared/schema";
-import { db, pool } from "./db";
+import { db, pgPool as pool } from "./db";
 import { eq, and } from "drizzle-orm";
 
 const MemoryStore = createMemoryStore(session);
