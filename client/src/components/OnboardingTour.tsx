@@ -21,12 +21,6 @@ const tourSteps = [
     title: "Create Challenges",
     description: "Ready to lead? Create your own challenge and inspire others!",
     position: { top: '5rem', right: '1rem', bottom: 'auto', left: 'auto' }
-  },
-  {
-    id: 'fitbit',
-    title: "Connect Your Device",
-    description: "Link your fitness tracker to automatically log your progress!",
-    position: { top: '5rem', right: '8rem', bottom: 'auto', left: 'auto' }
   }
 ];
 
