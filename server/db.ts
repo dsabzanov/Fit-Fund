@@ -1,4 +1,3 @@
-
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
@@ -9,14 +8,8 @@ neonConfig.webSocketConstructor = ws;
 // Check for DATABASE_URL and provide fallback configuration
 const getDatabaseConfig = () => {
   if (!process.env.DATABASE_URL) {
-    console.warn("DATABASE_URL not set - using fallback configuration");
-    return {
-      host: '0.0.0.0',
-      port: 5432,
-      user: 'postgres',
-      password: 'postgres',
-      database: 'postgres'
-    };
+    console.warn("DATABASE_URL not set - using fallback SQLite configuration");
+    return { connectionString: 'sqlite://database.db' };
   }
   return { connectionString: process.env.DATABASE_URL };
 };
