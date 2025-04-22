@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Dumbbell, Trophy, Target, Crown, HelpCircle } from "lucide-react";
 import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
-import { FitbitConnect } from "@/components/fitbit-connect";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { Link } from "wouter";
 
@@ -86,9 +85,6 @@ export default function HomePage() {
                     <span className="text-sm sm:text-base text-muted-foreground" role="status" aria-label="User status">
                       Welcome, {user?.username}
                     </span>
-                    <div data-tour="fitbit-connect" className="hidden sm:block">
-                      <FitbitConnect />
-                    </div>
                     <AccessibilitySettings />
                     <Dialog>
                       <DialogTrigger asChild>

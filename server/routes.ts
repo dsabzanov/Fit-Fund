@@ -17,7 +17,6 @@ import {
   insertCommentSchema,
   insertParticipantSchema,
 } from "@shared/schema";
-import { fitbitService } from "./services/fitbit";
 import Stripe from "stripe";
 
 // Initialize Stripe with error handling
