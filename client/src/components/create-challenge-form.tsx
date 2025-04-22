@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2, Crown } from "lucide-react";
 import { format } from "date-fns";
+import { RefundPolicy } from "./refund-policy";
 
 export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
   const { toast } = useToast();
@@ -113,7 +114,8 @@ export function CreateChallengeForm({ onSuccess }: { onSuccess?: () => void }) {
       <Alert className="mb-6">
         <AlertDescription>
           As a host, you'll be responsible for managing this challenge, encouraging participants, 
-          and ensuring everyone stays motivated throughout the journey.
+          and ensuring everyone stays motivated throughout the journey. Please familiarize yourself 
+          with our <RefundPolicy variant="link" size="sm" /> that applies to all participants.
         </AlertDescription>
       </Alert>
 

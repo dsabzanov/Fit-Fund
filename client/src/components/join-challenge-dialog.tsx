@@ -12,6 +12,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { createPaymentSession } from "@/lib/stripe";
+import { RefundPolicy } from "./refund-policy";
 
 interface JoinChallengeDialogProps {
   challengeId: number;
@@ -108,17 +109,23 @@ export function JoinChallengeDialog({
               Enter your current weight in pounds (lbs)
             </div>
           </div>
-          <Button 
-            onClick={() => mutation.mutate()} 
-            className="w-full" 
-            disabled={mutation.isPending}
-            aria-busy={mutation.isPending}
-          >
-            {mutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-            )}
-            Join Challenge (${entryFee})
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              onClick={() => mutation.mutate()} 
+              className="w-full" 
+              disabled={mutation.isPending}
+              aria-busy={mutation.isPending}
+            >
+              {mutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+              )}
+              Join Challenge (${entryFee})
+            </Button>
+            
+            <div className="text-xs text-muted-foreground text-center">
+              By joining, you agree to our <RefundPolicy variant="link" size="sm" /> and challenge terms.
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
