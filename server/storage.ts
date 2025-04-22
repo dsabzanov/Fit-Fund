@@ -1,5 +1,6 @@
-import session from "express-session";
+import session, { SessionStore } from "express-session";
 import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
 import {
   User,
   Challenge,
@@ -14,9 +15,19 @@ import {
   InsertChatMessage,
   InsertFeedPost,
   InsertComment,
+  users,
+  challenges,
+  participants,
+  weightRecords,
+  chatMessages,
+  feedPosts,
+  comments
 } from "@shared/schema";
+import { db, pool } from "./db";
+import { eq, and } from "drizzle-orm";
 
 const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   // User methods
@@ -55,7 +66,7 @@ export interface IStorage {
   getComments(postId: number): Promise<Comment[]>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: SessionStore;
 }
 
 export class MemStorage implements IStorage {
@@ -394,4 +405,252 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  public sessionStore: session.SessionStore;
+
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
+    });
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getAllChallenges(): Promise<Challenge[]> {
+    return await db.select().from(challenges);
+  }
+
+  async getChallenge(id: number): Promise<Challenge | undefined> {
+    const [challenge] = await db.select().from(challenges).where(eq(challenges.id, id));
+    return challenge;
+  }
+
+  async createChallenge(challenge: InsertChallenge): Promise<Challenge> {
+    const [newChallenge] = await db.insert(challenges).values(challenge).returning();
+    return newChallenge;
+  }
+
+  async getUserChallenges(userId: number): Promise<Challenge[]> {
+    // Get challenges where user is a participant
+    const userParticipations = await db
+      .select()
+      .from(participants)
+      .where(eq(participants.userId, userId));
+    
+    const participatedChallengeIds = userParticipations.map(p => p.challengeId);
+    
+    // Return all open challenges plus user's participating challenges
+    return await db
+      .select()
+      .from(challenges)
+      .where(
+        eq(challenges.status, 'open')
+      );
+  }
+
+  async getChallengeIfParticipant(id: number, userId: number): Promise<Challenge | undefined> {
+    const challenge = await this.getChallenge(id);
+    if (!challenge) return undefined;
+
+    // Check if user is participant
+    const [participant] = await db
+      .select()
+      .from(participants)
+      .where(
+        and(
+          eq(participants.challengeId, id),
+          eq(participants.userId, userId)
+        )
+      );
+    
+    // Get user to check if they're a host
+    const user = await this.getUser(userId);
+    
+    if (challenge.status === "open" || participant || user?.isHost) {
+      return challenge;
+    }
+
+    return undefined;
+  }
+
+  async getParticipant(userId: number, challengeId: number): Promise<Participant | undefined> {
+    const [participant] = await db
+      .select()
+      .from(participants)
+      .where(
+        and(
+          eq(participants.userId, userId),
+          eq(participants.challengeId, challengeId)
+        )
+      );
+    
+    return participant;
+  }
+
+  async addParticipant(data: { userId: number; challengeId: number; startWeight: number }): Promise<Participant> {
+    const [participant] = await db
+      .insert(participants)
+      .values({
+        userId: data.userId,
+        challengeId: data.challengeId,
+        startWeight: data.startWeight.toString(),
+        currentWeight: data.startWeight.toString(),
+        paid: false,
+        joinedAt: new Date()
+      })
+      .returning();
+    
+    return participant;
+  }
+
+  async getParticipants(challengeId: number): Promise<Participant[]> {
+    return await db
+      .select()
+      .from(participants)
+      .where(eq(participants.challengeId, challengeId));
+  }
+
+  async updateParticipantPaymentStatus(challengeId: number, userId: number, paid: boolean): Promise<void> {
+    await db
+      .update(participants)
+      .set({ paid })
+      .where(
+        and(
+          eq(participants.challengeId, challengeId),
+          eq(participants.userId, userId)
+        )
+      );
+  }
+
+  async addWeightRecord(record: InsertWeightRecord): Promise<WeightRecord> {
+    const [weightRecord] = await db
+      .insert(weightRecords)
+      .values({
+        ...record,
+        recordedAt: record.recordedAt || new Date(),
+        verificationStatus: record.verificationStatus || 'pending'
+      })
+      .returning();
+    
+    return weightRecord;
+  }
+
+  async getWeightRecords(userId: number, challengeId: number): Promise<WeightRecord[]> {
+    return await db
+      .select()
+      .from(weightRecords)
+      .where(
+        and(
+          eq(weightRecords.userId, userId),
+          eq(weightRecords.challengeId, challengeId)
+        )
+      );
+  }
+
+  async addChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const [chatMessage] = await db
+      .insert(chatMessages)
+      .values({
+        ...message,
+        sentAt: new Date()
+      })
+      .returning();
+    
+    return chatMessage;
+  }
+
+  async getChatMessages(challengeId: number): Promise<ChatMessage[]> {
+    return await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.challengeId, challengeId));
+  }
+
+  async createFeedPost(post: InsertFeedPost): Promise<FeedPost> {
+    // Handle scheduledFor field if it's a string
+    let scheduledForDate: Date | null = null;
+    if (post.scheduledFor) {
+      scheduledForDate = new Date(post.scheduledFor);
+    }
+
+    const [feedPost] = await db
+      .insert(feedPosts)
+      .values({
+        ...post,
+        imageUrl: post.imageUrl || null,
+        scheduledFor: scheduledForDate,
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return feedPost;
+  }
+
+  async getPostsByChallenge(challengeId: number): Promise<FeedPost[]> {
+    return this.getFeedPosts(challengeId);
+  }
+  
+  async getFeedPosts(challengeId: number): Promise<FeedPost[]> {
+    const posts = await db
+      .select()
+      .from(feedPosts)
+      .where(eq(feedPosts.challengeId, challengeId));
+    
+    // Sort posts: pinned first, then by creation date
+    return posts.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  async addComment(comment: InsertComment): Promise<Comment> {
+    const [newComment] = await db
+      .insert(comments)
+      .values({
+        ...comment,
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return newComment;
+  }
+
+  async getComments(postId: number): Promise<Comment[]> {
+    const commentsList = await db
+      .select()
+      .from(comments)
+      .where(eq(comments.postId, postId));
+    
+    return commentsList.sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }
+
+  async updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined> {
+    const [updatedPost] = await db
+      .update(feedPosts)
+      .set(updates)
+      .where(eq(feedPosts.id, id))
+      .returning();
+    
+    return updatedPost;
+  }
+}
+
+// Switch from MemStorage to DatabaseStorage
+export const storage = new DatabaseStorage();
