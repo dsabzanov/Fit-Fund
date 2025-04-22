@@ -1,4 +1,6 @@
-import session, { SessionStore } from "express-session";
+import session from "express-session";
+// Express-session doesn't properly export SessionStore type
+type SessionStore = session.Store;
 import createMemoryStore from "memorystore";
 import connectPg from "connect-pg-simple";
 import {
@@ -77,7 +79,7 @@ export class MemStorage implements IStorage {
   private chatMessages: Map<number, ChatMessage>;
   private feedPosts: Map<number, FeedPost>;
   private comments: Map<number, Comment>;
-  public sessionStore: session.SessionStore;
+  public sessionStore: SessionStore;
   private currentId: number;
 
   constructor() {
@@ -406,7 +408,7 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  public sessionStore: session.SessionStore;
+  public sessionStore: SessionStore;
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
