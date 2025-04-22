@@ -31,14 +31,15 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: false,
+    secret: process.env.SESSION_SECRET || 'default-secret-key',
+    resave: true,
+    saveUninitialized: true,
     store: storage.sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to true only if using HTTPS
       sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true
     }
   };
 
@@ -88,25 +89,34 @@ export function setupAuth(app: Express) {
   app.post("/api/register", async (req, res, next) => {
     try {
       console.log('Registration attempt for username:', req.body.username);
+      
+      if (!req.body.username || !req.body.password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
         console.log('Registration failed - username exists:', req.body.username);
-        return res.status(400).send("Username already exists");
+        return res.status(400).json({ error: "Username already exists" });
       }
 
+      const hashedPassword = await hashPassword(req.body.password);
       const user = await storage.createUser({
         ...req.body,
-        password: await hashPassword(req.body.password),
+        password: hashedPassword,
       });
 
       console.log('User registered successfully:', user.id);
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          console.error('Login after registration failed:', err);
+          return res.status(500).json({ error: "Registration successful but login failed" });
+        }
         res.status(201).json(user);
       });
     } catch (err) {
       console.error('Registration error:', err);
-      next(err);
+      res.status(500).json({ error: "Registration failed - internal server error" });
     }
   });
 
