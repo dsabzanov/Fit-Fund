@@ -146,7 +146,7 @@ export default function ChallengePage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+            <div className="flex items-center gap-2">
               <img 
                 src="/assets/IM_Logo_Full-Color (2).png"
                 alt="FitFund Logo"
@@ -158,10 +158,8 @@ export default function ChallengePage() {
                 </span>
               </h1>
             </div>
-          </div>
-          <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="default">
+              <Button variant="default" size="lg" className="font-semibold">
                 Home
               </Button>
             </Link>
