@@ -146,8 +146,8 @@ export default function ChallengePage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-end mb-4">
           <Link href="/">
-            <Button size="lg" className="font-bold text-lg">
-              Home
+            <Button variant="default" size="lg" className="font-bold">
+              ← Back to Home
             </Button>
           </Link>
         </div>
