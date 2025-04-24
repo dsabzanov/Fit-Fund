@@ -98,7 +98,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition-colors">
+                <a href="#" className="text-gray-600 hover:text-primary transition-colors font-medium">
                   Privacy Policy
                 </a>
               </li>
@@ -118,9 +118,19 @@ export function Footer() {
 
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-500">
-              © {currentYear} FitFund. All rights reserved.
-            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <p className="text-sm text-gray-500">
+                © {currentYear} FitFund. All rights reserved.
+              </p>
+              <div className="flex gap-4">
+                <a href="#" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Contact Us
+                </a>
+                <a href="#" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Privacy Policy
+                </a>
+              </div>
+            </div>
             <div className="mt-4 md:mt-0 flex items-center">
               <span className="text-sm text-gray-500 flex items-center">
                 Made with <Heart className="h-3 w-3 text-red-500 mx-1" /> by InspireMotivate Inc.
