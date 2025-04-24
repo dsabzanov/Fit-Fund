@@ -217,90 +217,48 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/30 to-primary/50 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
+                <div className="flex flex-col items-center p-6 rounded-lg bg-gradient-to-br from-primary/30 to-primary/50 backdrop-blur-sm border-2 border-primary/20 shadow-lg relative">
+                  <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                    Featured
+                  </div>
                   <h3 className="text-xl sm:text-2xl font-bold mb-2 text-white flex items-center gap-2">
-                    HOST A FITFUND
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <button className="rounded-full p-1 bg-white/20 hover:bg-white/30 transition-colors">
-                          <HelpCircle className="h-4 w-4 text-white" />
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[550px]">
-                        <DialogHeader>
-                          <DialogTitle>About Hosting a FitFund Challenge</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <p>
-                            <strong>What is a FitFund Challenge?</strong> A FitFund is a weight loss challenge where participants contribute to a prize pool and compete to meet their weight loss goals.
-                          </p>
-                          <p>
-                            <strong>How does it work?</strong> 
-                          </p>
-                          <ul className="list-disc pl-6 space-y-2">
-                            <li>Create a challenge with customized duration (4-12 weeks recommended)</li>
-                            <li>Set an entry fee that participants pay to join</li>
-                            <li>Define a reasonable weight loss percentage goal (4-8% of starting weight)</li>
-                            <li>Invite friends, family, or colleagues to participate</li>
-                            <li>Track progress through regular weigh-ins</li>
-                            <li>Winners who achieve the goal share the prize pool equally</li>
-                          </ul>
-                          <p>
-                            <strong>Host Responsibilities:</strong>
-                          </p>
-                          <ul className="list-disc pl-6 space-y-2">
-                            <li>Set fair rules and goals for all participants</li>
-                            <li>Verify weigh-in submissions for accuracy</li>
-                            <li>Provide motivation and support to participants</li>
-                            <li>Manage prize distribution at the end of the challenge</li>
-                          </ul>
-                          <p>
-                            <strong>Terms & Conditions:</strong> By hosting a challenge, you agree to fairly administer the challenge according to the rules. FitFund takes a small platform fee from the prize pool to maintain the service.
-                          </p>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    CHALLENGE OF THE WEEK
                   </h3>
                   <p className="text-white/90 text-base mb-2">
-                    Start a FitFund with your friends and family!
+                    Summer Slim Down Challenge - 6% in 6 Weeks
                   </p>
                   <div className="bg-white/10 rounded-lg p-3 my-2 w-full">
-                    <ul className="text-white/90 text-sm space-y-1.5">
-                      <li className="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white mt-0.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <span>Set your own entry fee and goals</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white mt-0.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <span>Invite friends and family to join</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white mt-0.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <span>Winners share the prize pool</span>
-                      </li>
-                    </ul>
+                    <div className="flex justify-between mb-2 text-white/90 text-sm">
+                      <span>Entry Fee:</span>
+                      <span className="font-medium">$50</span>
+                    </div>
+                    <div className="flex justify-between mb-2 text-white/90 text-sm">
+                      <span>Current Pot:</span>
+                      <span className="font-medium">$680</span>
+                    </div>
+                    <div className="flex justify-between mb-2 text-white/90 text-sm">
+                      <span>Participants:</span>
+                      <span className="font-medium">14 people</span>
+                    </div>
+                    <div className="flex justify-between mb-2 text-white/90 text-sm">
+                      <span>Starts:</span>
+                      <span className="font-medium">In 3 days</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded h-2 mt-3">
+                      <div className="bg-white h-2 rounded" style={{ width: "80%" }}></div>
+                    </div>
+                    <p className="text-xs text-white/80 text-right mt-1">80% full - 4 spots left!</p>
                   </div>
                   <div className="flex-grow" />
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        size="lg"
-                        className="bg-white/10 hover:bg-white text-white hover:text-primary border-2 border-white/80 w-full sm:w-auto transition-colors"
-                        onClick={() => console.log("Create FitFund button clicked")}
-                      >
-                        <Trophy className="mr-2 h-4 w-4" />
-                        Create FitFund
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
-                      <DialogHeader>
-                        <DialogTitle>Create New FitFund Challenge</DialogTitle>
-                      </DialogHeader>
-                      <CreateChallengeForm onSuccess={() => {
-                        console.log("Challenge created successfully, redirecting...");
-                      }} />
-                    </DialogContent>
-                  </Dialog>
+                  <Link href="/weekly-game">
+                    <Button 
+                      size="lg"
+                      className="bg-white hover:bg-white/90 text-primary hover:text-primary/90 border-2 border-white/80 w-full sm:w-auto transition-colors mt-4"
+                    >
+                      <Trophy className="mr-2 h-4 w-4" />
+                      Join Featured Challenge
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
