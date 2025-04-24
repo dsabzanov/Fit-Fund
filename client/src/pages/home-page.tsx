@@ -14,9 +14,16 @@ import { HomeButton } from "@/components/home-button";
 import { Link } from "wouter";
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [showWelcome, setShowWelcome] = useState(true);
+  
+  const handleLogout = () => {
+    if (confirm("Are you sure you want to log out?")) {
+      logoutMutation.mutate();
+      window.location.href = "/auth";
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -87,6 +94,14 @@ export default function HomePage() {
                     <span className="text-sm sm:text-base text-muted-foreground" role="status" aria-label="User status">
                       Welcome, {user?.username}
                     </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-muted-foreground"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </Button>
                     <AccessibilitySettings />
                     <Dialog>
                       <DialogTrigger asChild>
