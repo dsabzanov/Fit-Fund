@@ -29,11 +29,43 @@ export function JoinChallengeDialog({
 }: JoinChallengeDialogProps) {
   const { toast } = useToast();
   const [weight, setWeight] = useState("");
+  const [weightError, setWeightError] = useState("");
+  
+  const validateWeight = () => {
+    if (!weight) {
+      setWeightError("Weight is required");
+      return false;
+    }
+    
+    const weightNum = Number(weight);
+    if (isNaN(weightNum)) {
+      setWeightError("Please enter a valid number");
+      return false;
+    }
+    
+    if (weightNum <= 0) {
+      setWeightError("Weight must be greater than 0");
+      return false;
+    }
+    
+    if (weightNum < 50) {
+      setWeightError("Weight seems too low. Please check your entry");
+      return false;
+    }
+    
+    if (weightNum > 1000) {
+      setWeightError("Weight seems too high. Please check your entry");
+      return false;
+    }
+    
+    setWeightError("");
+    return true;
+  };
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!weight || isNaN(Number(weight)) || Number(weight) <= 0) {
-        throw new Error("Please enter a valid weight");
+      if (!validateWeight()) {
+        throw new Error(weightError || "Please enter a valid weight");
       }
 
       const res = await apiRequest(
@@ -99,14 +131,29 @@ export function JoinChallengeDialog({
               step="0.1"
               min="1"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              onChange={(e) => {
+                setWeight(e.target.value);
+                // Clear previous error
+                setWeightError("");
+                
+                // Optional immediate validation for better UX
+                const val = e.target.value;
+                const numVal = Number(val);
+                
+                if (val && (isNaN(numVal) || numVal <= 0)) {
+                  setWeightError("Please enter a valid weight");
+                }
+              }}
               placeholder="Enter your weight (e.g. 150.5)"
               aria-required="true"
-              aria-invalid={!weight || isNaN(Number(weight)) || Number(weight) <= 0}
+              aria-invalid={!!weightError}
               aria-describedby="weight-description"
+              className={weightError ? "border-red-500" : ""}
+              onBlur={() => validateWeight()}
             />
-            <div id="weight-description" className="text-sm text-muted-foreground mt-1">
-              Enter your current weight in pounds (lbs)
+            <div id="weight-description" className="text-sm mt-1 flex flex-col">
+              <span className="text-muted-foreground">Enter your current weight in pounds (lbs)</span>
+              {weightError && <span className="text-red-500 font-medium">{weightError}</span>}
             </div>
           </div>
           <div className="space-y-3">
