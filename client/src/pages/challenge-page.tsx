@@ -62,13 +62,13 @@ export default function ChallengePage() {
     queryKey: [`/api/challenges/${challengeId}/chat`],
     enabled: !isNaN(challengeId),
   });
-  
+
   // States for scheduling dialog
   const [schedulingDialogOpen, setSchedulingDialogOpen] = useState(false);
   const [scheduledPostContent, setScheduledPostContent] = useState("");
   const [scheduledPostDate, setScheduledPostDate] = useState("");
   const [isSubmittingPost, setIsSubmittingPost] = useState(false);
-  
+
   // Handle scheduling post
   const schedulePostMutation = useMutation({
     mutationFn: async (data: { content: string, scheduledFor: string }) => {
@@ -144,6 +144,27 @@ export default function ChallengePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/">
+            <div className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+              <img 
+                src="/assets/IM_Logo_Full-Color (2).png"
+                alt="FitFund Logo"
+                className="h-8 sm:h-10 w-auto"
+              />
+              <h1 className="text-xl sm:text-2xl font-bold">
+                <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                  FitFund
+                </span>
+              </h1>
+            </div>
+          </Link>
+          <Link href="/">
+            <Button variant="link">Back to Home</Button>
+          </Link>
+        </div>
+
+
         {/* View Context Banner - always show whether host or participant */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -161,7 +182,7 @@ export default function ChallengePage() {
               </>
             )}
           </div>
-          
+
           {isHost ? (
             <Alert className="bg-primary/5 border-primary/20">
               <AlertDescription className="flex items-center gap-2">
@@ -236,7 +257,7 @@ export default function ChallengePage() {
                         Your Challenge Overview
                       </h3>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div className="space-y-2">
                         <div className="flex justify-between">
@@ -267,7 +288,7 @@ export default function ChallengePage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <p className="text-xs text-blue-600 mt-4">
                       Track your progress by submitting regular weight updates with verification photos. Keep up the good work!
                     </p>
@@ -283,7 +304,7 @@ export default function ChallengePage() {
                       </h3>
                       <Badge variant="outline" className="text-xs">Host Only</Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
                         <div className="flex items-center gap-2 mb-2">
@@ -304,7 +325,7 @@ export default function ChallengePage() {
                           Schedule Post
                         </Button>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="bg-primary/10 p-1.5 rounded-full">
@@ -332,7 +353,7 @@ export default function ChallengePage() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="bg-primary/10 p-1.5 rounded-full">
@@ -360,7 +381,7 @@ export default function ChallengePage() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-3 border border-gray-100 flex flex-col h-full">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="bg-primary/10 p-1.5 rounded-full">
@@ -395,7 +416,7 @@ export default function ChallengePage() {
             </Card>
 
             <Feed challengeId={challengeId} />
-            
+
             {/* Only show community feed to hosts for better focus on challenge for participants */}
             {isHost && (
               <div className="mt-8">
@@ -479,7 +500,7 @@ export default function ChallengePage() {
               Create a post that will automatically be published at the scheduled time to keep participants motivated.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="scheduled-date" className="text-right">
@@ -495,7 +516,7 @@ export default function ChallengePage() {
                 className="col-span-3"
               />
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="content" className="text-right align-top pt-2">
                 Message
@@ -509,7 +530,7 @@ export default function ChallengePage() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button 
               type="button" 
