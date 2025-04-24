@@ -144,14 +144,23 @@ export default function ChallengePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-end mb-4">
-          <Link href="/">
-            <Button variant="default" className="text-lg gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              Home
-            </Button>
-          </Link>
-        </div>
+        <nav className="bg-white/80 backdrop-blur-sm shadow-sm rounded-lg p-4 mb-8">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <img 
+                src="/assets/IM_Logo_Full-Color (2).png"
+                alt="FitFund Logo"
+                className="h-8 w-auto"
+              />
+            </div>
+            <Link href="/">
+              <Button variant="default" size="lg" className="font-semibold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                Return Home
+              </Button>
+            </Link>
+          </div>
+        </nav>
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
