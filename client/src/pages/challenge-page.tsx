@@ -145,7 +145,7 @@ export default function ChallengePage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <Link href="/">
+          <Link href="/" className="block">
             <div className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
               <img 
                 src="/assets/IM_Logo_Full-Color (2).png"
