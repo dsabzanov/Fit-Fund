@@ -144,10 +144,11 @@ export default function ChallengePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-start mb-4">
+        <div className="flex justify-end mb-4">
           <Link href="/">
-            <Button variant="default" size="lg" className="font-bold text-lg flex items-center gap-2">
-              ← Back to Home
+            <Button variant="default" className="text-lg gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Home
             </Button>
           </Link>
         </div>
