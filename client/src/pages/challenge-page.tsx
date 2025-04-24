@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Footer } from "@/components/footer";
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -574,6 +575,7 @@ export default function ChallengePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Footer />
     </div>
   );
 }

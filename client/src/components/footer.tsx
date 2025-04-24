@@ -81,8 +81,8 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition-colors">
-                  Contact Support
+                <a href="#" className="text-gray-600 hover:text-primary transition-colors font-medium">
+                  Contact Us
                 </a>
               </li>
             </ul>
