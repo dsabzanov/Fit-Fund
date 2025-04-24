@@ -11,6 +11,7 @@ import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { HomeButton } from "@/components/home-button";
+import { Footer } from "@/components/footer";
 import { Link } from "wouter";
 
 export default function HomePage() {
@@ -331,6 +332,8 @@ export default function HomePage() {
             )}
           </div>
         </main>
+
+        <Footer />
       </div>
     </>
   );

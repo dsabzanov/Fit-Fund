@@ -8,6 +8,7 @@ import { format, addDays } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { Challenge } from "@shared/schema";
 import { HomeButton } from "@/components/home-button";
+import { Footer } from "@/components/footer";
 
 export default function WeeklyGamePage() {
   const { toast } = useToast();
@@ -108,6 +109,7 @@ export default function WeeklyGamePage() {
           </p>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
