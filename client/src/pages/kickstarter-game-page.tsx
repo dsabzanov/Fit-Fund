@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { WeeklyGameInstructions } from "@/components/weekly-game-instructions";
 import { HomeButton } from "@/components/home-button";
+import { Footer } from "@/components/footer";
 
 export default function KickstarterGamePage() {
   return (
@@ -19,6 +20,7 @@ export default function KickstarterGamePage() {
 
         <WeeklyGameInstructions />
       </main>
+      <Footer />
     </div>
   );
 }

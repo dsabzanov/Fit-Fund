@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Participant } from "@shared/schema";
 import { HomeButton } from "@/components/home-button";
+import { Footer } from "@/components/footer";
 
 export default function WeightTrackingPage() {
   const { user } = useAuth();
@@ -111,6 +112,7 @@ export default function WeightTrackingPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

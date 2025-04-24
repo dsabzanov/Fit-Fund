@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useState, useRef, FormEvent } from "react";
 import { HomeButton } from "@/components/home-button";
+import { Footer } from "@/components/footer";
 
 export default function CreateGamePage() {
   const { user } = useAuth();
@@ -253,6 +254,7 @@ export default function CreateGamePage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
