@@ -10,6 +10,7 @@ import { Loader2, Plus, Dumbbell, Trophy, Target, Crown, HelpCircle } from "luci
 import { CreateChallengeForm } from "@/components/create-challenge-form";
 import { AccessibilitySettings } from "@/components/accessibility-settings";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import { HomeButton } from "@/components/home-button";
 import { Link } from "wouter";
 
 export default function HomePage() {
@@ -55,7 +56,8 @@ export default function HomePage() {
     <>
       {showWelcome && user && <OnboardingTour />}
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        <HomeButton />
         <div 
           className="relative bg-gradient-to-b from-primary/10 to-background"
           style={{

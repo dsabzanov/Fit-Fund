@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Participant } from "@shared/schema";
+import { HomeButton } from "@/components/home-button";
 
 export default function WeightTrackingPage() {
   const { user } = useAuth();
@@ -59,7 +60,8 @@ export default function WeightTrackingPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 relative">
+      <HomeButton />
       <h1 className="text-3xl font-bold text-center mb-8">Weight Tracking</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

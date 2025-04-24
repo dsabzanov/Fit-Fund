@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useState, useRef, FormEvent } from "react";
+import { HomeButton } from "@/components/home-button";
 
 export default function CreateGamePage() {
   const { user } = useAuth();
@@ -113,7 +114,8 @@ export default function CreateGamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <HomeButton />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
