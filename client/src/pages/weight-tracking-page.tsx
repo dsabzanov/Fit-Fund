@@ -24,7 +24,15 @@ export default function WeightTrackingPage() {
   });
 
   if (!user) {
-    return null;
+    return (
+      <div className="container mx-auto py-8">
+        <Alert>
+          <AlertDescription>
+            Please log in to access weight tracking.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
   }
 
   if (isLoading) {

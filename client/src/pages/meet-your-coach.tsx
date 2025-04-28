@@ -18,11 +18,14 @@ export default function MeetYourCoachPage() {
           
           <div className="p-6 md:p-8 space-y-8">
             <div className="flex flex-col md:flex-row gap-8 items-center">
-              <img 
-                src="/assets/ilana-headshot.jpg"
-                alt="Ilana Muhlstein headshot"
-                className="rounded-lg shadow-lg w-full md:w-1/3 max-w-xs object-cover"
-              />
+              <div className="rounded-lg shadow-lg w-full md:w-1/3 max-w-xs overflow-hidden">
+                <img 
+                  src="/assets/ilana-headshot.jpg"
+                  alt="Ilana Muhlstein headshot"
+                  className="w-full h-full object-cover"
+                  style={{ aspectRatio: '1/1.2' }}
+                />
+              </div>
               
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold text-gray-800">
