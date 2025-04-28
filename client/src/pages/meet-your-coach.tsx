@@ -1,6 +1,7 @@
 import React from 'react';
 import { Footer } from "@/components/footer";
 import { HomeButton } from "@/components/home-button";
+import ilanaHeadshot from "../assets/ilana-headshot.jpg";
 
 export default function MeetYourCoachPage() {
   return (
@@ -20,7 +21,7 @@ export default function MeetYourCoachPage() {
             <div className="flex flex-col md:flex-row gap-8 items-center">
               <div className="rounded-lg shadow-lg w-full md:w-1/3 max-w-xs overflow-hidden">
                 <img 
-                  src="/ilana-headshot.jpg"
+                  src={ilanaHeadshot}
                   alt="Ilana Muhlstein headshot"
                   className="w-full h-full object-cover"
                   style={{ aspectRatio: '1/1.2' }}
