@@ -136,17 +136,56 @@ export default function AuthPage() {
         <div className="space-y-6">
           <div className="relative">
             <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-lg"></div>
-            <div className="relative grid grid-cols-2 gap-4 p-6">
-              <img 
-                src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=500"
-                alt="Healthy breakfast"
-                className="rounded-lg shadow-lg transform hover:scale-105 transition-transform"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500"
-                alt="Fresh vegetables"
-                className="rounded-lg shadow-lg transform hover:scale-105 transition-transform"
-              />
+            <div className="relative p-6">
+              <h2 className="text-2xl font-bold mb-4">
+                Meet Your Coach: <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Ilana Muhlstein, MS, RDN</span>
+              </h2>
+              
+              <div className="flex flex-col md:flex-row gap-6 items-center">
+                <img 
+                  src="/assets/ilana-headshot.jpg"
+                  alt="Ilana Muhlstein headshot"
+                  className="rounded-lg shadow-lg w-full md:w-1/2 max-w-xs object-cover"
+                />
+                
+                <div className="space-y-4">
+                  <p className="text-muted-foreground font-medium">
+                    Ilana isn't just your coach—she's your biggest cheerleader.
+                  </p>
+                  
+                  <p className="text-sm text-muted-foreground">
+                    As a Registered Dietitian Nutritionist, bestselling author, and creator of the 2B Mindset weight loss program, 
+                    Ilana has helped hundreds of thousands of people transform their bodies, their health, and their relationship with food.
+                  </p>
+                  
+                  <p className="text-sm text-muted-foreground">
+                    But here's the best part: she's been in your shoes. Ilana lost over 100 pounds herself—and kept it off—while
+                    juggling real life as a mom of three and full-time professional. Her approach is practical, flexible, and empowering.
+                  </p>
+                  
+                  <div className="bg-primary/10 p-4 rounded-lg">
+                    <h3 className="font-semibold mb-2">With Ilana as your guide in FitFund, you'll get:</h3>
+                    <ul className="text-sm space-y-2">
+                      <li className="flex items-center gap-2">
+                        <span className="bg-primary/20 rounded-full w-5 h-5 flex items-center justify-center text-primary text-xs">✓</span>
+                        Proven tools and strategies that actually fit your life
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="bg-primary/20 rounded-full w-5 h-5 flex items-center justify-center text-primary text-xs">✓</span>
+                        Encouragement without judgment
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="bg-primary/20 rounded-full w-5 h-5 flex items-center justify-center text-primary text-xs">✓</span>
+                        A clear, motivating path toward your goals
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <p className="text-sm font-medium">
+                    She gets it. She lives it. And she's here to help you thrive. 💚
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           <div className="relative">
