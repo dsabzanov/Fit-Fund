@@ -76,6 +76,11 @@ export function Footer() {
             <h4 className="font-semibold text-lg mb-4">Support</h4>
             <ul className="space-y-2 text-sm">
               <li>
+                <Link href="/meet-your-coach" className="text-gray-600 hover:text-primary transition-colors font-medium">
+                  Meet Your Coach
+                </Link>
+              </li>
+              <li>
                 <a href="#" className="text-gray-600 hover:text-primary transition-colors">
                   Help Center
                 </a>
@@ -91,7 +96,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition-colors font-medium">
+                <a href="#" className="text-gray-600 hover:text-primary transition-colors">
                   Contact Us
                 </a>
               </li>
