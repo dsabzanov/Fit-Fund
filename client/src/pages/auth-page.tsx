@@ -152,23 +152,58 @@ export default function AuthPage() {
           <div className="relative">
             <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-lg"></div>
             <div className="relative p-6 space-y-4">
-              <h1 className="text-4xl font-bold tracking-tighter">
-                Transform Your Life with
-                <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> FitFund</span>
+              <h1 className="text-3xl font-bold tracking-tighter">
+                What is <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">FitFund</span>?
               </h1>
-              <p className="text-muted-foreground text-lg">
-                Join weight loss challenges, bet on yourself, and win money while achieving your wellness goals.
-                Our platform makes healthy living enjoyable, social, and rewarding.
+              <p className="text-muted-foreground">
+                FitFund is your new favorite way to lose weight—with fun, structure, and real rewards.
               </p>
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="text-center p-4 bg-white/80 rounded-lg shadow-sm">
-                  <p className="font-semibold">Mindful Eating</p>
+              
+              <div className="space-y-5 mt-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="bg-white/60 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-1.5 flex items-center gap-2">
+                    <span className="bg-primary/20 rounded-full w-6 h-6 flex items-center justify-center text-primary">1</span>
+                    Join a Challenge
+                  </h3>
+                  <p className="text-sm">Start by joining one of our 28-day weight loss challenges. You'll choose a personal goal—we recommend 4% of your starting weight—and commit to showing up for yourself every day.</p>
                 </div>
-                <div className="text-center p-4 bg-white/80 rounded-lg shadow-sm">
-                  <p className="font-semibold">Healthy Choices</p>
+                
+                <div className="bg-white/60 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-1.5 flex items-center gap-2">
+                    <span className="bg-primary/20 rounded-full w-6 h-6 flex items-center justify-center text-primary">2</span>
+                    Place Your Bet
+                  </h3>
+                  <p className="text-sm">Put a small amount of money on the line. This isn't to scare you—it's to motivate you. When you meet your goal by the end of the challenge, you win your money back… and often more, split from the pot with other winners!</p>
                 </div>
-                <div className="text-center p-4 bg-white/80 rounded-lg shadow-sm">
-                  <p className="font-semibold">Better Life</p>
+                
+                <div className="bg-white/60 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-1.5 flex items-center gap-2">
+                    <span className="bg-primary/20 rounded-full w-6 h-6 flex items-center justify-center text-primary">3</span>
+                    Track Your Progress
+                  </h3>
+                  <p className="text-sm">Weigh in at the start and end of each challenge, and check in daily with updates, reflections, and wins—big or small. We make it simple and supportive.</p>
+                </div>
+                
+                <div className="bg-white/60 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-1.5 flex items-center gap-2">
+                    <span className="bg-primary/20 rounded-full w-6 h-6 flex items-center justify-center text-primary">4</span>
+                    Get Support from Ilana + Community
+                  </h3>
+                  <p className="text-sm">Ilana Muhlstein, MS, RDN, is your expert guide throughout. You'll get motivating videos, tips, and tools from her, plus daily encouragement from a like-minded community that's in this with you.</p>
+                </div>
+                
+                <div className="bg-white/60 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-1.5 flex items-center gap-2">
+                    <span className="bg-primary/20 rounded-full w-6 h-6 flex items-center justify-center text-primary">5</span>
+                    Celebrate Your Wins (with Cash!)
+                  </h3>
+                  <p className="text-sm">Hit your goal and get rewarded. The accountability, community, and expert coaching make all the difference.</p>
+                </div>
+                
+                <div className="bg-primary/10 p-4 rounded-lg mt-2">
+                  <h3 className="font-semibold text-lg mb-1.5">Why It Works:</h3>
+                  <p className="text-sm">Because we're making weight loss fun again. This isn't about punishment—it's about positive motivation, progress over perfection, and the support you need to succeed.</p>
+                  <p className="text-sm font-medium mt-3">You've got this. We believe in you. Now let's crush this—together. 💪</p>
                 </div>
               </div>
             </div>
