@@ -26,7 +26,17 @@ export function Footer() {
             <p className="text-sm text-gray-600">
               Transforming fitness motivation through community challenges and financial incentives.
             </p>
-            <div className="flex space-x-4">
+            <a href="https://www.ilanamuhlstein.com" target="_blank" rel="noopener noreferrer" className="block mt-3">
+              <div className="flex items-center gap-2">
+                <img 
+                  src="/assets/IM_Initials_Black.png"
+                  alt="Ilana Muhlstein Logo"
+                  className="h-8 w-auto"
+                />
+                <span className="text-sm font-medium text-gray-700">Visit Ilana Muhlstein's Website</span>
+              </div>
+            </a>
+            <div className="flex space-x-4 mt-3">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <Facebook className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" />
               </a>
