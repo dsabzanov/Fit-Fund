@@ -20,7 +20,7 @@ export default function MeetYourCoachPage() {
             <div className="flex flex-col md:flex-row gap-8 items-center">
               <div className="rounded-lg shadow-lg w-full md:w-1/3 max-w-xs overflow-hidden">
                 <img 
-                  src="/assets/images/ilana-headshot.jpg"
+                  src="/ilana-headshot.jpg"
                   alt="Ilana Muhlstein headshot"
                   className="w-full h-full object-cover"
                   style={{ aspectRatio: '1/1.2' }}
