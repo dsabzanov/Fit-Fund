@@ -1,801 +1,717 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, User, Search, Filter, DownloadCloud, Settings, Edit, Save, XCircle, CheckCircle, Calendar, Mail } from "lucide-react";
-import { Footer } from "@/components/footer";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { User as UserType, Challenge, Participant } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { CalendarIcon, Edit, Trash2, Users, TrendingUp, DollarSign, User, Award, Ban, CheckCircle2, AlertCircle } from "lucide-react";
+import { User as UserType, Challenge, Participant, FeedPost } from "@shared/schema";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
-  const queryClient = useQueryClient();
-  
-  // Tab state
   const [activeTab, setActiveTab] = useState("users");
-  
-  // Filter states
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [challengeSearchTerm, setChallengeSearchTerm] = useState("");
-  
-  // Edit states
-  const [editingUser, setEditingUser] = useState<UserType | null>(null);
-  const [editingChallenge, setEditingChallenge] = useState<Challenge | null>(null);
-  
-  // Fetch data
-  const { 
-    data: users = [], 
-    isLoading: isLoadingUsers, 
-    error: usersError 
-  } = useQuery<UserType[]>({
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [challengeDialogOpen, setChallengeDialogOpen] = useState(false);
+
+  // Fetch all users
+  const { data: users, isLoading: usersLoading } = useQuery<UserType[]>({
     queryKey: ["/api/admin/users"],
-    enabled: user?.isAdmin === true // Only fetch if user is admin
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/users");
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
   });
-  
-  const { 
-    data: challenges = [], 
-    isLoading: isLoadingChallenges, 
-    error: challengesError 
-  } = useQuery<Challenge[]>({
+
+  // Fetch all challenges
+  const { data: challenges, isLoading: challengesLoading } = useQuery<Challenge[]>({
     queryKey: ["/api/admin/challenges"],
-    enabled: user?.isAdmin === true // Only fetch if user is admin
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/challenges");
+      if (!res.ok) throw new Error("Failed to fetch challenges");
+      return res.json();
+    },
   });
-  
-  const { 
-    data: participants = [], 
-    isLoading: isLoadingParticipants, 
-    error: participantsError 
-  } = useQuery<Participant[]>({
+
+  // Fetch all participants
+  const { data: participants, isLoading: participantsLoading } = useQuery<Participant[]>({
     queryKey: ["/api/admin/participants"],
-    enabled: user?.isAdmin === true // Only fetch if user is admin
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/participants");
+      if (!res.ok) throw new Error("Failed to fetch participants");
+      return res.json();
+    },
   });
-  
-  // Update mutations
+
+  // Update user mutation
   const updateUserMutation = useMutation({
-    mutationFn: async (updatedUser: UserType) => {
-      const response = await apiRequest("PATCH", `/api/admin/users/${updatedUser.id}`, updatedUser);
-      return response.json();
+    mutationFn: async (userData: Partial<UserType> & { id: number }) => {
+      const res = await apiRequest("PATCH", `/api/admin/users/${userData.id}`, userData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to update user");
+      }
+      return res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "User Updated",
-        description: "User information has been successfully updated.",
-      });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      setEditingUser(null);
-    },
-    onError: (error) => {
+      setUserDialogOpen(false);
       toast({
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update user.",
+        title: "User updated",
+        description: "The user has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update user",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
-  
+
+  // Update challenge mutation
   const updateChallengeMutation = useMutation({
-    mutationFn: async (updatedChallenge: Challenge) => {
-      const response = await apiRequest("PATCH", `/api/admin/challenges/${updatedChallenge.id}`, updatedChallenge);
-      return response.json();
+    mutationFn: async (challengeData: Partial<Challenge> & { id: number }) => {
+      const res = await apiRequest("PATCH", `/api/admin/challenges/${challengeData.id}`, challengeData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to update challenge");
+      }
+      return res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Challenge Updated",
-        description: "Challenge information has been successfully updated.",
-      });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/challenges"] });
-      setEditingChallenge(null);
-    },
-    onError: (error) => {
+      setChallengeDialogOpen(false);
       toast({
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update challenge.",
+        title: "Challenge updated",
+        description: "The challenge has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update challenge",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
-  
-  // Filtered data
-  const filteredUsers = users.filter(user => 
+
+  // Update participant payment status mutation
+  const updateParticipantPaymentMutation = useMutation({
+    mutationFn: async ({ userId, challengeId, paid }: { userId: number; challengeId: number; paid: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/admin/participants/${challengeId}/${userId}/payment`, { paid });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to update payment status");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/participants"] });
+      toast({
+        title: "Payment status updated",
+        description: "The participant's payment status has been updated.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update payment status",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const filteredUsers = users ? users.filter(user => 
     user.username.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     (user.email && user.email.toLowerCase().includes(userSearchTerm.toLowerCase()))
-  );
-  
-  const filteredChallenges = challenges.filter(challenge => 
+  ) : [];
+
+  const filteredChallenges = challenges ? challenges.filter(challenge => 
     challenge.title.toLowerCase().includes(challengeSearchTerm.toLowerCase()) ||
     challenge.description.toLowerCase().includes(challengeSearchTerm.toLowerCase())
-  );
+  ) : [];
+
+  // Calculate user stats
+  const totalUsers = users?.length || 0;
+  const totalAdmins = users?.filter(u => u.isAdmin).length || 0;
+  const totalHosts = users?.filter(u => u.isHost).length || 0;
   
-  // Check if user has admin access
-  useEffect(() => {
-    if (user && user.isAdmin !== true) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access the admin dashboard.",
-        variant: "destructive",
-      });
-      navigate("/");
-    }
-  }, [user, navigate, toast]);
-  
-  // Handle user edit submission
-  const handleUserUpdate = (updatedUser: UserType) => {
-    updateUserMutation.mutate(updatedUser);
-  };
-  
-  // Handle challenge edit submission
-  const handleChallengeUpdate = (updatedChallenge: Challenge) => {
-    updateChallengeMutation.mutate(updatedChallenge);
-  };
-  
-  // Export data as CSV
-  const exportUsersCSV = () => {
-    const headers = ["ID", "Username", "Email", "Created At", "Status"];
-    const csvData = [
-      headers.join(","),
-      ...users.map(user => 
-        [
-          user.id, 
-          user.username, 
-          user.email || "N/A", 
-          new Date(user.createdAt || Date.now()).toLocaleDateString(), 
-          user.isAdmin ? "Admin" : "User"
-        ].join(",")
-      )
-    ].join("\\n");
-    
-    const blob = new Blob([csvData], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "users_export.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-  
-  const exportChallengesCSV = () => {
-    const headers = ["ID", "Title", "Description", "Start Date", "End Date", "Entry Fee", "Status", "Creator"];
-    const csvData = [
-      headers.join(","),
-      ...challenges.map(challenge => 
-        [
-          challenge.id, 
-          challenge.title, 
-          challenge.description.replace(/,/g, ";"), 
-          new Date(challenge.startDate).toLocaleDateString(), 
-          new Date(challenge.endDate).toLocaleDateString(), 
-          challenge.entryFee,
-          challenge.status,
-          challenge.userId
-        ].join(",")
-      )
-    ].join("\\n");
-    
-    const blob = new Blob([csvData], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "challenges_export.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-  
-  // Loading and error states
-  if (isLoadingUsers || isLoadingChallenges || isLoadingParticipants) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  if (usersError || challengesError || participantsError) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Alert variant="destructive">
-          <AlertDescription>
-            Error loading admin data. Please try again later.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-  
-  // Check admin access one more time
-  if (!user || user.isAdmin !== true) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Alert variant="destructive">
-          <AlertDescription>
-            You don't have permission to access the admin dashboard.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  // Calculate challenge stats
+  const totalChallenges = challenges?.length || 0;
+  const activeChallenges = challenges?.filter(c => c.status === "active").length || 0;
+  const totalParticipants = participants?.length || 0;
+  const paidParticipants = participants?.filter(p => p.paid).length || 0;
+  const totalRevenue = participants?.filter(p => p.paid).reduce((sum, p) => {
+    const challenge = challenges?.find(c => c.id === p.challengeId);
+    return sum + (challenge?.entryFee || 0);
+  }, 0);
   
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-primary/10 border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-primary">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Manage users, challenges, and more</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => navigate("/")}>
-                Back to App
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                <span className="font-medium">Logged in as:</span> {user.username}
-              </div>
-            </div>
-          </div>
+    <div className="container py-8 max-w-7xl mx-auto">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            Manage users, challenges, and monitor activity across the platform.
+          </p>
         </div>
-      </header>
-      
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="users" className="text-lg">
-              <User className="h-4 w-4 mr-2" />
-              Users Management
-            </TabsTrigger>
-            <TabsTrigger value="challenges" className="text-lg">
-              <Calendar className="h-4 w-4 mr-2" />
-              Challenges
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="text-lg">
-              <Settings className="h-4 w-4 mr-2" />
-              Admin Settings
-            </TabsTrigger>
+
+        {/* Stats Overview */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                {totalAdmins} Admins · {totalHosts} Hosts
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Challenges</CardTitle>
+              <Award className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{activeChallenges}</div>
+              <p className="text-xs text-muted-foreground">
+                of {totalChallenges} total challenges
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Participants</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalParticipants}</div>
+              <p className="text-xs text-muted-foreground">
+                {paidParticipants} paid participants
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                Across all paid challenges
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 md:w-auto md:inline-flex">
+            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="challenges">Challenge Management</TabsTrigger>
           </TabsList>
           
           {/* Users Tab */}
-          <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>All Users</CardTitle>
-                <CardDescription>
-                  View and manage all registered users on the platform.
-                </CardDescription>
-                <div className="flex justify-between items-center mt-4">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search users..."
-                      className="pl-8 max-w-sm"
-                      value={userSearchTerm}
-                      onChange={(e) => setUserSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={exportUsersCSV}>
-                      <DownloadCloud className="h-4 w-4 mr-2" />
-                      Export CSV
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filter
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Joined Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers.length > 0 ? (
-                      filteredUsers.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell>{user.id}</TableCell>
-                          <TableCell>{user.username}</TableCell>
-                          <TableCell>{user.email || "N/A"}</TableCell>
-                          <TableCell>
-                            {user.createdAt 
-                              ? new Date(user.createdAt).toLocaleDateString() 
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              user.isAdmin 
-                                ? "bg-primary/20 text-primary" 
-                                : "bg-green-100 text-green-800"
-                            }`}>
-                              {user.isAdmin ? "Admin" : "Active"}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Edit User</DialogTitle>
-                                  <DialogDescription>
-                                    Update user information and settings.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Username</label>
-                                    <Input
-                                      defaultValue={user.username}
-                                      className="col-span-3"
-                                      onChange={(e) => setEditingUser({
-                                        ...user,
-                                        username: e.target.value
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Email</label>
-                                    <Input
-                                      defaultValue={user.email || ""}
-                                      className="col-span-3"
-                                      onChange={(e) => setEditingUser({
-                                        ...user,
-                                        email: e.target.value
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Admin Access</label>
-                                    <div className="col-span-3 flex items-center">
-                                      <input 
-                                        type="checkbox" 
-                                        className="mr-2"
-                                        defaultChecked={user.isAdmin}
-                                        onChange={(e) => setEditingUser({
-                                          ...user,
-                                          isAdmin: e.target.checked
-                                        })}
-                                      />
-                                      <span>Grant admin privileges</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex justify-end gap-2">
-                                  <Button variant="outline" onClick={() => setEditingUser(null)}>
-                                    Cancel
-                                  </Button>
-                                  <Button onClick={() => handleUserUpdate(editingUser || user)}>
-                                    <Save className="h-4 w-4 mr-2" />
-                                    Save Changes
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-4">
-                          No users found matching your search criteria.
+          <TabsContent value="users" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Users</h2>
+              <div className="w-full max-w-sm">
+                <Input 
+                  placeholder="Search users..." 
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {usersLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="w-10 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-32 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-40 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-24 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-24 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-20 h-8 ml-auto" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.id}</TableCell>
+                        <TableCell>{user.username}</TableCell>
+                        <TableCell>{user.email || "-"}</TableCell>
+                        <TableCell>
+                          {user.isAdmin && (
+                            <Badge className="mr-1 bg-purple-500">Admin</Badge>
+                          )}
+                          {user.isHost && (
+                            <Badge className="mr-1">Host</Badge>
+                          )}
+                          {!user.isAdmin && !user.isHost && (
+                            <Badge variant="outline">Player</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
+                            Active
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setUserDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 text-sm text-muted-foreground">
-                  Showing {filteredUsers.length} of {users.length} users
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle>User Analytics</CardTitle>
-                <CardDescription>
-                  Key statistics about user engagement and activities.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="border rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Total Users</h3>
-                    <p className="text-3xl font-bold">{users.length}</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Across all FitFund challenges
-                    </p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Active Users</h3>
-                    <p className="text-3xl font-bold">
-                      {participants.filter(p => p.active).length}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Currently participating in challenges
-                    </p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Conversion Rate</h3>
-                    <p className="text-3xl font-bold">
-                      {users.length > 0 
-                        ? `${Math.round((participants.length / users.length) * 100)}%`
-                        : "0%"}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Users who joined at least one challenge
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                        {userSearchTerm ? "No users match your search." : "No users found."}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </TabsContent>
           
           {/* Challenges Tab */}
-          <TabsContent value="challenges">
-            <Card>
-              <CardHeader>
-                <CardTitle>All Challenges</CardTitle>
-                <CardDescription>
-                  View and manage all FitFund challenges.
-                </CardDescription>
-                <div className="flex justify-between items-center mt-4">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search challenges..."
-                      className="pl-8 max-w-sm"
-                      value={challengeSearchTerm}
-                      onChange={(e) => setChallengeSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={exportChallengesCSV}>
-                      <DownloadCloud className="h-4 w-4 mr-2" />
-                      Export CSV
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filter
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Participants</TableHead>
-                      <TableHead>Entry Fee</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredChallenges.length > 0 ? (
-                      filteredChallenges.map((challenge) => (
+          <TabsContent value="challenges" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Challenges</h2>
+              <div className="w-full max-w-sm">
+                <Input 
+                  placeholder="Search challenges..." 
+                  value={challengeSearchTerm}
+                  onChange={(e) => setChallengeSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Host</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Participants</TableHead>
+                    <TableHead>Entry Fee</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {challengesLoading || participantsLoading || usersLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="w-10 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-40 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-24 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-20 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-16 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-16 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-20 h-8 ml-auto" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredChallenges.length > 0 ? (
+                    filteredChallenges.map((challenge) => {
+                      // Find host user
+                      const host = users?.find(u => u.id === challenge.userId);
+                      
+                      // Find participants for this challenge
+                      const challengeParticipants = participants?.filter(p => p.challengeId === challenge.id) || [];
+                      const paidCount = challengeParticipants.filter(p => p.paid).length;
+                      
+                      return (
                         <TableRow key={challenge.id}>
                           <TableCell>{challenge.id}</TableCell>
                           <TableCell className="font-medium">{challenge.title}</TableCell>
-                          <TableCell>{new Date(challenge.startDate).toLocaleDateString()}</TableCell>
-                          <TableCell>{new Date(challenge.endDate).toLocaleDateString()}</TableCell>
+                          <TableCell>{host?.username || "Unknown"}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              challenge.status === 'open'
-                                ? "bg-green-100 text-green-800"
-                                : challenge.status === 'ongoing'
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}>
-                              {challenge.status.charAt(0).toUpperCase() + challenge.status.slice(1)}
-                            </span>
+                            {challenge.status === "active" ? (
+                              <Badge className="bg-green-500">Active</Badge>
+                            ) : challenge.status === "completed" ? (
+                              <Badge className="bg-blue-500">Completed</Badge>
+                            ) : challenge.status === "pending" ? (
+                              <Badge className="bg-yellow-500">Pending</Badge>
+                            ) : (
+                              <Badge variant="outline">{challenge.status}</Badge>
+                            )}
                           </TableCell>
                           <TableCell>
-                            {participants.filter(p => p.challengeId === challenge.id).length}
+                            {paidCount}/{challengeParticipants.length}
                           </TableCell>
                           <TableCell>${challenge.entryFee}</TableCell>
-                          <TableCell>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-md">
-                                <DialogHeader>
-                                  <DialogTitle>Edit Challenge</DialogTitle>
-                                  <DialogDescription>
-                                    Update challenge details and settings.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Title</label>
-                                    <Input
-                                      defaultValue={challenge.title}
-                                      className="col-span-3"
-                                      onChange={(e) => setEditingChallenge({
-                                        ...challenge,
-                                        title: e.target.value
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Description</label>
-                                    <textarea
-                                      className="col-span-3 min-h-[100px] p-2 border rounded-md"
-                                      defaultValue={challenge.description}
-                                      onChange={(e) => setEditingChallenge({
-                                        ...challenge,
-                                        description: e.target.value
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Start Date</label>
-                                    <Input
-                                      type="date"
-                                      defaultValue={new Date(challenge.startDate).toISOString().split('T')[0]}
-                                      className="col-span-3"
-                                      onChange={(e) => setEditingChallenge({
-                                        ...challenge,
-                                        startDate: new Date(e.target.value).toISOString()
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">End Date</label>
-                                    <Input
-                                      type="date"
-                                      defaultValue={new Date(challenge.endDate).toISOString().split('T')[0]}
-                                      className="col-span-3"
-                                      onChange={(e) => setEditingChallenge({
-                                        ...challenge,
-                                        endDate: new Date(e.target.value).toISOString()
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Entry Fee</label>
-                                    <Input
-                                      type="number"
-                                      defaultValue={challenge.entryFee}
-                                      className="col-span-3"
-                                      onChange={(e) => setEditingChallenge({
-                                        ...challenge,
-                                        entryFee: parseInt(e.target.value)
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <label className="text-right">Status</label>
-                                    <select
-                                      defaultValue={challenge.status}
-                                      className="col-span-3 p-2 border rounded-md"
-                                      onChange={(e) => setEditingChallenge({
-                                        ...challenge,
-                                        status: e.target.value
-                                      })}
-                                    >
-                                      <option value="open">Open</option>
-                                      <option value="ongoing">Ongoing</option>
-                                      <option value="completed">Completed</option>
-                                      <option value="cancelled">Cancelled</option>
-                                    </select>
-                                  </div>
-                                </div>
-                                <div className="flex justify-end gap-2">
-                                  <Button variant="outline" onClick={() => setEditingChallenge(null)}>
-                                    Cancel
-                                  </Button>
-                                  <Button onClick={() => handleChallengeUpdate(editingChallenge || challenge)}>
-                                    <Save className="h-4 w-4 mr-2" />
-                                    Save Changes
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                            <Button variant="ghost" size="sm" asChild>
-                              <a href={`/challenge/${challenge.id}`} target="_blank" rel="noopener noreferrer">
-                                View
-                              </a>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                setSelectedChallenge(challenge);
+                                setChallengeDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span className="sr-only">Edit</span>
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-4">
-                          No challenges found matching your search criteria.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 text-sm text-muted-foreground">
-                  Showing {filteredChallenges.length} of {challenges.length} challenges
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle>Challenge Analytics</CardTitle>
-                <CardDescription>
-                  Key statistics about challenges and participation.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="border rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Total Challenges</h3>
-                    <p className="text-3xl font-bold">{challenges.length}</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Created on the platform
-                    </p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Active Challenges</h3>
-                    <p className="text-3xl font-bold">
-                      {challenges.filter(c => c.status === 'ongoing').length}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Currently running
-                    </p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Total Revenue</h3>
-                    <p className="text-3xl font-bold">
-                      ${participants.reduce((sum, p) => {
-                        const challenge = challenges.find(c => c.id === p.challengeId);
-                        return sum + (challenge?.entryFee || 0);
-                      }, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      From all entry fees
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Settings Tab */}
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Admin Settings</CardTitle>
-                <CardDescription>
-                  Configure global settings and preferences for the admin dashboard.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Email Notifications</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center">
-                          <input type="checkbox" className="mr-2" defaultChecked />
-                          <span>New user registrations</span>
-                        </label>
-                        <Button variant="outline" size="sm">
-                          <Mail className="h-4 w-4 mr-2" />
-                          Configure
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center">
-                          <input type="checkbox" className="mr-2" defaultChecked />
-                          <span>New challenge creations</span>
-                        </label>
-                        <Button variant="outline" size="sm">
-                          <Mail className="h-4 w-4 mr-2" />
-                          Configure
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center">
-                          <input type="checkbox" className="mr-2" defaultChecked />
-                          <span>Payment processing events</span>
-                        </label>
-                        <Button variant="outline" size="sm">
-                          <Mail className="h-4 w-4 mr-2" />
-                          Configure
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Data Management</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Export all platform data for backup or analysis.
-                        </p>
-                        <Button variant="outline">
-                          <DownloadCloud className="h-4 w-4 mr-2" />
-                          Export All Data
-                        </Button>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Database maintenance and optimization.
-                        </p>
-                        <Button variant="outline">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Database Tools
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">System Information</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="font-medium">Platform Version</p>
-                        <p className="text-muted-foreground">FitFund v1.0.0</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Database Status</p>
-                        <p className="text-green-600 flex items-center">
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Connected
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Last Backup</p>
-                        <p className="text-muted-foreground">Never</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Server Time</p>
-                        <p className="text-muted-foreground">{new Date().toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                        {challengeSearchTerm ? "No challenges match your search." : "No challenges found."}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </TabsContent>
         </Tabs>
-      </main>
-      
-      <Footer />
+      </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user account details and permissions.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!selectedUser) return;
+                
+                const formData = new FormData(e.currentTarget);
+                const isAdmin = formData.get("isAdmin") === "on";
+                const isHost = formData.get("isHost") === "on";
+                const email = formData.get("email") as string;
+                
+                updateUserMutation.mutate({
+                  id: selectedUser.id,
+                  email: email || null,
+                  isAdmin,
+                  isHost
+                });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    defaultValue={selectedUser.username}
+                    disabled
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Username cannot be changed
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    defaultValue={selectedUser.email || ""}
+                    placeholder="user@example.com"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isAdmin"
+                    name="isAdmin"
+                    defaultChecked={selectedUser.isAdmin}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="isAdmin" className="text-sm font-medium leading-none">
+                    Admin User
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isHost"
+                    name="isHost"
+                    defaultChecked={selectedUser.isHost}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="isHost" className="text-sm font-medium leading-none">
+                    Host User
+                  </Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setUserDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateUserMutation.isPending}>
+                  {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Challenge Dialog */}
+      <Dialog open={challengeDialogOpen} onOpenChange={setChallengeDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Challenge</DialogTitle>
+            <DialogDescription>
+              Update challenge details and manage participants.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedChallenge && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!selectedChallenge) return;
+                
+                const formData = new FormData(e.currentTarget);
+                const title = formData.get("title") as string;
+                const description = formData.get("description") as string;
+                const entryFee = parseFloat(formData.get("entryFee") as string);
+                const percentageGoal = parseFloat(formData.get("percentageGoal") as string);
+                const status = formData.get("status") as string;
+                
+                // startDate and endDate handling
+                const startDateStr = formData.get("startDate") as string;
+                const endDateStr = formData.get("endDate") as string;
+                
+                updateChallengeMutation.mutate({
+                  id: selectedChallenge.id,
+                  title,
+                  description,
+                  entryFee,
+                  percentageGoal: percentageGoal.toString(),
+                  status,
+                  startDate: startDateStr ? new Date(startDateStr) : selectedChallenge.startDate,
+                  endDate: endDateStr ? new Date(endDateStr) : selectedChallenge.endDate
+                });
+              }}
+              className="space-y-4"
+            >
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    defaultValue={selectedChallenge.title}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    defaultValue={selectedChallenge.description}
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="entryFee">Entry Fee ($)</Label>
+                    <Input
+                      id="entryFee"
+                      name="entryFee"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      defaultValue={selectedChallenge.entryFee}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="percentageGoal">Weight Loss Goal (%)</Label>
+                    <Input
+                      id="percentageGoal"
+                      name="percentageGoal"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      defaultValue={selectedChallenge.percentageGoal}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    name="status"
+                    defaultValue={selectedChallenge.status}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate">Start Date</Label>
+                    <Input
+                      id="startDate"
+                      name="startDate"
+                      type="date"
+                      defaultValue={selectedChallenge.startDate.toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate">End Date</Label>
+                    <Input
+                      id="endDate"
+                      name="endDate"
+                      type="date"
+                      defaultValue={selectedChallenge.endDate.toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Challenge Participants */}
+              {participants && challenges && users && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Participants</h3>
+                  <div className="rounded-md border max-h-40 overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Start Weight</TableHead>
+                          <TableHead>Current</TableHead>
+                          <TableHead>Payment</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {participants
+                          .filter(p => p.challengeId === selectedChallenge.id)
+                          .map(participant => {
+                            const participantUser = users.find(u => u.id === participant.userId);
+                            return (
+                              <TableRow key={`${participant.userId}-${participant.challengeId}`}>
+                                <TableCell>{participantUser?.username || "Unknown"}</TableCell>
+                                <TableCell>{participant.startWeight} lbs</TableCell>
+                                <TableCell>{participant.currentWeight || "-"} lbs</TableCell>
+                                <TableCell>
+                                  {participant.paid ? (
+                                    <Badge className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200">Paid</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="bg-red-50 text-red-800 border-red-200 hover:bg-red-100">Unpaid</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => updateParticipantPaymentMutation.mutate({
+                                      userId: participant.userId,
+                                      challengeId: participant.challengeId,
+                                      paid: !participant.paid
+                                    })}
+                                    disabled={updateParticipantPaymentMutation.isPending}
+                                  >
+                                    {participant.paid ? "Mark Unpaid" : "Mark Paid"}
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        {participants.filter(p => p.challengeId === selectedChallenge.id).length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-2 text-muted-foreground">
+                              No participants yet
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setChallengeDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateChallengeMutation.isPending}>
+                  {updateChallengeMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

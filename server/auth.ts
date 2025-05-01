@@ -102,10 +102,19 @@ export function setupAuth(app: Express) {
       }
 
       const hashedPassword = await hashPassword(req.body.password);
-      const user = await storage.createUser({
+      
+      // Default user fields
+      const userFields = {
         ...req.body,
         password: hashedPassword,
-      });
+        isAdmin: !!req.body.isAdmin,
+        isHost: !!req.body.isHost,
+        email: req.body.email || null,
+        currentWeight: req.body.currentWeight || null,
+        targetWeight: req.body.targetWeight || null,
+      };
+
+      const user = await storage.createUser(userFields);
 
       console.log('User registered successfully:', user.id);
       req.login(user, (err) => {
@@ -118,6 +127,51 @@ export function setupAuth(app: Express) {
     } catch (err) {
       console.error('Registration error:', err);
       res.status(500).json({ error: "Registration failed - internal server error" });
+    }
+  });
+  
+  // Special admin creation endpoint - DEVELOPMENT USE ONLY
+  app.post("/api/register-admin", async (req, res, next) => {
+    try {
+      console.log('Admin registration attempt for username:', req.body.username);
+      
+      if (!req.body.username || !req.body.password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+      
+      // Check for dev code to prevent unauthorized admin creation
+      if (req.body.devCode !== "fitfund-admin-2024") {
+        return res.status(403).json({ error: "Unauthorized admin creation attempt" });
+      }
+
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        console.log('Admin registration failed - username exists:', req.body.username);
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      const hashedPassword = await hashPassword(req.body.password);
+      const user = await storage.createUser({
+        username: req.body.username,
+        password: hashedPassword,
+        isAdmin: true,
+        isHost: true,
+        email: req.body.email || null,
+        currentWeight: req.body.currentWeight || null,
+        targetWeight: req.body.targetWeight || null,
+      });
+
+      console.log('Admin user registered successfully:', user.id);
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Login after admin registration failed:', err);
+          return res.status(500).json({ error: "Admin registration successful but login failed" });
+        }
+        res.status(201).json(user);
+      });
+    } catch (err) {
+      console.error('Admin registration error:', err);
+      res.status(500).json({ error: "Admin registration failed - internal server error" });
     }
   });
 
@@ -179,8 +233,11 @@ export function setupAuth(app: Express) {
             username: email,
             password: await hashPassword(uid + '_firebase_auth'), // Create a secure password
             isHost: false,
+            isAdmin: false,
+            email: email,
             currentWeight: null,
-            targetWeight: null
+            targetWeight: null,
+            createdAt: new Date()
           });
         } else {
           console.log('Existing user found for Google auth:', email);
