@@ -12,6 +12,7 @@ import WeeklyGamePage from "@/pages/weekly-game-page";
 import KickstarterGamePage from "@/pages/kickstarter-game-page";
 import CreateGamePage from "@/pages/create-game-form";
 import MeetYourCoachPage from "@/pages/meet-your-coach";
+import AdminDashboard from "@/pages/admin-dashboard";
 import { ProtectedRoute } from "./lib/protected-route";
 import WeightTrackingPage from "@/pages/weight-tracking-page";
 
@@ -24,6 +25,7 @@ function Router() {
       <ProtectedRoute path="/kickstarter-game" component={KickstarterGamePage} />
       <ProtectedRoute path="/create-game" component={CreateGamePage} />
       <ProtectedRoute path="/weight-tracking" component={WeightTrackingPage} />
+      <ProtectedRoute path="/admin" component={AdminDashboard} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/meet-your-coach" component={MeetYourCoachPage} />
       <Route component={NotFound} />

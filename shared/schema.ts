@@ -32,9 +32,12 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email"),
   currentWeight: numeric("current_weight"),
   targetWeight: numeric("target_weight"),
   isHost: boolean("is_host").notNull().default(false),
+  isAdmin: boolean("is_admin").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Challenges table
@@ -110,9 +113,12 @@ export const insertUserSchema = createInsertSchema(users)
     password: true,
   })
   .extend({
+    email: z.string().email("Invalid email address").nullable().optional(),
     isHost: z.boolean().default(false).optional(),
+    isAdmin: z.boolean().default(false).optional(),
     currentWeight: z.string().nullable().optional(),
     targetWeight: z.string().nullable().optional(),
+    createdAt: z.date().optional(),
   });
 
 export const insertChallengeSchema = createInsertSchema(challenges)

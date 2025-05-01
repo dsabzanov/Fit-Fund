@@ -492,6 +492,16 @@ export class DatabaseStorage implements IStorage {
     const [newChallenge] = await db.insert(challenges).values(challenge).returning();
     return newChallenge;
   }
+  
+  async updateChallenge(id: number, updates: Partial<Challenge>): Promise<Challenge | undefined> {
+    const [updatedChallenge] = await db
+      .update(challenges)
+      .set(updates)
+      .where(eq(challenges.id, id))
+      .returning();
+      
+    return updatedChallenge;
+  }
 
   async getUserChallenges(userId: number): Promise<Challenge[]> {
     // Get challenges where user is a participant
