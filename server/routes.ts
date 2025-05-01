@@ -116,6 +116,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.patch("/api/admin/participants/:challengeId/:userId/payment", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    try {
+      const challengeId = parseInt(req.params.challengeId);
+      const userId = parseInt(req.params.userId);
+      const paid = req.body.paid === true;
+      
+      console.log(`Admin updating payment status: Challenge ${challengeId}, User ${userId}, Paid: ${paid}`);
+      
+      await storage.updateParticipantPaymentStatus(challengeId, userId, paid);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      res.status(500).json({ error: "Failed to update payment status" });
+    }
+  });
+  
   setupAuth(app);
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });

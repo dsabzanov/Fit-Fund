@@ -165,7 +165,7 @@ export default function AdminDashboard() {
   const totalRevenue = participants?.filter(p => p.paid).reduce((sum, p) => {
     const challenge = challenges?.find(c => c.id === p.challengeId);
     return sum + (challenge?.entryFee || 0);
-  }, 0);
+  }, 0) || 0;
   
   return (
     <div className="container py-8 max-w-7xl mx-auto">
