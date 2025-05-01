@@ -36,6 +36,8 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
   
   // Challenge methods
   getAllChallenges(): Promise<Challenge[]>;
@@ -43,11 +45,13 @@ export interface IStorage {
   createChallenge(challenge: InsertChallenge): Promise<Challenge>;
   getUserChallenges(userId: number): Promise<Challenge[]>;
   getChallengeIfParticipant(id: number, userId: number): Promise<Challenge | undefined>;
+  updateChallenge(id: number, updates: Partial<Challenge>): Promise<Challenge | undefined>;
   
   // Participant methods
   getParticipant(userId: number, challengeId: number): Promise<Participant | undefined>;
   addParticipant(data: { userId: number; challengeId: number; startWeight: number }): Promise<Participant>;
   getParticipants(challengeId: number): Promise<Participant[]>;
+  getAllParticipants(): Promise<Participant[]>;
   updateParticipantPaymentStatus(challengeId: number, userId: number, paid: boolean): Promise<void>;
   
   // Weight record methods
@@ -356,7 +360,32 @@ export class MemStorage implements IStorage {
     this.feedPosts.set(id, updatedPost);
     return updatedPost;
   }
-
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateChallenge(id: number, updates: Partial<Challenge>): Promise<Challenge | undefined> {
+    const challenge = this.challenges.get(id);
+    if (!challenge) return undefined;
+    
+    const updatedChallenge = { ...challenge, ...updates };
+    this.challenges.set(id, updatedChallenge);
+    return updatedChallenge;
+  }
+  
+  async getAllParticipants(): Promise<Participant[]> {
+    return Array.from(this.participants.values());
+  }
 
 
   async getUserChallenges(userId: number): Promise<Challenge[]> {
@@ -430,6 +459,24 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  async getAllParticipants(): Promise<Participant[]> {
+    return await db.select().from(participants);
   }
 
   async getAllChallenges(): Promise<Challenge[]> {

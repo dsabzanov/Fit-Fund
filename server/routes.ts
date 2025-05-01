@@ -42,6 +42,80 @@ const createPaymentSessionSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Admin routes
+  app.get("/api/admin/users", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    const userId = parseInt(req.params.id);
+    
+    try {
+      const updatedUser = await storage.updateUser(userId, req.body);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+  
+  app.get("/api/admin/challenges", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    try {
+      const challenges = await storage.getAllChallenges();
+      res.json(challenges);
+    } catch (error) {
+      console.error("Error fetching challenges:", error);
+      res.status(500).json({ error: "Failed to fetch challenges" });
+    }
+  });
+  
+  app.patch("/api/admin/challenges/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    const challengeId = parseInt(req.params.id);
+    
+    try {
+      const updatedChallenge = await storage.updateChallenge(challengeId, req.body);
+      res.json(updatedChallenge);
+    } catch (error) {
+      console.error("Error updating challenge:", error);
+      res.status(500).json({ error: "Failed to update challenge" });
+    }
+  });
+  
+  app.get("/api/admin/participants", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    try {
+      const participants = await storage.getAllParticipants();
+      res.json(participants);
+    } catch (error) {
+      console.error("Error fetching participants:", error);
+      res.status(500).json({ error: "Failed to fetch participants" });
+    }
+  });
+  
   setupAuth(app);
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
