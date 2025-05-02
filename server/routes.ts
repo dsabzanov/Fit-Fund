@@ -421,8 +421,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid message ID" });
       }
       
+      // Get the message to retrieve the challengeId before deleting
+      const message = await storage.getChatMessages(0).then(
+        messages => messages.find(m => m.id === messageId)
+      );
+      
       // Add method to storage interface to delete message
       await storage.deleteChatMessage(messageId);
+      
+      // Broadcast message deletion to all connected clients
+      if (message) {
+        const broadcastData = {
+          type: 'admin-action',
+          action: 'delete-message',
+          messageId,
+          challengeId: message.challengeId
+        };
+        
+        clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(broadcastData));
+          }
+        });
+      }
       
       res.json({ success: true });
     } catch (error) {

@@ -58,15 +58,34 @@ export function CommunityFeed({ challengeId, initialMessages }: CommunityFeedPro
   useEffect(() => {
     const ws = getWebSocket();
     
+    if (!ws) return;
+    
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      
+      // Handle new chat messages
       if (data.type === "chat" && data.challengeId === challengeId) {
         setMessages(prev => [...prev, data.message]);
+      }
+      
+      // Handle admin actions
+      if (data.type === "admin-action" && data.challengeId === challengeId) {
+        // Handle message pinning/unpinning
+        if (data.action === "pin-message") {
+          setMessages(prev => prev.map(msg => 
+            msg.id === data.messageId ? { ...msg, isPinned: data.isPinned } : msg
+          ));
+        }
+        
+        // Handle message deletion
+        if (data.action === "delete-message") {
+          setMessages(prev => prev.filter(msg => msg.id !== data.messageId));
+        }
       }
     };
 
     return () => {
-      ws.close();
+      if (ws) ws.close();
     };
   }, [challengeId]);
 
