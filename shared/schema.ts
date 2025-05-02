@@ -103,6 +103,7 @@ export const chatMessages = pgTable("chat_messages", {
   userId: integer("user_id").notNull(),
   challengeId: integer("challenge_id").notNull(),
   message: text("message").notNull(),
+  isPinned: boolean("is_pinned").notNull().default(false),
   sentAt: timestamp("sent_at").notNull().defaultNow(),
 });
 
