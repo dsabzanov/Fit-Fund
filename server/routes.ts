@@ -139,6 +139,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
+  
+  // Store active WebSocket connections
+  const clients = new Set<WebSocket>();
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    clients.add(ws);
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      clients.delete(ws);
+    });
+    
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('WebSocket message received:', data);
+        
+        // Broadcast message to all connected clients
+        clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+          }
+        });
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
+  });
 
   // Create the uploads directory at server startup
   const uploadDir = 'public/uploads';
@@ -356,9 +385,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Add method to storage interface to update message pin status
-      await storage.updateChatMessagePinStatus(messageId, pinned);
+      const updatedMessage = await storage.updateChatMessagePinStatus(messageId, pinned);
       
-      res.json({ success: true, pinned });
+      // Broadcast message update to all connected clients
+      const broadcastData = {
+        type: 'admin-action',
+        action: 'pin-message',
+        messageId,
+        isPinned: pinned,
+        challengeId: updatedMessage?.challengeId
+      };
+      
+      clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(broadcastData));
+        }
+      });
+      
+      res.json({ success: true, pinned, message: updatedMessage });
     } catch (error) {
       console.error('Error updating message pin status:', error);
       res.status(500).json({ error: "Failed to update message pin status" });
