@@ -15,6 +15,8 @@ export interface IStorage {
   getWeightRecords(userId: number, challengeId: number): Promise<WeightRecord[]>;
   addChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(challengeId: number): Promise<ChatMessage[]>;
+  updateChatMessagePinStatus(messageId: number, isPinned: boolean): Promise<ChatMessage | undefined>;
+  deleteChatMessage(messageId: number): Promise<void>;
   createFeedPost(post: InsertFeedPost): Promise<FeedPost>;
   getFeedPosts(challengeId: number): Promise<FeedPost[]>;
   getPostsByChallenge(challengeId: number): Promise<FeedPost[]>;

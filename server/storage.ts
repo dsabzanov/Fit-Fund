@@ -317,6 +317,19 @@ export class MemStorage implements IStorage {
       (m) => m.challengeId === challengeId
     );
   }
+  
+  async updateChatMessagePinStatus(messageId: number, isPinned: boolean): Promise<ChatMessage | undefined> {
+    const message = this.chatMessages.get(messageId);
+    if (!message) return undefined;
+    
+    const updatedMessage = { ...message, isPinned };
+    this.chatMessages.set(messageId, updatedMessage);
+    return updatedMessage;
+  }
+  
+  async deleteChatMessage(messageId: number): Promise<void> {
+    this.chatMessages.delete(messageId);
+  }
 
   async createFeedPost(post: InsertFeedPost): Promise<FeedPost> {
     const id = this.currentId++;
@@ -637,6 +650,22 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(chatMessages)
       .where(eq(chatMessages.challengeId, challengeId));
+  }
+  
+  async updateChatMessagePinStatus(messageId: number, isPinned: boolean): Promise<ChatMessage | undefined> {
+    const [updatedMessage] = await db
+      .update(chatMessages)
+      .set({ isPinned })
+      .where(eq(chatMessages.id, messageId))
+      .returning();
+      
+    return updatedMessage;
+  }
+  
+  async deleteChatMessage(messageId: number): Promise<void> {
+    await db
+      .delete(chatMessages)
+      .where(eq(chatMessages.id, messageId));
   }
 
   async createFeedPost(post: InsertFeedPost): Promise<FeedPost> {

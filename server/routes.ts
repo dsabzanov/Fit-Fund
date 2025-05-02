@@ -314,6 +314,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch chat messages" });
     }
   });
+  
+  // Add chat message post endpoint
+  app.post("/api/chat", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const { message, challengeId } = insertChatMessageSchema.parse(req.body);
+      
+      const chatMessage = await storage.addChatMessage({
+        message,
+        challengeId,
+        userId: req.user!.id,
+        isPinned: false
+      });
+      
+      res.status(201).json(chatMessage);
+    } catch (error) {
+      console.error('Error creating chat message:', error);
+      res.status(500).json({ error: "Failed to create chat message" });
+    }
+  });
+  
+  // Add admin endpoint for pinning/unpinning chat messages
+  app.patch("/api/admin/chat/:messageId/pin", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user!.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized. Admin access required." });
+      }
+      
+      const messageId = parseInt(req.params.messageId);
+      if (isNaN(messageId)) {
+        return res.status(400).json({ error: "Invalid message ID" });
+      }
+      
+      const { pinned } = req.body;
+      if (typeof pinned !== 'boolean') {
+        return res.status(400).json({ error: "Pinned status must be a boolean" });
+      }
+      
+      // Add method to storage interface to update message pin status
+      await storage.updateChatMessagePinStatus(messageId, pinned);
+      
+      res.json({ success: true, pinned });
+    } catch (error) {
+      console.error('Error updating message pin status:', error);
+      res.status(500).json({ error: "Failed to update message pin status" });
+    }
+  });
+  
+  // Add admin endpoint for deleting chat messages
+  app.delete("/api/admin/chat/:messageId", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user!.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized. Admin access required." });
+      }
+      
+      const messageId = parseInt(req.params.messageId);
+      if (isNaN(messageId)) {
+        return res.status(400).json({ error: "Invalid message ID" });
+      }
+      
+      // Add method to storage interface to delete message
+      await storage.deleteChatMessage(messageId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting chat message:', error);
+      res.status(500).json({ error: "Failed to delete chat message" });
+    }
+  });
 
   app.post("/api/challenges", async (req, res) => {
     try {
