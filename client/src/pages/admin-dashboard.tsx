@@ -29,8 +29,11 @@ export default function AdminDashboard() {
   const [challengeSearchTerm, setChallengeSearchTerm] = useState("");
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [selectedWeightRecord, setSelectedWeightRecord] = useState<any>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [challengeDialogOpen, setChallengeDialogOpen] = useState(false);
+  const [weightVerificationDialogOpen, setWeightVerificationDialogOpen] = useState(false);
+  const [verificationFeedback, setVerificationFeedback] = useState("");
 
   // Fetch all users
   const { data: users, isLoading: usersLoading } = useQuery<UserType[]>({
@@ -58,6 +61,16 @@ export default function AdminDashboard() {
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/participants");
       if (!res.ok) throw new Error("Failed to fetch participants");
+      return res.json();
+    },
+  });
+  
+  // Fetch pending weight records
+  const { data: pendingWeightRecords, isLoading: weightRecordsLoading } = useQuery({
+    queryKey: ["/api/admin/weight-records/pending"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/weight-records/pending");
+      if (!res.ok) throw new Error("Failed to fetch pending weight records");
       return res.json();
     },
   });
@@ -136,6 +149,34 @@ export default function AdminDashboard() {
     onError: (error: Error) => {
       toast({
         title: "Failed to update payment status",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Verify weight record mutation
+  const verifyWeightRecordMutation = useMutation({
+    mutationFn: async ({ recordId, status, feedback }: { recordId: number; status: "approved" | "rejected"; feedback?: string }) => {
+      const res = await apiRequest("PATCH", `/api/admin/weight-records/${recordId}/verify`, { status, feedback });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to verify weight record");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/weight-records/pending"] });
+      setWeightVerificationDialogOpen(false);
+      setVerificationFeedback("");
+      toast({
+        title: "Weight record verified",
+        description: "The weight record has been verified successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to verify weight record",
         description: error.message,
         variant: "destructive",
       });
@@ -231,9 +272,10 @@ export default function AdminDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 md:w-auto md:inline-flex">
+          <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex">
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="challenges">Challenge Management</TabsTrigger>
+            <TabsTrigger value="weight-verification">Weight Verification</TabsTrigger>
           </TabsList>
           
           {/* Users Tab */}

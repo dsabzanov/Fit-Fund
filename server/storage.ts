@@ -304,6 +304,32 @@ export class MemStorage implements IStorage {
       (r) => r.userId === userId && r.challengeId === challengeId
     );
   }
+  
+  async getUserWeightRecords(userId: number): Promise<WeightRecord[]> {
+    return Array.from(this.weightRecords.values()).filter(
+      (r) => r.userId === userId
+    );
+  }
+  
+  async getPendingWeightRecords(): Promise<WeightRecord[]> {
+    return Array.from(this.weightRecords.values()).filter(
+      (r) => r.verificationStatus === "pending"
+    );
+  }
+  
+  async updateWeightRecordVerification(recordId: number, status: string, feedback?: string): Promise<WeightRecord | undefined> {
+    const record = this.weightRecords.get(recordId);
+    if (!record) return undefined;
+    
+    const updatedRecord = {
+      ...record,
+      verificationStatus: status,
+      verificationFeedback: feedback || null
+    };
+    
+    this.weightRecords.set(recordId, updatedRecord);
+    return updatedRecord;
+  }
 
   async addChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
     const id = this.currentId++;
@@ -631,6 +657,33 @@ export class DatabaseStorage implements IStorage {
           eq(weightRecords.challengeId, challengeId)
         )
       );
+  }
+  
+  async getUserWeightRecords(userId: number): Promise<WeightRecord[]> {
+    return await db
+      .select()
+      .from(weightRecords)
+      .where(eq(weightRecords.userId, userId));
+  }
+  
+  async getPendingWeightRecords(): Promise<WeightRecord[]> {
+    return await db
+      .select()
+      .from(weightRecords)
+      .where(eq(weightRecords.verificationStatus, "pending"));
+  }
+  
+  async updateWeightRecordVerification(recordId: number, status: string, feedback?: string): Promise<WeightRecord | undefined> {
+    const [updatedRecord] = await db
+      .update(weightRecords)
+      .set({ 
+        verificationStatus: status, 
+        verificationFeedback: feedback || null 
+      })
+      .where(eq(weightRecords.id, recordId))
+      .returning();
+    
+    return updatedRecord;
   }
 
   async addChatMessage(message: InsertChatMessage): Promise<ChatMessage> {

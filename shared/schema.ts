@@ -4,25 +4,43 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
   getAllChallenges(): Promise<Challenge[]>;
-  getUserChallenges(userId: number): Promise<Challenge[]>; // New method
+  getUserChallenges(userId: number): Promise<Challenge[]>;
   getChallenge(id: number): Promise<Challenge | undefined>;
-  getChallengeIfParticipant(id: number, userId: number): Promise<Challenge | undefined>; // New method
+  getChallengeIfParticipant(id: number, userId: number): Promise<Challenge | undefined>;
   createChallenge(challenge: InsertChallenge): Promise<Challenge>;
   getParticipant(userId: number, challengeId: number): Promise<Participant | undefined>;
   addParticipant(data: { userId: number; challengeId: number; startWeight: number }): Promise<Participant>;
   getParticipants(challengeId: number): Promise<Participant[]>;
+  
+  // Weight record methods
   addWeightRecord(record: InsertWeightRecord): Promise<WeightRecord>;
   getWeightRecords(userId: number, challengeId: number): Promise<WeightRecord[]>;
+  getUserWeightRecords(userId: number): Promise<WeightRecord[]>;
+  getPendingWeightRecords(): Promise<WeightRecord[]>;
+  updateWeightRecordVerification(recordId: number, status: string, feedback?: string): Promise<WeightRecord | undefined>;
+  
+  // Chat message methods
   addChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(challengeId: number): Promise<ChatMessage[]>;
   updateChatMessagePinStatus(messageId: number, isPinned: boolean): Promise<ChatMessage | undefined>;
   deleteChatMessage(messageId: number): Promise<void>;
+  
+  // Feed post methods
   createFeedPost(post: InsertFeedPost): Promise<FeedPost>;
-  getFeedPosts(challengeId: number): Promise<FeedPost[]>;
   getPostsByChallenge(challengeId: number): Promise<FeedPost[]>;
+  updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined>;
+  
+  // Comment methods
   addComment(comment: InsertComment): Promise<Comment>;
   getComments(postId: number): Promise<Comment[]>;
-  updateFeedPost(id: number, updates: Partial<FeedPost>): Promise<FeedPost | undefined>;
+  
+  // Other methods
+  getFeedPosts(challengeId: number): Promise<FeedPost[]>;
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  updateChallenge(id: number, updates: Partial<Challenge>): Promise<Challenge | undefined>;
+  getAllParticipants(): Promise<Participant[]>;
+  updateParticipantPaymentStatus(challengeId: number, userId: number, paid: boolean): Promise<void>;
 }
 
 import { pgTable, text, serial, integer, boolean, timestamp, numeric } from "drizzle-orm/pg-core";

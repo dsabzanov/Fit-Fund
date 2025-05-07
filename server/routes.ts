@@ -136,6 +136,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get all weight records that need verification
+  app.get("/api/admin/weight-records/pending", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    try {
+      const pendingRecords = await storage.getPendingWeightRecords();
+      res.json(pendingRecords);
+    } catch (error) {
+      console.error("Error fetching pending weight records:", error);
+      res.status(500).json({ error: "Failed to fetch pending weight records" });
+    }
+  });
+  
+  // Get all weight records for a specific user
+  app.get("/api/admin/users/:userId/weight-records", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    try {
+      const userId = parseInt(req.params.userId);
+      const records = await storage.getUserWeightRecords(userId);
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching user weight records:", error);
+      res.status(500).json({ error: "Failed to fetch user weight records" });
+    }
+  });
+  
+  // Verify a weight record (approve or reject)
+  app.patch("/api/admin/weight-records/:recordId/verify", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user || !req.user.isAdmin) {
+      return res.status(403).json({ error: "Unauthorized. Admin access required." });
+    }
+    
+    try {
+      const recordId = parseInt(req.params.recordId);
+      const { status, feedback } = req.body;
+      
+      if (!["approved", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Status must be 'approved' or 'rejected'" });
+      }
+      
+      console.log(`Admin verifying weight record: ${recordId}, Status: ${status}, Feedback: ${feedback || 'none'}`);
+      
+      const updatedRecord = await storage.updateWeightRecordVerification(recordId, status, feedback);
+      res.json(updatedRecord);
+    } catch (error) {
+      console.error("Error verifying weight record:", error);
+      res.status(500).json({ error: "Failed to verify weight record" });
+    }
+  });
+  
   setupAuth(app);
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
