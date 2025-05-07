@@ -278,6 +278,107 @@ export default function AdminDashboard() {
             <TabsTrigger value="weight-verification">Weight Verification</TabsTrigger>
           </TabsList>
           
+          {/* Weight Verification Tab */}
+          <TabsContent value="weight-verification" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Weight Verification</h2>
+              <div className="flex items-center gap-2">
+                <Badge variant={pendingWeightRecords?.length ? "destructive" : "outline"}>
+                  {pendingWeightRecords?.length || 0} Pending
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Challenge</TableHead>
+                    <TableHead>Weight</TableHead>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {weightRecordsLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="w-10 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-32 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-32 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-16 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-40 h-20" /></TableCell>
+                        <TableCell><Skeleton className="w-24 h-5" /></TableCell>
+                        <TableCell><Skeleton className="w-20 h-8 ml-auto" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : pendingWeightRecords && pendingWeightRecords.length > 0 ? (
+                    pendingWeightRecords.map((record) => {
+                      const user = users?.find(u => u.id === record.userId);
+                      const challenge = challenges?.find(c => c.id === record.challengeId);
+                      
+                      return (
+                        <TableRow key={record.id}>
+                          <TableCell>{record.id}</TableCell>
+                          <TableCell>{user?.username || `User #${record.userId}`}</TableCell>
+                          <TableCell>{challenge?.title || `Challenge #${record.challengeId}`}</TableCell>
+                          <TableCell>{record.weight} lbs</TableCell>
+                          <TableCell>
+                            {record.imageUrl ? (
+                              <a 
+                                href={record.imageUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="block w-40 h-20 relative overflow-hidden rounded-md"
+                              >
+                                <img 
+                                  src={record.imageUrl} 
+                                  alt="Weight verification" 
+                                  className="object-cover w-full h-full"
+                                />
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground italic">No image</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(record.recordedAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => {
+                                  setSelectedWeightRecord(record);
+                                  setVerificationFeedback("");
+                                  setWeightVerificationDialogOpen(true);
+                                }}
+                              >
+                                <CheckCircle2 className="h-4 w-4 mr-1" />
+                                Verify
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                        No weight records pending verification.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+          
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-4">
             <div className="flex items-center justify-between">
@@ -751,6 +852,108 @@ export default function AdminDashboard() {
                 </Button>
               </DialogFooter>
             </form>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Weight Verification Dialog */}
+      <Dialog open={weightVerificationDialogOpen} onOpenChange={setWeightVerificationDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verify Weight Record</DialogTitle>
+            <DialogDescription>
+              Review the weight submission and approve or reject it.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedWeightRecord && (
+            <div className="space-y-4">
+              {/* Weight record details */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">User:</span>
+                  <span>{users?.find(u => u.id === selectedWeightRecord.userId)?.username || `User #${selectedWeightRecord.userId}`}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">Challenge:</span>
+                  <span>{challenges?.find(c => c.id === selectedWeightRecord.challengeId)?.title || `Challenge #${selectedWeightRecord.challengeId}`}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">Weight:</span>
+                  <span>{selectedWeightRecord.weight} lbs</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">Date:</span>
+                  <span>{new Date(selectedWeightRecord.recordedAt).toLocaleString()}</span>
+                </div>
+              </div>
+              
+              {/* Display image if available */}
+              {selectedWeightRecord.imageUrl && (
+                <div className="mt-4">
+                  <Label className="block mb-2">Verification Image</Label>
+                  <div className="w-full h-48 bg-gray-100 rounded-md overflow-hidden">
+                    <img 
+                      src={selectedWeightRecord.imageUrl} 
+                      alt="Weight verification" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Feedback input */}
+              <div className="mt-4">
+                <Label htmlFor="verification-feedback">Feedback (optional)</Label>
+                <Textarea
+                  id="verification-feedback"
+                  placeholder="Leave feedback for the user..."
+                  value={verificationFeedback}
+                  onChange={(e) => setVerificationFeedback(e.target.value)}
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your feedback will be visible to the user.
+                </p>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setWeightVerificationDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    verifyWeightRecordMutation.mutate({
+                      recordId: selectedWeightRecord.id,
+                      status: "rejected",
+                      feedback: verificationFeedback
+                    });
+                  }}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Reject
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    verifyWeightRecordMutation.mutate({
+                      recordId: selectedWeightRecord.id,
+                      status: "approved",
+                      feedback: verificationFeedback
+                    });
+                  }}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Approve
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

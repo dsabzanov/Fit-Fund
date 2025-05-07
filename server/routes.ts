@@ -184,6 +184,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Admin verifying weight record: ${recordId}, Status: ${status}, Feedback: ${feedback || 'none'}`);
       
       const updatedRecord = await storage.updateWeightRecordVerification(recordId, status, feedback);
+      
+      // Broadcast weight verification update to all connected WebSocket clients
+      const broadcastData = {
+        type: 'admin-action',
+        action: 'weight-verification',
+        recordId,
+        status,
+        userId: updatedRecord?.userId,
+        challengeId: updatedRecord?.challengeId
+      };
+      
+      clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(broadcastData));
+        }
+      });
+      
       res.json(updatedRecord);
     } catch (error) {
       console.error("Error verifying weight record:", error);
