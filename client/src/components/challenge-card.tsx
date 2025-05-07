@@ -98,9 +98,9 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         <Link href={`/challenge/${challenge.id}`}>
           <Button 
             variant="outline" 
-            aria-label={`Join ${challenge.title} challenge`}
+            aria-label={`View details for ${challenge.title} challenge`}
           >
-            {challenge.status === 'open' ? 'Join Now' : 'View Challenge'}
+            View Challenge
           </Button>
         </Link>
         <div className="flex gap-2">
