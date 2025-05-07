@@ -16,7 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Edit, Trash2, Users, TrendingUp, DollarSign, User, Award, Ban, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarIcon, Edit, Trash2, Users, TrendingUp, DollarSign, User, Award, Ban, CheckCircle2, AlertCircle, X } from "lucide-react";
 import { User as UserType, Challenge, Participant, FeedPost } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
