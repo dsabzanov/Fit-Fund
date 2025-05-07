@@ -74,6 +74,7 @@ export const weightRecords = pgTable("weight_records", {
   weight: numeric("weight").notNull(),
   imageUrl: text("image_url"), // Optional image URL for verification
   verificationStatus: text("verification_status").default("pending"), // Status of verification (pending, approved, rejected)
+  verificationFeedback: text("verification_feedback"), // Admin feedback on verification
   recordedAt: timestamp("recorded_at").notNull().defaultNow(),
 });
 
