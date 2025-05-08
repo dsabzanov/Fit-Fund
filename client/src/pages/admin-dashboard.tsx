@@ -16,8 +16,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Edit, Trash2, Users, TrendingUp, DollarSign, User, Award, Ban, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { CalendarIcon, Edit, Trash2, Users, TrendingUp, DollarSign, User, Award, Ban, CheckCircle2, AlertCircle, X, Wallet } from "lucide-react";
 import { User as UserType, Challenge, Participant, FeedPost } from "@shared/schema";
+import WinnerPayoutPanel from "@/components/winner-payout-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -30,6 +31,7 @@ export default function AdminDashboard() {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [selectedWeightRecord, setSelectedWeightRecord] = useState<any>(null);
+  const [selectedPayoutChallenge, setSelectedPayoutChallenge] = useState<number | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [challengeDialogOpen, setChallengeDialogOpen] = useState(false);
   const [weightVerificationDialogOpen, setWeightVerificationDialogOpen] = useState(false);
@@ -272,10 +274,16 @@ export default function AdminDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex">
+          <TabsList className="grid w-full grid-cols-4 md:w-auto md:inline-flex">
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="challenges">Challenge Management</TabsTrigger>
             <TabsTrigger value="weight-verification">Weight Verification</TabsTrigger>
+            <TabsTrigger value="payouts">
+              <div className="flex items-center gap-1">
+                <Wallet className="h-4 w-4" />
+                <span>Winner Payouts</span>
+              </div>
+            </TabsTrigger>
           </TabsList>
           
           {/* Weight Verification Tab */}
@@ -559,6 +567,126 @@ export default function AdminDashboard() {
                 </TableBody>
               </Table>
             </div>
+          </TabsContent>
+          
+          {/* Payouts Tab */}
+          <TabsContent value="payouts" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Winner Payouts</h2>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
+                  Manual Process
+                </Badge>
+              </div>
+            </div>
+            
+            {!selectedPayoutChallenge ? (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Select a Challenge</CardTitle>
+                    <CardDescription>
+                      Choose a challenge to process winner payouts
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Challenge</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Entry Fee</TableHead>
+                            <TableHead>Participants</TableHead>
+                            <TableHead>Total Pot</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {challengesLoading || participantsLoading ? (
+                            Array.from({ length: 3 }).map((_, i) => (
+                              <TableRow key={i}>
+                                <TableCell><Skeleton className="w-10 h-5" /></TableCell>
+                                <TableCell><Skeleton className="w-40 h-5" /></TableCell>
+                                <TableCell><Skeleton className="w-20 h-5" /></TableCell>
+                                <TableCell><Skeleton className="w-16 h-5" /></TableCell>
+                                <TableCell><Skeleton className="w-16 h-5" /></TableCell>
+                                <TableCell><Skeleton className="w-20 h-5" /></TableCell>
+                                <TableCell><Skeleton className="w-20 h-8 ml-auto" /></TableCell>
+                              </TableRow>
+                            ))
+                          ) : challenges && challenges.length > 0 ? (
+                            challenges.map((challenge) => {
+                              // Find participants for this challenge
+                              const challengeParticipants = participants?.filter(p => p.challengeId === challenge.id) || [];
+                              const paidCount = challengeParticipants.filter(p => p.paid).length;
+                              const totalPot = challenge.entryFee * paidCount;
+                              
+                              return (
+                                <TableRow key={challenge.id}>
+                                  <TableCell>{challenge.id}</TableCell>
+                                  <TableCell className="font-medium">{challenge.title}</TableCell>
+                                  <TableCell>
+                                    <Badge 
+                                      variant={challenge.status === "active" ? "default" : 
+                                             challenge.status === "completed" ? "success" : "secondary"}
+                                      className={challenge.status === "completed" ? "bg-green-500" : ""}
+                                    >
+                                      {challenge.status}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>${challenge.entryFee}</TableCell>
+                                  <TableCell>{paidCount} paid</TableCell>
+                                  <TableCell>${totalPot.toFixed(2)}</TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      onClick={() => setSelectedPayoutChallenge(challenge.id)}
+                                      variant="default"
+                                      size="sm"
+                                    >
+                                      <Wallet className="h-4 w-4 mr-2" />
+                                      Process Payouts
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                                No challenges found.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedPayoutChallenge(null)}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Back to Challenges
+                    </Button>
+                    
+                    <h3 className="text-lg font-medium ml-2">
+                      Challenge: {challenges?.find(c => c.id === selectedPayoutChallenge)?.title}
+                    </h3>
+                  </div>
+                </div>
+                
+                <WinnerPayoutPanel challengeId={selectedPayoutChallenge} />
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
