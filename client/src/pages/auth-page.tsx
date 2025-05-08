@@ -41,8 +41,11 @@ export default function AuthPage() {
   });
 
   const registerForm = useForm({
-    resolver: zodResolver(insertUserSchema),
+    resolver: zodResolver(extendedRegisterSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
       username: "",
       password: "",
     },
@@ -317,6 +320,47 @@ export default function AuthPage() {
                       });
                     }
                   )} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Smith" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={registerForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="john.smith@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={registerForm.control}
                       name="username"
@@ -324,7 +368,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input placeholder="johnsmith" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -337,7 +381,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input type="password" placeholder="••••••••" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -348,9 +392,12 @@ export default function AuthPage() {
                         {registerError}
                       </div>
                     )}
+                    <div className="text-xs text-muted-foreground">
+                      By creating an account, you agree to our <a href="#" className="underline hover:text-primary">Terms of Service</a> and <a href="#" className="underline hover:text-primary">Privacy Policy</a>.
+                    </div>
                     <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
                       {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Register
+                      Create Account
                     </Button>
                   </form>
                 </Form>

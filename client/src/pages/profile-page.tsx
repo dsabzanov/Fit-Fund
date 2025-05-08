@@ -141,6 +141,14 @@ export default function ProfilePage() {
               <p className="text-lg">{user.username}</p>
             </div>
             <div>
+              <p className="text-sm font-medium text-muted-foreground">Name</p>
+              <p className="text-lg">
+                {user.firstName || user.lastName 
+                  ? `${user.firstName || ''} ${user.lastName || ''}`.trim() 
+                  : "Not provided"}
+              </p>
+            </div>
+            <div>
               <p className="text-sm font-medium text-muted-foreground">Email</p>
               <p className="text-lg">{user.email || "No email provided"}</p>
             </div>
@@ -151,6 +159,12 @@ export default function ProfilePage() {
                 {user.isAdmin && <Badge variant="outline" className="bg-red-100">Admin</Badge>}
                 {!user.isHost && !user.isAdmin && <Badge variant="outline">Participant</Badge>}
               </div>
+            </div>
+            <Separator className="my-2" />
+            <div className="pt-2">
+              <Button onClick={() => setLocation('/edit-profile')} className="w-full">
+                Edit Profile
+              </Button>
             </div>
           </CardContent>
         </Card>
