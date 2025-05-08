@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ImagePlus, Upload, X, Check } from "lucide-react";
-import { useState, useRef } from "react";
+import { Loader2, ImagePlus, Upload, X, Check, Info, Clock } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useWebSocket } from "@/hooks/use-websocket";
 
 interface WeightFormProps {
   challengeId: number;

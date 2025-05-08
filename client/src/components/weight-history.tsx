@@ -1,7 +1,24 @@
 import { WeightRecord } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ImageIcon, TrendingDown, TrendingUp } from "lucide-react";
+import { 
+  AlertCircle, 
+  CheckCircle2, 
+  Clock, 
+  HelpCircle, 
+  ImageIcon, 
+  TrendingDown, 
+  TrendingUp, 
+  XCircle 
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface WeightHistoryProps {
   challengeId: number;
@@ -116,12 +133,54 @@ export function WeightHistory({ challengeId, userId }: WeightHistoryProps) {
           const prevWeight = index > 0 ? Number(sortedRecords[index - 1].weight) : Number(record.weight);
           const currentWeight = Number(record.weight);
           const difference = currentWeight - prevWeight;
+
+          // Get verification status
+          const verificationStatus = record.verificationStatus || "pending";
+          
+          // Determine verification badge and icon
+          let statusBadge;
+          let statusIcon;
+          
+          switch(verificationStatus) {
+            case "approved":
+              statusBadge = <Badge className="bg-green-100 text-green-800 border-green-300">Verified</Badge>;
+              statusIcon = <CheckCircle2 className="h-5 w-5 text-green-600" />;
+              break;
+            case "rejected":
+              statusBadge = <Badge variant="destructive">Rejected</Badge>;
+              statusIcon = <XCircle className="h-5 w-5 text-red-600" />;
+              break;
+            case "pending":
+            default:
+              statusBadge = <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">Pending</Badge>;
+              statusIcon = <Clock className="h-5 w-5 text-yellow-600" />;
+          }
           
           return (
-            <div key={record.id} className="flex items-start gap-4 p-4 rounded-lg bg-muted border border-muted">
+            <div key={record.id} className={`flex items-start gap-4 p-4 rounded-lg border ${
+              verificationStatus === "approved" ? "bg-green-50 border-green-100" : 
+              verificationStatus === "rejected" ? "bg-red-50 border-red-100" : 
+              "bg-muted border-muted"
+            }`}>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-lg">{record.weight} lbs</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-lg">{record.weight} lbs</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-help">{statusBadge}</div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {verificationStatus === "approved" 
+                            ? "This weight has been verified by an admin" 
+                            : verificationStatus === "rejected" 
+                              ? "This weight entry was rejected" 
+                              : "This weight is awaiting verification"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <div className="inline-flex items-center text-sm">
                     {index > 0 && (
                       <span className={difference < 0 ? "text-green-600" : difference > 0 ? "text-red-600" : "text-muted-foreground"}>
@@ -131,12 +190,56 @@ export function WeightHistory({ challengeId, userId }: WeightHistoryProps) {
                     )}
                   </div>
                 </div>
-                <time className="text-sm text-muted-foreground block mb-2">
-                  {format(new Date(record.recordedAt), "EEEE, MMMM d, yyyy 'at' h:mm a")}
-                </time>
+                
+                <div className="flex items-center gap-2 mb-2">
+                  <time className="text-sm text-muted-foreground">
+                    {format(new Date(record.recordedAt), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                  </time>
+                  <div className="text-sm text-muted-foreground flex items-center">
+                    <span className="inline-flex items-center gap-1 ml-2">
+                      {statusIcon}
+                      <span>{verificationStatus === "approved" ? "Verified" : verificationStatus === "rejected" ? "Rejected" : "Pending verification"}</span>
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Feedback display for rejected entries */}
+                {verificationStatus === "rejected" && record.verificationFeedback && (
+                  <Alert variant="destructive" className="mb-3 py-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      <span className="font-semibold">Rejection reason:</span> {record.verificationFeedback}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {/* Feedback display for approved entries */}
+                {verificationStatus === "approved" && record.verificationFeedback && (
+                  <Alert className="mb-3 py-2 bg-green-50 text-green-800 border-green-200">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      <span className="font-semibold">Admin feedback:</span> {record.verificationFeedback}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {/* Pending message */}
+                {verificationStatus === "pending" && (
+                  <Alert className="mb-3 py-2 bg-yellow-50 text-yellow-800 border-yellow-200">
+                    <HelpCircle className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      Your weight submission is awaiting verification by an admin. This typically takes 24-48 hours.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 {record.imageUrl && (
                   <div className="mt-2">
-                    <div className="relative h-28 w-full md:w-48 overflow-hidden rounded-md border">
+                    <div className={`relative h-28 w-full md:w-48 overflow-hidden rounded-md border ${
+                      verificationStatus === "approved" ? "border-green-300" : 
+                      verificationStatus === "rejected" ? "border-red-300" : 
+                      "border-muted-foreground"
+                    }`}>
                       <img
                         src={record.imageUrl}
                         alt="Weight verification"
@@ -145,6 +248,16 @@ export function WeightHistory({ challengeId, userId }: WeightHistoryProps) {
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity">
                         <ImageIcon className="h-6 w-6 text-white" />
                       </div>
+                      {verificationStatus === "approved" && (
+                        <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full">
+                          <CheckCircle2 className="h-4 w-4" />
+                        </div>
+                      )}
+                      {verificationStatus === "rejected" && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full">
+                          <XCircle className="h-4 w-4" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
