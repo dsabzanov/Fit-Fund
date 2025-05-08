@@ -67,8 +67,20 @@ export default function AdminDashboard() {
     },
   });
   
+  // Define WeightRecord type
+  interface WeightRecord {
+    id: number;
+    userId: number;
+    challengeId: number;
+    weight: number;
+    imageUrl?: string;
+    recordedAt: string;
+    status: string;
+    feedback?: string;
+  }
+
   // Fetch pending weight records
-  const { data: pendingWeightRecords, isLoading: weightRecordsLoading } = useQuery({
+  const { data: pendingWeightRecords, isLoading: weightRecordsLoading } = useQuery<WeightRecord[]>({
     queryKey: ["/api/admin/weight-records/pending"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/weight-records/pending");
@@ -312,7 +324,7 @@ export default function AdminDashboard() {
                 </TableHeader>
                 <TableBody>
                   {weightRecordsLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
+                    Array.from({ length: 5 }).map((record: any, i) => (
                       <TableRow key={i}>
                         <TableCell><Skeleton className="w-10 h-5" /></TableCell>
                         <TableCell><Skeleton className="w-32 h-5" /></TableCell>
@@ -630,8 +642,8 @@ export default function AdminDashboard() {
                                   <TableCell>
                                     <Badge 
                                       variant={challenge.status === "active" ? "default" : 
-                                             challenge.status === "completed" ? "success" : "secondary"}
-                                      className={challenge.status === "completed" ? "bg-green-500" : ""}
+                                             challenge.status === "completed" ? "secondary" : "secondary"}
+                                      className={challenge.status === "completed" ? "bg-green-500 text-white" : ""}
                                     >
                                       {challenge.status}
                                     </Badge>

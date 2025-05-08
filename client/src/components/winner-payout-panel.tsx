@@ -13,24 +13,26 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { AlertCircle, CheckCircle, DollarSign, ExternalLink, Wallet } from "lucide-react";
 
-type Winner = {
+interface Winner {
   userId: number;
   username: string;
   amount: number;
-};
+}
 
-type PayoutResponse = {
+interface PayoutInstruction {
+  username: string;
+  userId: number;
+  stripeAccountId: string;
+  amount: string;
+  payoutUrl: string;
+}
+
+interface PayoutResponse {
   message: string;
   challenge: number;
-  payoutInstructions: Array<{
-    username: string;
-    userId: number;
-    stripeAccountId: string;
-    amount: string;
-    payoutUrl: string;
-  }>;
+  payoutInstructions: PayoutInstruction[];
   totalAmount: string;
-};
+}
 
 export default function WinnerPayoutPanel({ challengeId }: { challengeId: number }) {
   const { toast } = useToast();
