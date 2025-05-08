@@ -95,16 +95,17 @@ export default function HomePage() {
                     <span className="text-sm sm:text-base text-muted-foreground" role="status" aria-label="User status">
                       Welcome, {user?.username}
                     </span>
-                    {/* Admin link is now always visible for easy access */}
-                    <Link href="/admin">
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        className="bg-red-600 hover:bg-red-700 text-white font-medium"
-                      >
-                        Admin Access
-                      </Button>
-                    </Link>
+                    {user?.isAdmin && (
+                      <Link href="/admin">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-primary font-medium"
+                        >
+                          Admin Dashboard
+                        </Button>
+                      </Link>
+                    )}
                     <Button 
                       variant="ghost" 
                       size="sm"

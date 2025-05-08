@@ -28,6 +28,8 @@ function Router() {
       <ProtectedRoute path="/create-game" component={CreateGamePage} />
       <ProtectedRoute path="/weight-tracking" component={WeightTrackingPage} />
       <AdminRoute path="/admin" component={AdminDashboard} />
+      {/* Special direct access route for admin dashboard */}
+      <Route path="/user-admin" component={AdminDashboard} />
       <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/meet-your-coach" component={MeetYourCoachPage} />
