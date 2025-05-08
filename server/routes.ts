@@ -211,6 +211,201 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Stripe Connect Express account creation and onboarding
+  app.post("/api/stripe/create-connect-account", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      // Check if Stripe is initialized
+      if (!stripe) {
+        console.error('Stripe not initialized');
+        return res.status(500).json({ error: "Payment service unavailable" });
+      }
+
+      const user = req.user!;
+      
+      // Check if user already has a Connect account
+      if (user.stripeConnectAccountId) {
+        // If account exists but onboarding isn't complete, generate new link
+        // Otherwise, return existing account info
+        if (!user.stripeConnectOnboardingComplete) {
+          const accountLink = await stripe.accountLinks.create({
+            account: user.stripeConnectAccountId,
+            refresh_url: `${req.protocol}://${req.get('host')}/profile?stripe=refresh`,
+            return_url: `${req.protocol}://${req.get('host')}/profile?stripe=success`,
+            type: 'account_onboarding',
+          });
+          
+          return res.json({ url: accountLink.url });
+        } else {
+          return res.json({ 
+            accountId: user.stripeConnectAccountId,
+            onboardingComplete: true
+          });
+        }
+      }
+
+      // Create new Stripe Connect Express account
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'US',
+        email: user.email || undefined,
+        capabilities: {
+          transfers: { requested: true },
+          card_payments: { requested: true },
+        },
+        business_type: 'individual',
+        metadata: {
+          userId: user.id.toString()
+        }
+      });
+
+      console.log(`Created Stripe Connect account for user ${user.id}: ${account.id}`);
+
+      // Update user with Stripe account ID
+      await storage.updateUser(user.id, {
+        stripeConnectAccountId: account.id,
+        stripeConnectOnboardingComplete: false
+      });
+
+      // Create account onboarding link
+      const accountLink = await stripe.accountLinks.create({
+        account: account.id,
+        refresh_url: `${req.protocol}://${req.get('host')}/profile?stripe=refresh`,
+        return_url: `${req.protocol}://${req.get('host')}/profile?stripe=success`,
+        type: 'account_onboarding',
+      });
+
+      res.json({ url: accountLink.url });
+    } catch (error: any) {
+      console.error('Error creating Connect account:', error);
+      res.status(500).json({ error: error.message || "Failed to create Connect account" });
+    }
+  });
+
+  // Check Stripe Connect account status
+  app.get("/api/stripe/account-status", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      if (!stripe) {
+        return res.status(500).json({ error: "Payment service unavailable" });
+      }
+
+      const user = req.user!;
+
+      if (!user.stripeConnectAccountId) {
+        return res.json({ 
+          hasAccount: false 
+        });
+      }
+
+      // Get account details from Stripe
+      const account = await stripe.accounts.retrieve(user.stripeConnectAccountId);
+      
+      // Update onboarding status if needed
+      const onboardingComplete = 
+        account.details_submitted && 
+        account.charges_enabled && 
+        account.payouts_enabled;
+        
+      if (onboardingComplete !== user.stripeConnectOnboardingComplete) {
+        await storage.updateUser(user.id, {
+          stripeConnectOnboardingComplete: onboardingComplete
+        });
+      }
+
+      res.json({
+        hasAccount: true,
+        accountId: account.id,
+        onboardingComplete,
+        detailsSubmitted: account.details_submitted,
+        chargesEnabled: account.charges_enabled,
+        payoutsEnabled: account.payouts_enabled
+      });
+    } catch (error: any) {
+      console.error('Error checking Connect account status:', error);
+      res.status(500).json({ error: error.message || "Failed to check account status" });
+    }
+  });
+  
+  // Admin endpoint to manually process winner payouts
+  app.post("/api/admin/challenges/:id/process-payouts", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user!.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized. Admin access required." });
+      }
+
+      if (!stripe) {
+        return res.status(500).json({ error: "Payment service unavailable" });
+      }
+
+      const challengeId = parseInt(req.params.id);
+      if (isNaN(challengeId)) {
+        return res.status(400).json({ error: "Invalid challenge ID" });
+      }
+
+      const { winnerPayouts } = req.body;
+      if (!Array.isArray(winnerPayouts) || winnerPayouts.length === 0) {
+        return res.status(400).json({ error: "Winner payouts must be a non-empty array" });
+      }
+
+      // Validate payout data
+      const validatedPayouts = [];
+      for (const payout of winnerPayouts) {
+        const { userId, amount } = payout;
+        
+        if (!userId || typeof userId !== 'number' || !amount || typeof amount !== 'number' || amount <= 0) {
+          return res.status(400).json({ error: "Invalid payout data" });
+        }
+
+        // Get user details including Stripe Connect account ID
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ error: `User ${userId} not found` });
+        }
+
+        if (!user.stripeConnectAccountId || !user.stripeConnectOnboardingComplete) {
+          return res.status(400).json({ 
+            error: `User ${userId} does not have a valid Stripe Connect account`,
+            userId: userId,
+            username: user.username
+          });
+        }
+
+        validatedPayouts.push({
+          userId,
+          stripeAccountId: user.stripeConnectAccountId,
+          amount: Math.round(amount * 100), // Convert to cents
+          username: user.username
+        });
+      }
+
+      // Prepare payout instructions
+      const payoutInstructions = validatedPayouts.map(payout => ({
+        username: payout.username,
+        userId: payout.userId,
+        stripeAccountId: payout.stripeAccountId,
+        amount: (payout.amount / 100).toFixed(2), // Format as dollars for display
+        payoutUrl: `https://dashboard.stripe.com/transfers/new?prefilled_amount=${payout.amount}&prefilled_destination=${payout.stripeAccountId}`
+      }));
+
+      res.json({
+        message: "Payout instructions generated. Complete manual payouts in the Stripe Dashboard using the provided links.",
+        challenge: challengeId,
+        payoutInstructions,
+        totalAmount: (validatedPayouts.reduce((sum, p) => sum + p.amount, 0) / 100).toFixed(2)
+      });
+    } catch (error: any) {
+      console.error('Error processing payouts:', error);
+      res.status(500).json({ error: error.message || "Failed to process payouts" });
+    }
+  });
+
   setupAuth(app);
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: "/ws-chat" });
@@ -652,8 +847,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount
       });
 
+      const challenge = await storage.getChallenge(challengeId);
+      if (!challenge) {
+        return res.status(404).json({ error: "Challenge not found" });
+      }
+
+      // Create or retrieve customer
+      let customerId = req.user!.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: req.user!.email || undefined,
+          metadata: {
+            userId: req.user!.id.toString()
+          }
+        });
+        customerId = customer.id;
+        
+        // Save customer ID to user record
+        await storage.updateUser(req.user!.id, {
+          stripeCustomerId: customerId
+        });
+      }
+
+      // Calculate amounts in cents
+      const amountInCents = Math.round(amount * 100);
+      const platformFeeInCents = Math.round(amountInCents * (PLATFORM_FEE_PERCENT / 100));
+
       // Create Stripe checkout session
       const session = await stripe.checkout.sessions.create({
+        customer: customerId,
         payment_method_types: ['card'],
         line_items: [
           {
@@ -663,7 +885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 name: 'Challenge Entry Fee',
                 description: 'Entry fee for FitFund weight loss challenge',
               },
-              unit_amount: Math.round(amount * 100), // Convert to cents
+              unit_amount: amountInCents,
             },
             quantity: 1,
           },
@@ -673,14 +895,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancel_url: `${req.protocol}://${req.get('host')}/challenge/${challengeId}?payment=cancelled`,
         metadata: {
           challengeId: challengeId.toString(),
-          userId: req.user!.id.toString()
+          userId: req.user!.id.toString(),
+          platformFee: platformFeeInCents.toString()
         }
       });
 
       console.log('Payment session created successfully:', {
         sessionId: session.id,
         userId: req.user?.id,
-        challengeId
+        challengeId,
+        platformFee: platformFeeInCents / 100 // Convert back to dollars for logging
       });
 
       res.json({ sessionId: session.id });
