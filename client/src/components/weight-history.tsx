@@ -1,5 +1,5 @@
 import { WeightRecord } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
   AlertCircle, 
@@ -19,6 +19,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEffect } from "react";
+import { useWebSocket } from "@/hooks/use-websocket";
 
 interface WeightHistoryProps {
   challengeId: number;
@@ -26,9 +28,31 @@ interface WeightHistoryProps {
 }
 
 export function WeightHistory({ challengeId, userId }: WeightHistoryProps) {
+  const queryClient = useQueryClient();
+  const { lastMessage } = useWebSocket();
   const { data: weightRecords = [] } = useQuery<WeightRecord[]>({
     queryKey: [`/api/challenges/${challengeId}/users/${userId}/weight-records`],
   });
+  
+  // Listen for WebSocket messages about weight verification updates
+  useEffect(() => {
+    if (lastMessage && 
+        lastMessage.type === 'admin-action' && 
+        lastMessage.action === 'weight-verification' &&
+        lastMessage.userId === userId &&
+        lastMessage.challengeId === challengeId) {
+      
+      console.log('Received weight verification update:', lastMessage);
+      
+      // Invalidate the query to refresh the weight records
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/challenges/${challengeId}/users/${userId}/weight-records`] 
+      });
+      
+      // Clear any related session storage flag
+      sessionStorage.removeItem(`weight-submission-${challengeId}`);
+    }
+  }, [lastMessage, challengeId, userId, queryClient]);
 
   // Calculate progress statistics
   const sortedRecords = [...weightRecords].sort(
