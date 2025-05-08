@@ -19,6 +19,10 @@ import {
 } from "@shared/schema";
 import Stripe from "stripe";
 
+// Import our new services
+import { NotificationType, sendNotification, createOrUpdateContact } from "./services/go-high-level";
+import * as PaymentMethods from "./services/payment-methods";
+
 // Initialize Stripe with error handling
 let stripe: Stripe | null = null;
 try {
@@ -1308,6 +1312,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!updatedUser) {
         return res.status(404).json({ error: 'User not found' });
       }
+      
+      // Sync the updated user data with Go High Level
+      try {
+        await createOrUpdateContact(updatedUser);
+      } catch (ghlError) {
+        console.error('Error updating Go High Level contact:', ghlError);
+        // Non-blocking error - continue with the response
+      }
 
       // Return the updated user
       res.json(updatedUser);
@@ -1317,6 +1329,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors[0].message });
       }
       res.status(500).json({ error: 'Failed to update user profile' });
+    }
+  });
+  
+  // Payment Methods endpoints
+  
+  // Create a setup intent for adding a payment method
+  app.post('/api/payment-methods/setup', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+      const setupIntent = await PaymentMethods.createSetupIntent(req.user.id);
+      if (!setupIntent) {
+        return res.status(500).json({ error: 'Failed to create setup intent' });
+      }
+      
+      res.json(setupIntent);
+    } catch (error) {
+      console.error('Error creating setup intent:', error);
+      res.status(500).json({ error: 'Failed to create setup intent' });
+    }
+  });
+  
+  // Get user's saved payment methods
+  app.get('/api/payment-methods', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+      const paymentMethods = await PaymentMethods.getUserPaymentMethods(req.user.id);
+      const formattedPaymentMethods = paymentMethods.map(PaymentMethods.formatPaymentMethod);
+      res.json(formattedPaymentMethods);
+    } catch (error) {
+      console.error('Error retrieving payment methods:', error);
+      res.status(500).json({ error: 'Failed to retrieve payment methods' });
+    }
+  });
+  
+  // Delete a payment method
+  app.delete('/api/payment-methods/:id', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+      const success = await PaymentMethods.removePaymentMethod(
+        req.user.id,
+        req.params.id
+      );
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Payment method not found or could not be removed' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error removing payment method:', error);
+      res.status(500).json({ error: 'Failed to remove payment method' });
+    }
+  });
+  
+  // Set default payment method
+  app.post('/api/payment-methods/:id/default', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+      const success = await PaymentMethods.setDefaultPaymentMethod(
+        req.user.id,
+        req.params.id
+      );
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Payment method not found or could not be set as default' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error setting default payment method:', error);
+      res.status(500).json({ error: 'Failed to set default payment method' });
     }
   });
 
