@@ -1198,6 +1198,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const challengeId = parseInt(session.metadata!.challengeId);
         const userId = parseInt(session.metadata!.userId);
+        const platformFee = session.metadata!.platformFee ? parseInt(session.metadata!.platformFee) : 0;
+        
+        // Log full payment information including platform fee
+        console.log('Payment details:', { 
+          challengeId,
+          userId,
+          amount: session.amount_total ? session.amount_total / 100 : 'unknown', // Convert to dollars
+          platformFee: platformFee / 100, // Convert to dollars
+          netAmount: session.amount_total ? (session.amount_total - platformFee) / 100 : 'unknown' // Convert to dollars
+        });
 
         console.log('Updating payment status for:', { challengeId, userId });
         await storage.updateParticipantPaymentStatus(challengeId, userId, true);

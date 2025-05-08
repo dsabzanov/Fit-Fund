@@ -106,6 +106,15 @@ export default function HomePage() {
                         </Button>
                       </Link>
                     )}
+                    <Link href="/profile">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-primary"
+                      >
+                        My Profile
+                      </Button>
+                    </Link>
                     <Button 
                       variant="ghost" 
                       size="sm"
