@@ -11,7 +11,6 @@ import { Loader2, ImagePlus, Upload, X, Check, Info, Clock } from "lucide-react"
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useWebSocket } from "@/hooks/use-websocket";
 
 interface WeightFormProps {
   challengeId: number;
@@ -24,6 +23,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [recentlySubmitted, setRecentlySubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm({
@@ -35,6 +35,22 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
     },
     mode: "onChange", // Enable validation on change
   });
+  
+  // Check for recently submitted from storage when component mounts
+  useEffect(() => {
+    const hasRecentlySubmitted = sessionStorage.getItem(`weight-submission-${challengeId}`);
+    if (hasRecentlySubmitted) {
+      setRecentlySubmitted(true);
+      
+      // Clear the flag after 2 minutes
+      const clearTimer = setTimeout(() => {
+        setRecentlySubmitted(false);
+        sessionStorage.removeItem(`weight-submission-${challengeId}`);
+      }, 2 * 60 * 1000);
+      
+      return () => clearTimeout(clearTimer);
+    }
+  }, [challengeId]);
 
   const handleImageChange = (file: File) => {
     // Log the incoming file details
@@ -182,9 +198,21 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
       queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/weight-records`] });
       queryClient.invalidateQueries({ queryKey: [`/api/challenges/${challengeId}/users/${challengeId}/weight-records`] });
 
+      // Set recently submitted flag to show pending verification message
+      setRecentlySubmitted(true);
+      
+      // Store the submission state in session storage
+      sessionStorage.setItem(`weight-submission-${challengeId}`, "true");
+      
+      // Set a timeout to clear the recently submitted flag after 2 minutes
+      setTimeout(() => {
+        setRecentlySubmitted(false);
+        sessionStorage.removeItem(`weight-submission-${challengeId}`);
+      }, 2 * 60 * 1000); // 2 minutes
+
       toast({
         title: "Success!",
-        description: "Your weight has been recorded. Keep up the great work! 💪",
+        description: "Your weight has been submitted and is awaiting verification by an admin.",
       });
 
       // Clean up form
@@ -273,6 +301,15 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
         onSubmit={onSubmit} 
         className={cn("space-y-4", className)}
       >
+        {recentlySubmitted && (
+          <Alert className="mb-4 py-2 bg-yellow-50 text-yellow-800 border-yellow-200">
+            <Clock className="h-4 w-4" />
+            <AlertDescription className="ml-2">
+              <span className="font-semibold">Your weight submission is pending verification.</span> An admin will review your submission within 24-48 hours. You can check the status in your weight history.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="bg-blue-50 p-3 rounded-md border border-blue-100 mb-4">
           <h4 className="text-sm font-medium text-blue-700 mb-1 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
@@ -285,7 +322,7 @@ export function WeightForm({ challengeId, onSuccess, className }: WeightFormProp
           </ol>
           <p className="text-xs text-blue-600 mt-2 font-medium border-t border-blue-100 pt-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-            All weight submissions are permanently stored and viewable throughout the challenge in your progress history and on the leaderboard.
+            All weight submissions require verification by an admin before they are counted in your progress and on the leaderboard.
           </p>
         </div>
 
