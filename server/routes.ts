@@ -1283,13 +1283,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the request data
       const validatedData = updateSchema.parse(req.body);
       
-      // Convert weights to strings if provided (database expects strings for storage)
-      const updateData = {
-        ...validatedData,
-        // Convert back to strings for storage compatibility
-        currentWeight: validatedData.currentWeight ? validatedData.currentWeight : null,
-        targetWeight: validatedData.targetWeight ? validatedData.targetWeight : null,
+      // Storage expects numeric, but we need to convert from string input
+      // Create an update object that includes only validated fields
+      const updateData: Partial<typeof validatedData> = {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        email: validatedData.email,
       };
+      
+      // Only add weight fields if they're provided
+      if (validatedData.currentWeight) {
+        // Store as number for PostgreSQL numeric type
+        updateData.currentWeight = validatedData.currentWeight;
+      }
+      
+      if (validatedData.targetWeight) {
+        // Store as number for PostgreSQL numeric type
+        updateData.targetWeight = validatedData.targetWeight;
+      }
 
       // Update the user profile
       const updatedUser = await storage.updateUser(req.user.id, updateData);
