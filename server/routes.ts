@@ -1264,6 +1264,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to update post" });
     }
   });
+  
+  // User profile update endpoint
+  app.patch('/api/user', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      const updateSchema = z.object({
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"),
+        email: z.string().email("Invalid email").min(1, "Email is required"),
+        currentWeight: z.string().optional().nullable(),
+        targetWeight: z.string().optional().nullable(),
+      });
+
+      // Validate the request data
+      const validatedData = updateSchema.parse(req.body);
+      
+      // Convert weights to strings if provided (database expects strings for storage)
+      const updateData = {
+        ...validatedData,
+        // Convert back to strings for storage compatibility
+        currentWeight: validatedData.currentWeight ? validatedData.currentWeight : null,
+        targetWeight: validatedData.targetWeight ? validatedData.targetWeight : null,
+      };
+
+      // Update the user profile
+      const updatedUser = await storage.updateUser(req.user.id, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Return the updated user
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: 'Failed to update user profile' });
+    }
+  });
 
   return httpServer;
 }

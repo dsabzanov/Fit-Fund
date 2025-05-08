@@ -15,6 +15,7 @@ import MeetYourCoachPage from "@/pages/meet-your-coach";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminSetup from "@/pages/admin-setup";
 import ProfilePage from "@/pages/profile-page";
+import EditProfilePage from "@/pages/edit-profile-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AdminRoute } from "./lib/admin-route";
 import WeightTrackingPage from "@/pages/weight-tracking-page";
@@ -29,6 +30,7 @@ function Router() {
       <ProtectedRoute path="/create-game" component={CreateGamePage} />
       <ProtectedRoute path="/weight-tracking" component={WeightTrackingPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
+      <ProtectedRoute path="/edit-profile" component={EditProfilePage} />
       <AdminRoute path="/admin" component={AdminDashboard} />
       {/* Special direct access route for admin dashboard */}
       <Route path="/user-admin" component={AdminDashboard} />
