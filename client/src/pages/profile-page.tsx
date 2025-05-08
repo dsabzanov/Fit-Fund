@@ -4,13 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, ExternalLink, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle, ExternalLink, RefreshCw, Wallet, Bell } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import PaymentMethods from "@/components/payment-methods";
+import NotificationSettings from "@/components/notification-settings";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -169,118 +172,150 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Stripe Connect Integration */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Payment Settings</CardTitle>
-            <CardDescription>Setup your account to receive challenge payouts</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Stripe Connect Status</h3>
-              
-              {isLoadingStatus ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-8 w-1/3" />
-                </div>
-              ) : accountStatus?.hasAccount ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">Account ID:</p>
-                    <p className="text-sm font-mono">{accountStatus.accountId}</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">Onboarding Status:</p>
-                      {accountStatus.onboardingComplete ? (
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Complete
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          Incomplete
-                        </Badge>
-                      )}
-                    </div>
+        {/* Payment & Notification Tabs */}
+        <div className="md:col-span-2 space-y-6">
+          <Tabs defaultValue="payments" className="w-full">
+            <TabsList className="grid grid-cols-3 mb-4">
+              <TabsTrigger value="payouts">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Payouts
+              </TabsTrigger>
+              <TabsTrigger value="payments">
+                <Wallet className="h-4 w-4 mr-2" />
+                Payment Methods
+              </TabsTrigger>
+              <TabsTrigger value="notifications">
+                <Bell className="h-4 w-4 mr-2" />
+                Notifications
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Stripe Connect Payout Tab */}
+            <TabsContent value="payouts">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payout Settings</CardTitle>
+                  <CardDescription>Setup your account to receive challenge winnings</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Stripe Connect Status</h3>
                     
-                    {!accountStatus.onboardingComplete && (
-                      <Alert className="mt-2">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Action Required</AlertTitle>
-                        <AlertDescription>
-                          Your Stripe Connect account setup is incomplete. You need to complete the onboarding process to receive payouts.
-                        </AlertDescription>
-                      </Alert>
+                    {isLoadingStatus ? (
+                      <div className="space-y-3">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-8 w-1/3" />
+                      </div>
+                    ) : accountStatus?.hasAccount ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">Account ID:</p>
+                          <p className="text-sm font-mono">{accountStatus.accountId}</p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium">Onboarding Status:</p>
+                            {accountStatus.onboardingComplete ? (
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Complete
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                Incomplete
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          {!accountStatus.onboardingComplete && (
+                            <Alert className="mt-2">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertTitle>Action Required</AlertTitle>
+                              <AlertDescription>
+                                Your Stripe Connect account setup is incomplete. You need to complete the onboarding process to receive payouts.
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        </div>
+                        
+                        <div className="pt-2">
+                          <Button 
+                            onClick={handleCreateAccount}
+                            disabled={createAccountMutation.isPending}
+                            className="mt-2"
+                          >
+                            {createAccountMutation.isPending ? (
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                            )}
+                            {accountStatus.onboardingComplete ? 'View Stripe Account' : 'Complete Onboarding'}
+                          </Button>
+                          
+                          <Button 
+                            variant="outline" 
+                            className="ml-3"
+                            onClick={() => refetchStatus()}
+                            disabled={isLoadingStatus}
+                          >
+                            <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingStatus ? 'animate-spin' : ''}`} />
+                            Refresh Status
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Alert>
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertTitle>No Payout Method Setup</AlertTitle>
+                          <AlertDescription>
+                            You need to set up a Stripe Connect account to receive payouts if you win challenges.
+                          </AlertDescription>
+                        </Alert>
+                        
+                        <Button 
+                          onClick={handleCreateAccount}
+                          disabled={createAccountMutation.isPending}
+                        >
+                          {createAccountMutation.isPending ? (
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                          )}
+                          Set Up Payout Method
+                        </Button>
+                      </div>
                     )}
                   </div>
+                  
+                  <Separator />
                   
                   <div className="pt-2">
-                    <Button 
-                      onClick={handleCreateAccount}
-                      disabled={createAccountMutation.isPending}
-                      className="mt-2"
-                    >
-                      {createAccountMutation.isPending ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                      )}
-                      {accountStatus.onboardingComplete ? 'View Stripe Account' : 'Complete Onboarding'}
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="ml-3"
-                      onClick={() => refetchStatus()}
-                      disabled={isLoadingStatus}
-                    >
-                      <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingStatus ? 'animate-spin' : ''}`} />
-                      Refresh Status
-                    </Button>
+                    <h3 className="text-lg font-medium mb-3">About Stripe Connect</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Stripe Connect is our secure payout method for challenge winners. When you win a challenge, 
+                      your prize money will be sent directly to your connected account. All data is securely stored 
+                      and processed by Stripe, ensuring your financial information remains protected.
+                    </p>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>No Payout Method Setup</AlertTitle>
-                    <AlertDescription>
-                      You need to set up a Stripe Connect account to receive payouts if you win challenges.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <Button 
-                    onClick={handleCreateAccount}
-                    disabled={createAccountMutation.isPending}
-                  >
-                    {createAccountMutation.isPending ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                    )}
-                    Set Up Payout Method
-                  </Button>
-                </div>
-              )}
-            </div>
-            
-            <Separator />
-            
-            <div className="pt-2">
-              <h3 className="text-lg font-medium mb-3">About Stripe Connect</h3>
-              <p className="text-sm text-muted-foreground">
-                Stripe Connect is our secure payout method for challenge winners. When you win a challenge, 
-                your prize money will be sent directly to your connected account. All data is securely stored 
-                and processed by Stripe, ensuring your financial information remains protected.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Payment Methods Tab */}
+            <TabsContent value="payments">
+              <PaymentMethods />
+            </TabsContent>
+
+            {/* Notification Settings Tab */}
+            <TabsContent value="notifications">
+              <NotificationSettings />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

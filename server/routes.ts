@@ -1414,6 +1414,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to set default payment method' });
     }
   });
+  
+  // Notification settings endpoints
+  
+  // Get notification settings
+  app.get('/api/notifications/settings', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+      // If the user has settings stored, return them
+      const user = await storage.getUser(req.user.id);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // If notifications settings exist, return them
+      if (user.notificationSettings) {
+        return res.json(JSON.parse(user.notificationSettings));
+      }
+      
+      // Default settings if none exist yet
+      const defaultSettings = {
+        weigh_in_reminders: true,
+        start_date_changes: true,
+        promotional_updates: true
+      };
+      
+      // Update the user with default settings
+      await storage.updateUser(req.user.id, {
+        notificationSettings: JSON.stringify(defaultSettings)
+      });
+      
+      res.json(defaultSettings);
+    } catch (error) {
+      console.error('Error retrieving notification settings:', error);
+      res.status(500).json({ error: 'Failed to retrieve notification settings' });
+    }
+  });
+  
+  // Update notification settings
+  app.put('/api/notifications/settings', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+      const settingsSchema = z.object({
+        weigh_in_reminders: z.boolean(),
+        start_date_changes: z.boolean(),
+        promotional_updates: z.boolean()
+      });
+      
+      // Validate the request data
+      const validatedSettings = settingsSchema.parse(req.body);
+      
+      // Update the user's notification settings
+      const updatedUser = await storage.updateUser(req.user.id, {
+        notificationSettings: JSON.stringify(validatedSettings)
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json(validatedSettings);
+    } catch (error) {
+      console.error('Error updating notification settings:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: 'Failed to update notification settings' });
+    }
+  });
 
   return httpServer;
 }

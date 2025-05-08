@@ -62,6 +62,7 @@ export const users = pgTable("users", {
   stripeConnectAccountId: text("stripe_connect_account_id"), // Stripe Connect Express account ID
   stripeConnectOnboardingComplete: boolean("stripe_connect_onboarding_complete").default(false), // Tracks onboarding status
   stripeCustomerId: text("stripe_customer_id"), // Regular Stripe customer ID
+  notificationSettings: text("notification_settings"), // JSON string of notification preferences
   createdAt: timestamp("created_at").defaultNow(),
   onboardingComplete: boolean("onboarding_complete").default(false), // Added to track if user has completed onboarding
 });
@@ -151,6 +152,7 @@ export const insertUserSchema = createInsertSchema(users)
     stripeConnectAccountId: z.string().optional(),
     stripeConnectOnboardingComplete: z.boolean().default(false).optional(),
     stripeCustomerId: z.string().optional(),
+    notificationSettings: z.string().optional(),
     createdAt: z.date().optional(),
     onboardingComplete: z.boolean().default(false).optional(),
   });
