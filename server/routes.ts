@@ -35,6 +35,9 @@ try {
   stripe = null;
 }
 
+// Platform fee percentage for Stripe Connect (35%)
+const PLATFORM_FEE_PERCENT = 35;
+
 // Payment session validation schema
 const createPaymentSessionSchema = z.object({
   challengeId: z.number(),

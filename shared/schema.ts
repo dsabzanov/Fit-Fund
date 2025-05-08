@@ -57,6 +57,9 @@ export const users = pgTable("users", {
   targetWeight: numeric("target_weight"),
   isHost: boolean("is_host").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
+  stripeConnectAccountId: text("stripe_connect_account_id"), // Stripe Connect Express account ID
+  stripeConnectOnboardingComplete: boolean("stripe_connect_onboarding_complete").default(false), // Tracks onboarding status
+  stripeCustomerId: text("stripe_customer_id"), // Regular Stripe customer ID
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -140,6 +143,9 @@ export const insertUserSchema = createInsertSchema(users)
     isAdmin: z.boolean().default(false).optional(),
     currentWeight: z.string().nullable().optional(),
     targetWeight: z.string().nullable().optional(),
+    stripeConnectAccountId: z.string().optional(),
+    stripeConnectOnboardingComplete: z.boolean().default(false).optional(),
+    stripeCustomerId: z.string().optional(),
     createdAt: z.date().optional(),
   });
 
