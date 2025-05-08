@@ -52,6 +52,8 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   email: text("email"),
   currentWeight: numeric("current_weight"),
   targetWeight: numeric("target_weight"),
@@ -61,6 +63,7 @@ export const users = pgTable("users", {
   stripeConnectOnboardingComplete: boolean("stripe_connect_onboarding_complete").default(false), // Tracks onboarding status
   stripeCustomerId: text("stripe_customer_id"), // Regular Stripe customer ID
   createdAt: timestamp("created_at").defaultNow(),
+  onboardingComplete: boolean("onboarding_complete").default(false), // Added to track if user has completed onboarding
 });
 
 // Challenges table
@@ -138,6 +141,8 @@ export const insertUserSchema = createInsertSchema(users)
     password: true,
   })
   .extend({
+    firstName: z.string().min(1, "First name is required").optional(),
+    lastName: z.string().min(1, "Last name is required").optional(),
     email: z.string().email("Invalid email address").nullable().optional(),
     isHost: z.boolean().default(false).optional(),
     isAdmin: z.boolean().default(false).optional(),
@@ -147,6 +152,7 @@ export const insertUserSchema = createInsertSchema(users)
     stripeConnectOnboardingComplete: z.boolean().default(false).optional(),
     stripeCustomerId: z.string().optional(),
     createdAt: z.date().optional(),
+    onboardingComplete: z.boolean().default(false).optional(),
   });
 
 export const insertChallengeSchema = createInsertSchema(challenges)

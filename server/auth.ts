@@ -109,9 +109,12 @@ export function setupAuth(app: Express) {
         password: hashedPassword,
         isAdmin: !!req.body.isAdmin,
         isHost: !!req.body.isHost,
+        firstName: req.body.firstName || null,
+        lastName: req.body.lastName || null,
         email: req.body.email || null,
         currentWeight: req.body.currentWeight || null,
         targetWeight: req.body.targetWeight || null,
+        onboardingComplete: false,
       };
 
       const user = await storage.createUser(userFields);
@@ -229,14 +232,22 @@ export function setupAuth(app: Express) {
         // If user doesn't exist, create a new account
         if (!user) {
           console.log('Creating new user from Google auth:', email);
+          // Try to extract first/last name from email (simple approach)
+          const emailParts = email.split('@')[0].split('.');
+          const possibleFirstName = emailParts[0] ? emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1) : null;
+          const possibleLastName = emailParts[1] ? emailParts[1].charAt(0).toUpperCase() + emailParts[1].slice(1) : null;
+          
           user = await storage.createUser({
             username: email,
             password: await hashPassword(uid + '_firebase_auth'), // Create a secure password
             isHost: false,
             isAdmin: false,
+            firstName: possibleFirstName,
+            lastName: possibleLastName,
             email: email,
             currentWeight: null,
             targetWeight: null,
+            onboardingComplete: false,
             createdAt: new Date()
           });
         } else {
