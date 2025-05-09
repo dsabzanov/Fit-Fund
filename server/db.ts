@@ -1,19 +1,26 @@
 
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 import pg from 'pg';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 
-// Create SQLite database file
-const sqlite = new Database('sqlite.db');
+neonConfig.webSocketConstructor = ws;
 
-// Create drizzle database instance
-export const db = drizzle(sqlite, { schema });
+// Check if DATABASE_URL is available
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is not set');
+}
 
-// Create PostgreSQL pool for session storage with fallback
-export const pgPool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/db'
+// Create PostgreSQL pool for all database operations
+export const pgPool = new Pool({ 
+  connectionString: process.env.DATABASE_URL
 });
 
-// Export as pool for compatibility with existing imports
+// Create drizzle database instance with PostgreSQL
+const client = postgres(process.env.DATABASE_URL);
+export const db = drizzle(client, { schema });
+
+// Export pgPool as pool for compatibility with existing imports
 export { pgPool as pool };
