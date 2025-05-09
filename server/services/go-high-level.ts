@@ -9,12 +9,23 @@ const GHL_BASE_URL = 'https://rest.gohighlevel.com/v1';
 // Determine if the API key is in JWT format or another format
 const useBearer = GHL_API_KEY && GHL_API_KEY.startsWith('eyJ');
 
-// Log API credential status
+// Check for token expiration in location ID
+const hasExpiredToken = GHL_LOCATION_ID && typeof GHL_LOCATION_ID === 'string' && 
+  (GHL_LOCATION_ID.includes('ExpiredToken') || GHL_LOCATION_ID.includes('<Error>'));
+
+// Set integration enabled flag - disable if there's evidence of expired token
+const GHL_INTEGRATION_ENABLED = !!(GHL_API_KEY && GHL_LOCATION_ID && !hasExpiredToken);
+
+// Log API credential status with minimal sensitive data exposure
 console.log('Go High Level integration status:');
 console.log('- API Key provided:', !!GHL_API_KEY);
 console.log('- Location ID provided:', !!GHL_LOCATION_ID);
-console.log('- Location ID value:', GHL_LOCATION_ID);
-console.log('- Using Bearer token format:', useBearer);
+console.log('- Integration enabled:', GHL_INTEGRATION_ENABLED);
+if (hasExpiredToken) {
+  console.error('- ERROR: Go High Level token is expired. Please refresh the API key.');
+} else if (!GHL_API_KEY || !GHL_LOCATION_ID) {
+  console.warn('- WARNING: Go High Level credentials missing. Email notifications will not work.');
+}
 
 /**
  * Helper function to create proper authorization headers
@@ -28,8 +39,8 @@ function getAuthHeaders(): Record<string, string> {
   }
   
   // Check if we have a token expiration error in the location ID
-  if (GHL_LOCATION_ID && GHL_LOCATION_ID.includes('ExpiredToken')) {
-    console.error('Go High Level token is expired. Please refresh the API key.');
+  if (!GHL_INTEGRATION_ENABLED) {
+    console.error('Go High Level integration is disabled - token may be expired');
     // Return minimal headers to avoid further API calls with expired token
     return {
       'Content-Type': 'application/json'
@@ -102,8 +113,8 @@ export async function createOrUpdateContact(
   user: User, 
   customTags: string[] = []
 ): Promise<string | null> {
-  if (!GHL_API_KEY || !GHL_LOCATION_ID) {
-    console.error('Cannot create contact: Go High Level credentials are not set');
+  if (!GHL_INTEGRATION_ENABLED) {
+    console.error('Cannot create contact: Go High Level integration is disabled');
     return null;
   }
 
