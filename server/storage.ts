@@ -793,5 +793,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Switch to DatabaseStorage for persistent storage across all routes
-export const storage = new DatabaseStorage();
+// Use MemStorage for simplicity, as we're having issues with the DatabaseStorage
+export const storage = new MemStorage();
