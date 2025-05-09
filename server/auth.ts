@@ -123,18 +123,24 @@ export function setupAuth(app: Express) {
       console.log('User registered successfully:', user.id);
       
       // Add user to Go High Level with Fitfund_Customer tag
-      const GHL_API_KEY = process.env.GO_HIGH_LEVEL_API_KEY;
-      const GHL_LOCATION_ID = process.env.GO_HIGH_LEVEL_LOCATION_ID;
-      
-      if (GHL_API_KEY && GHL_LOCATION_ID && user.email) {
+      if (user.email) {
         try {
           console.log('Adding new user to Go High Level with Fitfund_Customer tag:', user.email);
-          await createOrUpdateContact(user, ['Fitfund_Customer']);
-          console.log('Successfully added user to Go High Level');
+          
+          // The createOrUpdateContact function will handle checking for API keys internally
+          const contactId = await createOrUpdateContact(user, ['Fitfund_Customer']);
+          
+          if (contactId) {
+            console.log('Successfully added user to Go High Level with contactId:', contactId);
+          } else {
+            console.log('Go High Level integration skipped or unsuccessful - continuing with registration');
+          }
         } catch (ghlError) {
           console.error('Error adding user to Go High Level:', ghlError);
           // Continue with login even if GHL integration fails
         }
+      } else {
+        console.log('Skipping Go High Level integration - no email provided');
       }
       
       req.login(user, (err) => {
@@ -269,18 +275,20 @@ export function setupAuth(app: Express) {
           });
           
           // Add Google-login user to Go High Level with Fitfund_Customer tag
-          const GHL_API_KEY = process.env.GO_HIGH_LEVEL_API_KEY;
-          const GHL_LOCATION_ID = process.env.GO_HIGH_LEVEL_LOCATION_ID;
-          
-          if (GHL_API_KEY && GHL_LOCATION_ID) {
-            try {
-              console.log('Adding new Google user to Go High Level with Fitfund_Customer tag:', email);
-              await createOrUpdateContact(user, ['Fitfund_Customer']);
-              console.log('Successfully added Google user to Go High Level');
-            } catch (ghlError) {
-              console.error('Error adding Google user to Go High Level:', ghlError);
-              // Continue with login even if GHL integration fails
+          try {
+            console.log('Adding new Google user to Go High Level with Fitfund_Customer tag:', email);
+            
+            // The createOrUpdateContact function will handle checking for API keys
+            const contactId = await createOrUpdateContact(user, ['Fitfund_Customer']);
+            
+            if (contactId) {
+              console.log('Successfully added Google user to Go High Level with contactId:', contactId);
+            } else {
+              console.log('Go High Level integration skipped or unsuccessful - continuing with Google login');
             }
+          } catch (ghlError) {
+            console.error('Error adding Google user to Go High Level:', ghlError);
+            // Continue with login even if GHL integration fails
           }
         } else {
           console.log('Existing user found for Google auth:', email);

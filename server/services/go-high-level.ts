@@ -20,9 +20,21 @@ console.log('- Using Bearer token format:', useBearer);
  * Helper function to create proper authorization headers
  */
 function getAuthHeaders(): Record<string, string> {
-  if (!GHL_API_KEY) return {
-    'Content-Type': 'application/json'
-  };
+  if (!GHL_API_KEY) {
+    console.log('Go High Level API key missing, returning minimal headers');
+    return {
+      'Content-Type': 'application/json'
+    };
+  }
+  
+  // Check if we have a token expiration error in the location ID
+  if (GHL_LOCATION_ID && GHL_LOCATION_ID.includes('ExpiredToken')) {
+    console.error('Go High Level token is expired. Please refresh the API key.');
+    // Return minimal headers to avoid further API calls with expired token
+    return {
+      'Content-Type': 'application/json'
+    };
+  }
   
   return {
     'Authorization': useBearer ? `Bearer ${GHL_API_KEY}` : GHL_API_KEY,
