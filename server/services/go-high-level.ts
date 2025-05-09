@@ -4,7 +4,7 @@ import { User } from '@shared/schema';
 // Go High Level API Constants
 const GHL_API_KEY = process.env.GO_HIGH_LEVEL_API_KEY;
 const GHL_LOCATION_ID = process.env.GO_HIGH_LEVEL_LOCATION_ID;
-const GHL_BASE_URL = 'https://services.leadconnectorhq.com';
+const GHL_BASE_URL = 'https://rest.gohighlevel.com/v1';
 
 // Error handling
 if (!GHL_API_KEY || !GHL_LOCATION_ID) {
@@ -70,15 +70,22 @@ export async function createOrUpdateContact(
   }
 
   try {
-    // Ensure CUSTOMER_TAG is always included in tags
-    const tags = [...new Set([CUSTOMER_TAG, ...customTags])];
+    // Ensure CUSTOMER_TAG is always included in tags with no duplicates
+    const uniqueTags = [CUSTOMER_TAG];
+    
+    // Add the custom tags, avoiding duplicates
+    customTags.forEach(tag => {
+      if (tag !== CUSTOMER_TAG && !uniqueTags.includes(tag)) {
+        uniqueTags.push(tag);
+      }
+    });
     
     // Prepare contact data
     const contact: GHLContact = {
       email: user.email || '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
-      tags: tags,
+      tags: uniqueTags,
       customFields: [
         { 
           key: 'username', 
@@ -92,14 +99,19 @@ export async function createOrUpdateContact(
     };
 
     // Check if contact exists by email
+    console.log(`Searching for contact with email: ${user.email}`);
+    console.log(`Using GHL location ID: ${GHL_LOCATION_ID}`);
+    console.log(`Using endpoint: ${GHL_BASE_URL}/contacts/search?email=${encodeURIComponent(user.email || '')}`);
+    
     const searchResponse = await fetch(
-      `${GHL_BASE_URL}/locations/${GHL_LOCATION_ID}/contacts/search?email=${encodeURIComponent(user.email || '')}`,
+      `${GHL_BASE_URL}/contacts/search?email=${encodeURIComponent(user.email || '')}`,
       {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${GHL_API_KEY}`,
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Version': '2021-04-15'
         }
       }
     );
