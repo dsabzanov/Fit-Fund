@@ -793,5 +793,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Use MemStorage until PostgreSQL is properly configured
-export const storage = new MemStorage();
+// Switch to DatabaseStorage for persistent storage across all routes
+export const storage = new DatabaseStorage();
