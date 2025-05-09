@@ -149,8 +149,6 @@ export async function createOrUpdateContact(
 
     // Check if contact exists by email
     console.log(`Searching for contact with email: ${user.email}`);
-    console.log(`Using GHL location ID: ${GHL_LOCATION_ID}`);
-    console.log(`Using endpoint: ${GHL_BASE_URL}/contacts/search?email=${encodeURIComponent(user.email || '')}`);
     
     const searchResponse = await fetch(
       `${GHL_BASE_URL}/contacts/search?email=${encodeURIComponent(user.email || '')}`,
@@ -222,8 +220,8 @@ export async function sendNotification(
   type: NotificationType,
   data: Record<string, any> = {}
 ): Promise<boolean> {
-  if (!GHL_API_KEY || !GHL_LOCATION_ID) {
-    console.error('Cannot send notification: Go High Level credentials are not set');
+  if (!GHL_INTEGRATION_ENABLED) {
+    console.error('Cannot send notification: Go High Level integration is disabled');
     return false;
   }
   
