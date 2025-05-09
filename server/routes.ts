@@ -1480,6 +1480,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'User not found' });
       }
       
+      // Sync with Go High Level to ensure contact is up to date
+      if (GHL_API_KEY && GHL_LOCATION_ID) {
+        await createOrUpdateContact(updatedUser);
+      }
+      
       res.json(validatedSettings);
     } catch (error) {
       console.error('Error updating notification settings:', error);
