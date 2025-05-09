@@ -6,11 +6,31 @@ const GHL_API_KEY = process.env.GO_HIGH_LEVEL_API_KEY;
 const GHL_LOCATION_ID = process.env.GO_HIGH_LEVEL_LOCATION_ID;
 const GHL_BASE_URL = 'https://rest.gohighlevel.com/v1';
 
+// Determine if the API key is in JWT format or another format
+const useBearer = GHL_API_KEY && GHL_API_KEY.startsWith('eyJ');
+
 // Log API credential status
 console.log('Go High Level integration status:');
 console.log('- API Key provided:', !!GHL_API_KEY);
 console.log('- Location ID provided:', !!GHL_LOCATION_ID);
 console.log('- Location ID value:', GHL_LOCATION_ID);
+console.log('- Using Bearer token format:', useBearer);
+
+/**
+ * Helper function to create proper authorization headers
+ */
+function getAuthHeaders(): Record<string, string> {
+  if (!GHL_API_KEY) return {
+    'Content-Type': 'application/json'
+  };
+  
+  return {
+    'Authorization': useBearer ? `Bearer ${GHL_API_KEY}` : GHL_API_KEY,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Version': '2021-04-15'
+  };
+}
 
 // Error handling
 if (!GHL_API_KEY || !GHL_LOCATION_ID) {
@@ -113,12 +133,7 @@ export async function createOrUpdateContact(
       `${GHL_BASE_URL}/contacts/search?email=${encodeURIComponent(user.email || '')}`,
       {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${GHL_API_KEY}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Version': '2021-04-15'
-        }
+        headers: getAuthHeaders()
       }
     );
     
@@ -133,11 +148,7 @@ export async function createOrUpdateContact(
         `${GHL_BASE_URL}/contacts/${contactId}`,
         {
           method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${GHL_API_KEY}`,
-            'Content-Type': 'application/json',
-            'Version': '2021-04-15'
-          },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             ...contact,
             locationId: GHL_LOCATION_ID
@@ -156,11 +167,7 @@ export async function createOrUpdateContact(
         `${GHL_BASE_URL}/contacts`,
         {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GHL_API_KEY}`,
-            'Content-Type': 'application/json',
-            'Version': '2021-04-15'
-          },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             ...contact,
             locationId: GHL_LOCATION_ID  // Including location ID in the body instead
@@ -259,11 +266,7 @@ export async function sendNotification(
       `${GHL_BASE_URL}/emails`,
       {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${GHL_API_KEY}`,
-          'Content-Type': 'application/json',
-          'Version': '2021-04-15'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           subject,
           body,
