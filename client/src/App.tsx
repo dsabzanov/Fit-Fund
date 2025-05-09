@@ -16,6 +16,8 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminSetup from "@/pages/admin-setup";
 import ProfilePage from "@/pages/profile-page";
 import EditProfilePage from "@/pages/edit-profile-page";
+import TermsOfServicePage from "@/pages/terms-of-service";
+import PrivacyPolicyPage from "@/pages/privacy-policy";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AdminRoute } from "./lib/admin-route";
 import WeightTrackingPage from "@/pages/weight-tracking-page";
@@ -37,6 +39,8 @@ function Router() {
       <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/meet-your-coach" component={MeetYourCoachPage} />
+      <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route component={NotFound} />
     </Switch>
   );
