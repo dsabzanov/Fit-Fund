@@ -23,6 +23,10 @@ import Stripe from "stripe";
 import { NotificationType, sendNotification, createOrUpdateContact } from "./services/go-high-level";
 import * as PaymentMethods from "./services/payment-methods";
 
+// Go High Level API credentials
+const GHL_API_KEY = process.env.GO_HIGH_LEVEL_API_KEY;
+const GHL_LOCATION_ID = process.env.GO_HIGH_LEVEL_LOCATION_ID;
+
 // Initialize Stripe with error handling
 let stripe: Stripe | null = null;
 try {

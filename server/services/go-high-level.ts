@@ -57,20 +57,28 @@ export enum NotificationType {
 
 /**
  * Create or update a contact in Go High Level
+ * @param user The user to create or update
+ * @param tags Optional array of tags to apply to the contact, default includes CUSTOMER_TAG
  */
-export async function createOrUpdateContact(user: User): Promise<string | null> {
+export async function createOrUpdateContact(
+  user: User, 
+  customTags: string[] = []
+): Promise<string | null> {
   if (!GHL_API_KEY || !GHL_LOCATION_ID) {
     console.error('Cannot create contact: Go High Level credentials are not set');
     return null;
   }
 
   try {
+    // Ensure CUSTOMER_TAG is always included in tags
+    const tags = [...new Set([CUSTOMER_TAG, ...customTags])];
+    
     // Prepare contact data
     const contact: GHLContact = {
       email: user.email || '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
-      tags: [CUSTOMER_TAG],
+      tags: tags,
       customFields: [
         { 
           key: 'username', 
