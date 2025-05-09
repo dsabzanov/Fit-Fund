@@ -6,6 +6,12 @@ const GHL_API_KEY = process.env.GO_HIGH_LEVEL_API_KEY;
 const GHL_LOCATION_ID = process.env.GO_HIGH_LEVEL_LOCATION_ID;
 const GHL_BASE_URL = 'https://rest.gohighlevel.com/v1';
 
+// Log API credential status
+console.log('Go High Level integration status:');
+console.log('- API Key provided:', !!GHL_API_KEY);
+console.log('- Location ID provided:', !!GHL_LOCATION_ID);
+console.log('- Location ID value:', GHL_LOCATION_ID);
+
 // Error handling
 if (!GHL_API_KEY || !GHL_LOCATION_ID) {
   console.error('Go High Level credentials are not set. Email notifications will not work.');
@@ -121,16 +127,21 @@ export async function createOrUpdateContact(
     if (searchResult && Array.isArray(searchResult.contacts) && searchResult.contacts.length > 0) {
       // Update existing contact
       const contactId = searchResult.contacts[0].id;
+      console.log(`Updating existing contact: ${contactId} for email: ${user.email}`);
       
       await fetch(
-        `${GHL_BASE_URL}/locations/${GHL_LOCATION_ID}/contacts/${contactId}`,
+        `${GHL_BASE_URL}/contacts/${contactId}`,
         {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${GHL_API_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Version': '2021-04-15'
           },
-          body: JSON.stringify(contact)
+          body: JSON.stringify({
+            ...contact,
+            locationId: GHL_LOCATION_ID
+          })
         }
       );
       
@@ -138,15 +149,22 @@ export async function createOrUpdateContact(
       return contactId;
     } else {
       // Create new contact
+      console.log(`Creating new contact for: ${user.email}`);
+      console.log(`Contact data:`, JSON.stringify({...contact, locationId: GHL_LOCATION_ID}));
+      
       const createResponse = await fetch(
-        `${GHL_BASE_URL}/locations/${GHL_LOCATION_ID}/contacts`,
+        `${GHL_BASE_URL}/contacts`,
         {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${GHL_API_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Version': '2021-04-15'
           },
-          body: JSON.stringify(contact)
+          body: JSON.stringify({
+            ...contact,
+            locationId: GHL_LOCATION_ID  // Including location ID in the body instead
+          })
         }
       );
       
@@ -235,17 +253,22 @@ export async function sendNotification(
     }
     
     // Send the email through Go High Level
+    console.log(`Sending email to contact ${contactId} with subject: ${subject}`);
+    
     const emailResponse = await fetch(
-      `${GHL_BASE_URL}/locations/${GHL_LOCATION_ID}/contacts/${contactId}/emails`,
+      `${GHL_BASE_URL}/emails`,
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${GHL_API_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Version': '2021-04-15'
         },
         body: JSON.stringify({
           subject,
           body,
+          contactId,
+          locationId: GHL_LOCATION_ID,
           to: [user.email]
         })
       }
